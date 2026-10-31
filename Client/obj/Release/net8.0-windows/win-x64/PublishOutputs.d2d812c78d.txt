@@ -1,0 +1,7 @@
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\RWORM.pdb
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\D3DCompiler_47_cor3.dll
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\PenImc_cor3.dll
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\PresentationNative_cor3.dll
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\vcruntime140_cor3.dll
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\wpfgfx_cor3.dll
+C:\Users\ISM\AppData\Local\Temp\opencode\client_out\RWORM.exe

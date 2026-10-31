@@ -1,0 +1,8 @@
+rworm.png
+server/listener.log
+server/repro.err.log
+server/repro.log
+GUI/bin/
+docs/
+Client/bin/
+build/client/

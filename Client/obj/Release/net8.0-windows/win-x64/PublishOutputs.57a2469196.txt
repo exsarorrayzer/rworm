@@ -1,0 +1,7 @@
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\RWORM.pdb
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\D3DCompiler_47_cor3.dll
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\PenImc_cor3.dll
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\PresentationNative_cor3.dll
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\vcruntime140_cor3.dll
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\wpfgfx_cor3.dll
+C:\Users\ISM\GENERAL\workspaces\RWORM\output\RWORM.exe
