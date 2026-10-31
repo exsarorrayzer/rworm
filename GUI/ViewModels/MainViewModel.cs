@@ -145,20 +145,20 @@ namespace RWORM.GUI.ViewModels
             StopListenerCommand   = new RelayCommand(_ => StopListener(),  _ => ListenerRunning);
             BuildCommand          = new RelayCommand(_ => BuildClient());
 
-            bool HasClient(object? p) => IsConnected;
-            OpenShellCommand          = new RelayCommand(p => OpenShell(p as ClientModel),          HasClient);
-            OpenFileManagerCommand    = new RelayCommand(p => OpenFileManager(p as ClientModel),    HasClient);
-            OpenKeyloggerCommand      = new RelayCommand(p => OpenKeylogger(p as ClientModel),      HasClient);
-            OpenProcManagerCommand    = new RelayCommand(p => OpenProcManager(p as ClientModel),    HasClient);
-            OpenRegistryEditorCommand = new RelayCommand(p => OpenRegistryEditor(p as ClientModel), HasClient);
-            OpenRemoteDesktopCommand  = new RelayCommand(p => OpenRemoteDesktop(p as ClientModel),  HasClient);
-            LoaderExecCommand         = new RelayCommand(p => PromptLoaderExec(p as ClientModel),   HasClient);
-            LoaderExecFileCommand     = new RelayCommand(p => PromptLoaderExecFile(p as ClientModel), HasClient);
-            ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel),        HasClient);
-            ClientUninstallCommand    = new RelayCommand(p => ConfirmUninstall(p as ClientModel),    HasClient);
-            ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel),        HasClient);
-            SendToAllCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync(), _ => IsConnected);
-            SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync(), _ => IsConnected);
+            // Context commands unconditionally return CanExecute=true so WPF never disables menu items
+            OpenShellCommand          = new RelayCommand(p => OpenShell(p as ClientModel));
+            OpenFileManagerCommand    = new RelayCommand(p => OpenFileManager(p as ClientModel));
+            OpenKeyloggerCommand      = new RelayCommand(p => OpenKeylogger(p as ClientModel));
+            OpenProcManagerCommand    = new RelayCommand(p => OpenProcManager(p as ClientModel));
+            OpenRegistryEditorCommand = new RelayCommand(p => OpenRegistryEditor(p as ClientModel));
+            OpenRemoteDesktopCommand  = new RelayCommand(p => OpenRemoteDesktop(p as ClientModel));
+            LoaderExecCommand         = new RelayCommand(p => PromptLoaderExec(p as ClientModel));
+            LoaderExecFileCommand     = new RelayCommand(p => PromptLoaderExecFile(p as ClientModel));
+            ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel));
+            ClientUninstallCommand    = new RelayCommand(p => ConfirmUninstall(p as ClientModel));
+            ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel));
+            SendToAllCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
+            SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
 
             // Tasks
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
