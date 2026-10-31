@@ -155,6 +155,63 @@ namespace RWORM.GUI
             _isMouseDown = false;
         }
 
+        private void ClientsGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var dep = e.OriginalSource as DependencyObject;
+            var row = FindVisualParent<DataGridRow>(dep);
+            if (row != null && row.Item is ClientModel client)
+            {
+                if (!ClientsGrid.SelectedItems.Contains(client))
+                {
+                    ClientsGrid.SelectedItems.Clear();
+                    row.IsSelected = true;
+                    ClientsGrid.SelectedItem = client;
+                    _vm.SelectedClient = client;
+                    _vm.SelectedClients.Clear();
+                    _vm.SelectedClients.Add(client);
+                }
+                else
+                {
+                    _vm.SelectedClient = client;
+                }
+            }
+            if (ClientsGrid.ContextMenu != null)
+            {
+                ClientsGrid.ContextMenu.DataContext = _vm;
+            }
+            _vm.SnapshotContextMenu();
+        }
+
+        private void ClientsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (ClientsGrid.ContextMenu != null)
+            {
+                ClientsGrid.ContextMenu.DataContext = _vm;
+            }
+            _vm.SnapshotContextMenu();
+        }
+
+        private void ClientsContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+            if (ClientsGrid.ContextMenu != null)
+            {
+                ClientsGrid.ContextMenu.DataContext = _vm;
+            }
+            _vm.SnapshotContextMenu();
+        }
+
+        private void QuickCommandTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (_vm.SendQuickCommand.CanExecute(null))
+                {
+                    _vm.SendQuickCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
+        }
+
         private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
         {
             while (child != null)
