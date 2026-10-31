@@ -6,3 +6,5 @@ GUI/bin/
 docs/
 Client/bin/
 build/client/
+__pycache__/
+*.py[cod]
