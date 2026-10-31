@@ -23,7 +23,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="36"/>
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
         <!-- Sidebar -->
@@ -212,6 +212,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0" Margin="0,0,0,16">
@@ -237,13 +238,15 @@
                                   PreviewMouseLeftButtonDown="ClientsGrid_PreviewMouseLeftButtonDown"
                                   PreviewMouseMove="ClientsGrid_PreviewMouseMove"
                                   PreviewMouseLeftButtonUp="ClientsGrid_PreviewMouseLeftButtonUp"
+                                  PreviewMouseRightButtonDown="ClientsGrid_PreviewMouseRightButtonDown"
+                                  ContextMenuOpening="ClientsGrid_ContextMenuOpening"
                                   LostMouseCapture="ClientsGrid_LostMouseCapture">
 
                         <!-- ── Right-click context menu ─────────────────────── -->
                         <DataGrid.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu x:Name="ClientsContextMenu" Opened="ClientsContextMenu_Opened">
                                 <!-- Shell -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenShellCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenShellCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -253,7 +256,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- File Manager -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenFileManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenFileManagerCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -263,7 +266,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Keylogger -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenKeyloggerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenKeyloggerCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -273,7 +276,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Process Manager -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenProcManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenProcManagerCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -283,7 +286,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Registry Editor -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenRegistryEditorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenRegistryEditorCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -293,7 +296,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Remote Desktop -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenRemoteDesktopCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding OpenRemoteDesktopCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -308,15 +311,15 @@
                                         <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15"/>
                                     </MenuItem.Icon>
                                     <MenuItem Header="Execute from URL..."
-                                              Command="{Binding PlacementTarget.DataContext.LoaderExecCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Command="{Binding LoaderExecCommand}"
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <MenuItem Header="Execute from Local File..."
-                                              Command="{Binding PlacementTarget.DataContext.LoaderExecFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              Command="{Binding LoaderExecFileCommand}"
                                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 </MenuItem>
                                 <Separator/>
                                 <!-- Close -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientCloseCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding ClientCloseCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -326,7 +329,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Uninstall -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientUninstallCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding ClientUninstallCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -336,7 +339,7 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Update -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientUpdateCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                <MenuItem Command="{Binding ClientUpdateCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal">
@@ -408,6 +411,40 @@
                                    StrokeThickness="1"
                                    Visibility="Collapsed"/>
                     </Canvas>
+                </Grid>
+            </Border>
+
+            <!-- Dedicated Quick Command Bar for Clients -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,14,0,0" Padding="16,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="⚡ Quick Command:" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBox Grid.Column="1"
+                             Text="{Binding QuickCommandText, UpdateSourceTrigger=PropertyChanged}"
+                             Height="38" FontSize="13"
+                             Padding="12,8"
+                             VerticalContentAlignment="Center"
+                             Background="#F8FAFC"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             BorderThickness="1"
+                             KeyDown="QuickCommandTextBox_KeyDown"
+                             ToolTip="Type a command and press Enter (or click Send) to run on selected client(s)"/>
+
+                    <Button Grid.Column="2"
+                            Content="📢 Send to Selected"
+                            Command="{Binding SendQuickCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Height="38" Padding="20,0" Margin="12,0,0,0"
+                            FontSize="12" FontWeight="SemiBold"/>
                 </Grid>
             </Border>
 
@@ -701,15 +738,7 @@
                                Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <!-- Multi-select send button -->
-                    <Button Content="📢 Send to Selected"
-                            Command="{Binding SendToAllCommand}"
-                            Style="{StaticResource PrimaryButton}"
-                            Height="28" Padding="12,0" Margin="0,0,16,0"
-                            FontSize="11"
-                            Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Clients}"/>
-
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="{Binding ClientCount, StringFormat='Clients: {0}'}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}"
                                VerticalAlignment="Center"/>

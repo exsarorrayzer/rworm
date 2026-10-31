@@ -1,37 +1,86 @@
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace RWORM.GUI.Models
 {
-    public class ClientModel
+    public class ClientModel : INotifyPropertyChanged
     {
+        private string _id = string.Empty;
+        private string _guid = string.Empty;
+        private string _hostname = string.Empty;
+        private string _username = string.Empty;
+        private string _osVersion = string.Empty;
+        private string _ipAddress = string.Empty;
+        private string _countryCode = "??";
+        private string _flag = "🌐";
+        private bool _isOnline;
+        private DateTime? _lastSeen;
+        private DateTime? _createdAt;
+
         [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
+        public string Id
+        {
+            get => _id;
+            set { _id = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("guid")]
-        public string Guid { get; set; } = string.Empty;
+        public string Guid
+        {
+            get => _guid;
+            set { _guid = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("hostname")]
-        public string Hostname { get; set; } = string.Empty;
+        public string Hostname
+        {
+            get => _hostname;
+            set { _hostname = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("username")]
-        public string Username { get; set; } = string.Empty;
+        public string Username
+        {
+            get => _username;
+            set { _username = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("os_version")]
-        public string OSVersion { get; set; } = string.Empty;
+        public string OSVersion
+        {
+            get => _osVersion;
+            set { _osVersion = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("ip_address")]
-        public string IpAddress { get; set; } = string.Empty;
+        public string IpAddress
+        {
+            get => _ipAddress;
+            set { _ipAddress = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("country_code")]
-        public string CountryCode { get; set; } = "??";
+        public string CountryCode
+        {
+            get => _countryCode;
+            set
+            {
+                _countryCode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(FlagImagePath));
+            }
+        }
 
         [JsonPropertyName("flag")]
-        public string Flag { get; set; } = "🌐";
+        public string Flag
+        {
+            get => _flag;
+            set { _flag = value; OnPropertyChanged(); }
+        }
 
-        // Local flag PNG rendered from the bundled SVGs (Resources/Flags).
-        // null for unknown/local codes → the cell falls back to the code text.
         [System.Text.Json.Serialization.JsonIgnore]
         public string? FlagImagePath => ResolveFlagPath(CountryCode);
 
@@ -49,12 +98,28 @@ namespace RWORM.GUI.Models
         }
 
         [JsonPropertyName("is_online")]
-        public bool IsOnline { get; set; }
+        public bool IsOnline
+        {
+            get => _isOnline;
+            set { _isOnline = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("last_seen")]
-        public DateTime? LastSeen { get; set; }
+        public DateTime? LastSeen
+        {
+            get => _lastSeen;
+            set { _lastSeen = value; OnPropertyChanged(); }
+        }
 
         [JsonPropertyName("created_at")]
-        public DateTime? CreatedAt { get; set; }
+        public DateTime? CreatedAt
+        {
+            get => _createdAt;
+            set { _createdAt = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? n = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 }
