@@ -38,7 +38,7 @@
 
                 <!-- Logo -->
                 <StackPanel Grid.Row="0" Margin="20,20,20,30">
-                    <Image Source="pack://application:,,,/Resources/Assets/rworm.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20"/>
+                    <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20"/>
                 </StackPanel>
 
                 <!-- Navigation -->
@@ -641,7 +641,7 @@
             <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Credits}">
                 <Border Style="{StaticResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <StackPanel HorizontalAlignment="Center">
-                        <Image Source="pack://application:,,,/Resources/Assets/rworm.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20"/>
                         <TextBlock Text="RWORM" FontSize="32" FontWeight="Bold"
                                    Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
                         <TextBlock Text="Remote Access Tool" FontSize="14"
