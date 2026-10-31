@@ -247,42 +247,96 @@
                                     </MenuItem.Header>
                                 </MenuItem>
                                 <!-- File Manager -->
-                                <MenuItem Header="📁  File Manager"
-                                          Command="{Binding PlacementTarget.DataContext.OpenFileManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenFileManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="File Manager" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Keylogger -->
-                                <MenuItem Header="⌨️  Keylogger"
-                                          Command="{Binding PlacementTarget.DataContext.OpenKeyloggerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenKeyloggerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/keylogger.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Keylogger" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Process Manager -->
-                                <MenuItem Header="⚙️  Process Manager"
-                                          Command="{Binding PlacementTarget.DataContext.OpenProcManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenProcManagerCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/processmanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Process Manager" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Registry Editor -->
-                                <MenuItem Header="🗝️  Registry Editor"
-                                          Command="{Binding PlacementTarget.DataContext.OpenRegistryEditorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenRegistryEditorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/registryeditor.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Registry Editor" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Remote Desktop -->
-                                <MenuItem Header="🖥️  Remote Desktop"
-                                          Command="{Binding PlacementTarget.DataContext.OpenRemoteDesktopCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.OpenRemoteDesktopCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/remotedesktop.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Remote Desktop" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Loader -->
-                                <MenuItem Header="🚀  Loader (Execute URL)"
-                                          Command="{Binding PlacementTarget.DataContext.LoaderExecCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.LoaderExecCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Loader (Execute URL)" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <Separator/>
                                 <!-- Close -->
-                                <MenuItem Header="⏹  Close Client"
-                                          Command="{Binding PlacementTarget.DataContext.ClientCloseCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientCloseCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Close Client" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Uninstall -->
-                                <MenuItem Header="🗑  Uninstall"
-                                          Command="{Binding PlacementTarget.DataContext.ClientUninstallCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientUninstallCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/uninstall.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Uninstall" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Update -->
-                                <MenuItem Header="🔄  Update Client"
-                                          Command="{Binding PlacementTarget.DataContext.ClientUpdateCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.ClientUpdateCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/update.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Update Client" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
 
