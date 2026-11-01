@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -915,17 +915,25 @@ namespace RWORM.GUI.ViewModels
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             void Show()
             {
-                if (_builderWindow == null || !_builderWindow.IsLoaded)
+                try
                 {
-                    _builderWindow = new Views.BuilderWindow(this);
-                    _builderWindow.Closed += (s, e) => _builderWindow = null;
-                    _builderWindow.Show();
+                    if (_builderWindow == null || !_builderWindow.IsLoaded)
+                    {
+                        _builderWindow = new Views.BuilderWindow(this);
+                        _builderWindow.Closed += (s, e) => _builderWindow = null;
+                        _builderWindow.Show();
+                    }
+                    else
+                    {
+                        if (_builderWindow.WindowState == System.Windows.WindowState.Minimized)
+                            _builderWindow.WindowState = System.Windows.WindowState.Normal;
+                        _builderWindow.Activate();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    if (_builderWindow.WindowState == System.Windows.WindowState.Minimized)
-                        _builderWindow.WindowState = System.Windows.WindowState.Normal;
-                    _builderWindow.Activate();
+                    System.Diagnostics.Debug.WriteLine($"[BuilderWindow Error]: {ex}");
+                    System.Windows.MessageBox.Show($"Failed to open Builder window:\n{ex.Message}", "Builder Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 }
             }
 
