@@ -571,11 +571,12 @@
             <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Tasks}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid Grid.Row="0" Margin="0,0,0,12">
                     <TextBlock Text="Tasks" FontSize="24" FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -590,8 +591,50 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Tasks Discord Webhook Alert Bar -->
+                <Border Grid.Row="1" Background="#161B22" BorderBrush="#30363D" BorderThickness="1"
+                        CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                            <TextBlock Text="🔔" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <CheckBox Content="Discord Webhook Alerts" IsChecked="{Binding TaskDiscordAlert}"
+                                      Foreground="#E6EDF3" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Cursor="Hand"/>
+                        </StackPanel>
+
+                        <Grid Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding TaskDiscordAlert}">
+                            <TextBox Style="{StaticResource ModernTextBox}" Height="32" Padding="8,4"
+                                     Text="{Binding TaskDiscordWebhook, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Enter Discord Webhook URL for real-time task dispatch alerts"/>
+                            <TextBlock Text="Paste Discord Webhook URL here (https://discord.com/api/webhooks/...)"
+                                       Foreground="#6E7681" FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center"
+                                       IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TaskDiscordWebhook}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <Button Grid.Column="2" Content="⚡ Test Webhook" Command="{Binding TestTaskDiscordWebhookCommand}"
+                                Style="{StaticResource PrimaryButton}" Height="32" Padding="12,0" Margin="10,0,0,0"
+                                IsEnabled="{Binding TaskDiscordAlert}"/>
+                    </Grid>
+                </Border>
+
                 <!-- Task list -->
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
+                <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
                     <DataGrid ItemsSource="{Binding Tasks}"
                               SelectedItem="{Binding SelectedTask}"
                               AutoGenerateColumns="False"

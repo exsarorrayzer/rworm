@@ -347,6 +347,18 @@
 
                                 <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Anti-Kill Protection:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildAntiKill, StringFormat='Active: {0}'}" Foreground="#E6EDF3"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Discord Alert:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildDiscordAlert, StringFormat='Active: {0}'}" Foreground="#E6EDF3"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Keylogger Module:" Foreground="#8B949E"/>
                                     <TextBlock Grid.Column="1" Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}" Foreground="#E6EDF3"/>
                                 </Grid>

