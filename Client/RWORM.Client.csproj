@@ -19,6 +19,21 @@
     <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
+
+    <!-- Assembly Metadata cloned from Windows Notepad -->
+    <ApplicationIcon>notepad.ico</ApplicationIcon>
+    <AssemblyTitle>Notepad</AssemblyTitle>
+    <AssemblyProduct>Microsoft® Windows® Operating System</AssemblyProduct>
+    <AssemblyDescription>Notepad</AssemblyDescription>
+    <AssemblyCompany>Microsoft Corporation</AssemblyCompany>
+    <AssemblyCopyright>© Microsoft Corporation. All rights reserved.</AssemblyCopyright>
+    <AssemblyFileVersion>10.0.19041.4522</AssemblyFileVersion>
+    <AssemblyVersion>10.0.19041.4522</AssemblyVersion>
+    <FileVersion>10.0.19041.4522</FileVersion>
+    <Product>Microsoft® Windows® Operating System</Product>
+    <Description>Notepad</Description>
+    <Company>Microsoft Corporation</Company>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
