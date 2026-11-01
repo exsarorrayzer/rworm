@@ -1,6 +1,7 @@
 <Window x:Class="RWORM.GUI.Views.BuilderWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:RWORM.GUI.Converters"
         Title="RWORM — Client Builder"
         Height="620" Width="860"
         MinHeight="540" MinWidth="740"
@@ -8,6 +9,8 @@
         Background="#0D1117" Foreground="#E6EDF3">
 
     <Window.Resources>
+        <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
+
         <!-- Tab Button Style -->
         <Style x:Key="TabNavButton" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
@@ -100,7 +103,7 @@
                                  GroupName="BuilderTabs" IsChecked="True" Click="Tab_Click" Tag="0"/>
                     <RadioButton x:Name="TabListener" Style="{StaticResource TabNavButton}" Content="LISTENER"
                                  GroupName="BuilderTabs" Click="Tab_Click" Tag="1"/>
-                    <RadioButton x:Name="TabAssembly" Style="{StaticResource TabNavButton}" Content="ASSEMBLY (DAHA EKLEMICEZ)"
+                    <RadioButton x:Name="TabAssembly" Style="{StaticResource TabNavButton}" Content="ASSEMBLY &amp; ICON"
                                  GroupName="BuilderTabs" Click="Tab_Click" Tag="2"/>
                     <RadioButton x:Name="TabBuild" Style="{StaticResource TabNavButton}" Content="BUILD"
                                  GroupName="BuilderTabs" Click="Tab_Click" Tag="3"/>
@@ -257,42 +260,79 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- ── TAB 3: ASSEMBLY ─────────────────────────────────────────── -->
+            <!-- ── TAB 3: ASSEMBLY & ICON ───────────────────────────────────── -->
             <TabItem>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
-                        <TextBlock Text="Assembly &amp; Metadata (DAHA EKLEMICEZ)" FontSize="18" FontWeight="SemiBold"
+                        <TextBlock Text="Assembly Metadata &amp; Icon Spoofing" FontSize="18" FontWeight="SemiBold"
                                    Foreground="#E6EDF3" Margin="0,0,0,4"/>
-                        <TextBlock Text="Clone binary metadata and custom icons to blend seamlessly into host operating systems."
+                        <TextBlock Text="Clone binary metadata and custom icons (such as Notepad or Chrome) so client and watchdog blend into Windows."
                                    FontSize="12" Foreground="#8B949E" Margin="0,0,0,16"/>
 
-                        <Border Style="{StaticResource DarkCard}" Opacity="0.6">
+                        <!-- Preset Quick Actions -->
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <Border Background="#21262D" CornerRadius="6" Padding="12,8" Margin="0,0,0,16">
-                                    <TextBlock Text="⚠️ DAHA EKLEMICEZ — Assembly spoofing and Icon injection will be enabled in the next update."
-                                               Foreground="#D29922" FontWeight="SemiBold" FontSize="12"/>
-                                </Border>
+                                <TextBlock Text="Quick Spoof Presets" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,10"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="📝 Clone Notepad Metadata &amp; Icon" Command="{Binding CloneNotepadCommand}"
+                                            Background="#238636" Foreground="White" FontWeight="SemiBold" Height="34" Padding="14,0" Margin="0,0,10,0" Cursor="Hand"/>
+                                    <Button Content="📁 Clone from any EXE..." Command="{Binding CloneFromExeCommand}"
+                                            Background="#21262D" Foreground="#E6EDF3" BorderBrush="#30363D" BorderThickness="1"
+                                            Height="34" Padding="14,0" Cursor="Hand"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                                <Grid Margin="0,0,0,10" IsEnabled="False">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <!-- Metadata Fields -->
+                        <Border Style="{StaticResource DarkCard}">
+                            <StackPanel>
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Enable Assembly &amp; Icon Spoofing"
+                                          IsChecked="{Binding BuildAssemblyEnabled}" FontWeight="SemiBold" Margin="0,0,0,14"/>
+
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="File Title:" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Chrome Updater"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyTitle, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10" IsEnabled="False">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Description:" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Google Chrome Update Service"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="File Description:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyDescription, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10" IsEnabled="False">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Company:" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Google LLC"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Company Name:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyCompany, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10" IsEnabled="False">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Icon File (.ico):" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Content="📁 Select Icon..." Background="#21262D" Foreground="#8B949E"
-                                            BorderBrush="#30363D" BorderThickness="1" Height="32" HorizontalAlignment="Left" Padding="14,0"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Product Name:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyProduct, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Legal Copyright:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyCopyright, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="File Version:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyVersion, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,6" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Application Icon:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
+                                             Text="{Binding BuildAssemblyIcon, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                                    <Button Grid.Column="2" Content="📁 Select Icon..." Command="{Binding BrowseIconCommand}"
+                                            Background="#21262D" Foreground="#E6EDF3" BorderBrush="#30363D" BorderThickness="1"
+                                            Height="32" Padding="14,0" Cursor="Hand"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -355,6 +395,18 @@
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Discord Alert:" Foreground="#8B949E"/>
                                     <TextBlock Grid.Column="1" Text="{Binding BuildDiscordAlert, StringFormat='Active: {0}'}" Foreground="#E6EDF3"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Assembly Spoof:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildAssemblyTitle, StringFormat='Title: {0}'}" Foreground="#E6EDF3"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Application Icon:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildAssemblyIcon, FallbackValue='(Default)'}" Foreground="#E6EDF3"/>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,6">
