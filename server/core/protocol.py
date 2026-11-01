@@ -1,4 +1,4 @@
-import struct
+﻿import struct
 import hashlib
 
 PACKET_TYPES = {
@@ -55,6 +55,8 @@ PACKET_TYPES = {
     'CLIENT_CLOSE':     0xA0,
     'CLIENT_UNINSTALL': 0xA1,
     'CLIENT_UPDATE':    0xA2,
+    'WATCHDOG_STOP':    0xA5,
+    'WATCHDOG_START':   0xA6,
     # Task on connect 0xB0-0xBF
     'TASK_EXEC':   0xB0,
     'TASK_RESULT': 0xB1,
