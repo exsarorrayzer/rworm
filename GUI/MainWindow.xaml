@@ -1,4 +1,4 @@
-﻿<Window x:Class="RWORM.GUI.MainWindow"
+<Window x:Class="RWORM.GUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:conv="clr-namespace:RWORM.GUI.Converters"
@@ -18,7 +18,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -184,20 +184,10 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBox Style="{StaticResource ModernTextBox}"
                                          Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="125" Height="30" FontSize="11.5" Padding="8,4"
-                                         ToolTip="C2 Server Host / IP"/>
+                                         Width="90" Height="28" FontSize="11" Padding="8,6"/>
                                 <TextBox Style="{StaticResource ModernTextBox}"
                                          Text="{Binding ServerPort, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="58" Height="30" FontSize="11.5" Padding="8,4" Margin="6,0,0,0"
-                                         ToolTip="C2 Server Port"/>
+                                         Width="50" Height="28" FontSize="11" Padding="8,6" Margin="6,0,0,0"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Connect"
@@ -315,19 +305,6 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
-                                <!-- Watchdog -->
-                                <MenuItem Header="Watchdog">
-                                    <MenuItem.Icon>
-                                        <Image Source="pack://application:,,,/Resources/Assets/shield.png" Width="15" Height="15"/>
-                                    </MenuItem.Icon>
-                                    <MenuItem Header="Stop / Disarm Watchdog"
-                                              Command="{Binding WatchdogStopCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <MenuItem Header="Start / Arm Watchdog"
-                                              Command="{Binding WatchdogStartCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                </MenuItem>
-                                <Separator/>
                                 <!-- Loader -->
                                 <MenuItem Header="Loader">
                                     <MenuItem.Icon>
@@ -420,17 +397,7 @@
 
                             <DataGridTextColumn Header="Hostname"   Binding="{Binding Hostname}"   Width="*"/>
                             <DataGridTextColumn Header="Username"   Binding="{Binding Username}"   Width="100"/>
-                            <DataGridTemplateColumn Header="IP Address" Width="145">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding IpAddress}"
-                                                   FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="12.5"
-                                                   VerticalAlignment="Center"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="IP Address" Binding="{Binding IpAddress}"  Width="120"/>
                             <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="150"/>
                             <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
                         </DataGrid.Columns>
@@ -457,7 +424,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="Quick Command:" FontSize="13" FontWeight="SemiBold"
+                        <TextBlock Text="⚡ Quick Command:" FontSize="13" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
@@ -473,7 +440,7 @@
                              ToolTip="Type a command and press Enter (or click Send) to run on selected client(s)"/>
 
                     <Button Grid.Column="2"
-                            Content="Send to Selected"
+                            Content="📢 Send to Selected"
                             Command="{Binding SendQuickCommand}"
                             Style="{StaticResource PrimaryButton}"
                             Height="38" Padding="20,0" Margin="12,0,0,0"
@@ -506,26 +473,16 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Host / IP:" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Host:" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
                             <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ModernTextBox}"
                                      Text="{Binding ListenerHost, UpdateSourceTrigger=PropertyChanged}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     CaretBrush="{StaticResource TextPrimaryBrush}"
-                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                     FontWeight="SemiBold"
-                                     FontSize="13" Height="38"
                                      Margin="0,0,0,12"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
                             <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ModernTextBox}"
                                      Text="{Binding ListenerPort, UpdateSourceTrigger=PropertyChanged}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     CaretBrush="{StaticResource TextPrimaryBrush}"
-                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                     FontWeight="SemiBold"
-                                     FontSize="13" Height="38"
                                      Margin="0,0,0,12"/>
 
                             <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
