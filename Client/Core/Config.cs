@@ -8,6 +8,7 @@ namespace RWORM.Client.Core
         // ── C2 ───────────────────────────────────────────────────────────────
         public static string C2Host = "127.0.0.1";
         public static int    C2Port = 3333;
+        public static string EncryptionKey = "AES-256-DEFAULT";
         public static int    ReconnectDelay  = 5000;
         public static int    ConnectTimeout  = 8000;
         public static int    HeartbeatInterval = 30000;
