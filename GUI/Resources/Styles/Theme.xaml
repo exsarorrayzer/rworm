@@ -263,22 +263,6 @@
     </Style>
 
     <!-- DataGrid Styles -->
-    <Style x:Key="ModernDataGrid" TargetType="DataGrid">
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-        <Setter Property="RowBackground" Value="White"/>
-        <Setter Property="AlternatingRowBackground" Value="{StaticResource BackgroundSecondaryBrush}"/>
-        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderBrush}"/>
-        <Setter Property="HeadersVisibility" Value="Column"/>
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernDataGridColumnHeader}"/>
-        <Setter Property="CellStyle" Value="{StaticResource ModernDataGridCell}"/>
-        <Setter Property="RowHeaderWidth" Value="0"/>
-    </Style>
-
     <Style x:Key="ModernDataGridColumnHeader" TargetType="DataGridColumnHeader">
         <Setter Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
@@ -307,6 +291,22 @@
                 <Setter Property="Foreground" Value="White"/>
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ModernDataGrid" TargetType="DataGrid">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="RowBackground" Value="White"/>
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource BackgroundSecondaryBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernDataGridColumnHeader}"/>
+        <Setter Property="CellStyle" Value="{StaticResource ModernDataGridCell}"/>
+        <Setter Property="RowHeaderWidth" Value="0"/>
     </Style>
 
     <Style TargetType="DataGridRow">
