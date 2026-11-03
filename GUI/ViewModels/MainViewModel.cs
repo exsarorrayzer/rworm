@@ -869,7 +869,7 @@ namespace RWORM.GUI.ViewModels
 
         private static string ResolveRepoRoot()
         {
-            var baseDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+            var baseDir = AppContext.BaseDirectory;
             string[] candidates = new[]
             {
                 System.IO.Path.Combine(baseDir, "..", "..", "..", ".."),
