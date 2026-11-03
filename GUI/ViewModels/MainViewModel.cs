@@ -780,10 +780,8 @@ namespace RWORM.GUI.ViewModels
                 // terminate old listeners before (re)starting.
                 KillStaleServerProcesses();
 
-                var serverPy = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-                    "..", "..", "..", "..", "server", "main.py");
-                serverPy = System.IO.Path.GetFullPath(serverPy);
+                var repoRoot = ResolveRepoRoot();
+                var serverPy = System.IO.Path.GetFullPath(System.IO.Path.Combine(repoRoot, "server", "main.py"));
 
                 if (!System.IO.File.Exists(serverPy))
                 {
@@ -869,13 +867,51 @@ namespace RWORM.GUI.ViewModels
             return false;
         }
 
+        private static string ResolveRepoRoot()
+        {
+            var baseDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+            string[] candidates = new[]
+            {
+                System.IO.Path.Combine(baseDir, "..", "..", "..", ".."),
+                System.IO.Path.Combine(baseDir, "..", ".."),
+                System.IO.Path.Combine(baseDir, ".."),
+                baseDir,
+                System.IO.Directory.GetCurrentDirectory(),
+                @"C:\Users\user\Desktop\du"
+            };
+
+            foreach (var cand in candidates)
+            {
+                try
+                {
+                    var full = System.IO.Path.GetFullPath(cand);
+                    if (System.IO.File.Exists(System.IO.Path.Combine(full, "server", "main.py")) &&
+                        System.IO.File.Exists(System.IO.Path.Combine(full, "Client", "RWORM.Client.csproj")))
+                    {
+                        return full;
+                    }
+                }
+                catch { }
+            }
+            return @"C:\Users\user\Desktop\du";
+        }
+
+        private static string ResolveDotnetExe()
+        {
+            var localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var localDotnet = System.IO.Path.Combine(localApp, "dotnet", "dotnet.exe");
+            if (System.IO.File.Exists(localDotnet))
+            {
+                return localDotnet;
+            }
+            return "dotnet";
+        }
+
         private void AppendListenerLog(string line)
         {
             try
             {
-                var dir = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-                    "..", "..", "..", "..", "server");
+                var dir = System.IO.Path.Combine(ResolveRepoRoot(), "server");
                 System.IO.File.AppendAllText(
                     System.IO.Path.Combine(dir, "listener.log"),
                     $"[{DateTime.Now:HH:mm:ss}] {line}{Environment.NewLine}");
@@ -987,10 +1023,7 @@ namespace RWORM.GUI.ViewModels
             try
             {
                 StatusMessage = "Building...";
-                var baseDir          = System.IO.Path.GetFullPath(
-                    System.IO.Path.Combine(
-                        System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-                        "..", "..", "..", ".."));
+                var baseDir          = ResolveRepoRoot();
                 var clientConfigPath = System.IO.Path.Combine(baseDir, "Client", "Core", "Config.cs");
 
                 if (!System.IO.File.Exists(clientConfigPath))
@@ -1068,9 +1101,10 @@ namespace RWORM.GUI.ViewModels
                 var tempOutput  = System.IO.Path.Combine(baseDir, "output");
                 System.IO.Directory.CreateDirectory(tempOutput);
 
+                var dotnetExe = ResolveDotnetExe();
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName               = "dotnet",
+                    FileName               = dotnetExe,
                     Arguments              = $"publish \"{clientPath}\" -c Release -r win-x64 --self-contained -o \"{tempOutput}\"",
                     UseShellExecute        = false,
                     RedirectStandardOutput = true,
@@ -1078,6 +1112,12 @@ namespace RWORM.GUI.ViewModels
                     CreateNoWindow         = true,
                     WorkingDirectory       = clientPath,
                 };
+                var dotnetDir = System.IO.Path.GetDirectoryName(dotnetExe);
+                if (!string.IsNullOrEmpty(dotnetDir) && System.IO.Directory.Exists(dotnetDir))
+                {
+                    psi.EnvironmentVariables["DOTNET_ROOT"] = dotnetDir;
+                    psi.EnvironmentVariables["PATH"] = dotnetDir + ";" + Environment.GetEnvironmentVariable("PATH");
+                }
 
                 var proc = System.Diagnostics.Process.Start(psi)!;
                 var stderr = await proc.StandardError.ReadToEndAsync();
