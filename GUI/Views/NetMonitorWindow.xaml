@@ -1,0 +1,50 @@
+<Window x:Class="RWORM.GUI.Views.NetMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="550" Width="880"
+        WindowStartupLocation="CenterScreen"
+        Background="#F8FAFC" Foreground="#0F172A"
+        Title="Network Connections">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+            <DockPanel Margin="16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <Button Content="Refresh" Click="Refresh_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4"/>
+                </StackPanel>
+                <TextBox x:Name="SearchBox" DockPanel.Dock="Right" Width="200" Height="30" Margin="0,0,8,0"
+                         Style="{StaticResource ModernTextBox}" TextChanged="SearchBox_TextChanged"
+                         ToolTip="Search IP, Port, Process or State..."/>
+            </DockPanel>
+        </Border>
+
+        <!-- Connections DataGrid -->
+        <DataGrid x:Name="NetGrid" Grid.Row="1"
+                  Style="{StaticResource ModernDataGrid}"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  SelectionMode="Single" Margin="12">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Proto" Binding="{Binding Protocol}" Width="60"/>
+                <DataGridTextColumn Header="Local IP" Binding="{Binding LocalAddress}" Width="130"/>
+                <DataGridTextColumn Header="Port" Binding="{Binding LocalPort}" Width="70"/>
+                <DataGridTextColumn Header="Remote IP" Binding="{Binding RemoteAddress}" Width="130"/>
+                <DataGridTextColumn Header="Remote Port" Binding="{Binding RemotePort}" Width="85"/>
+                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="120"/>
+                <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="75"/>
+                <DataGridTextColumn Header="Process" Binding="{Binding ProcessName}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        </Border>
+    </Grid>
+</Window>

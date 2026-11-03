@@ -315,6 +315,46 @@
                                         </StackPanel>
                                     </MenuItem.Header>
                                 </MenuItem>
+                                <!-- Service Manager -->
+                                <MenuItem Command="{Binding OpenServiceManagerCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/services.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Service Manager" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <!-- Network Connections -->
+                                <MenuItem Command="{Binding OpenNetMonitorCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/network.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Network Connections" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <!-- Startup / Autorun -->
+                                <MenuItem Command="{Binding OpenAutorunManagerCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/startup.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Startup / Autorun" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <!-- Clipboard Manager -->
+                                <MenuItem Command="{Binding OpenClipboardManagerCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/clipboard.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Clipboard Manager" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                                 <!-- Watchdog -->
                                 <MenuItem Header="Watchdog">
                                     <MenuItem.Icon>
@@ -431,7 +471,8 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="150"/>
+                            <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="140"/>
+                            <DataGridTextColumn Header="Load"       Binding="{Binding MetricsDisplay}" Width="125"/>
                             <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>

