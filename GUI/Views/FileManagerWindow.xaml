@@ -101,7 +101,7 @@
                          Background="#FFFFFF" Foreground="#0F172A"
                          CaretBrush="#0F172A"
                          BorderBrush="#CBD5E1" BorderThickness="1"
-                         Padding="10,5" FontFamily="Cascadia Code, Consolas, Courier New"
+                         Padding="10,0" FontFamily="Cascadia Code, Consolas, Courier New"
                          FontSize="12" KeyDown="PathBox_KeyDown" Height="30" VerticalContentAlignment="Center">
                     <TextBox.Template>
                         <ControlTemplate TargetType="TextBox">
@@ -109,7 +109,7 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" VerticalScrollBarVisibility="Disabled"/>
                             </Border>
                         </ControlTemplate>
                     </TextBox.Template>

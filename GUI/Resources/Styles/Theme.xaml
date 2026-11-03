@@ -40,7 +40,7 @@
         <Setter Property="SelectionTextBrush" Value="#0F172A"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="Padding" Value="8,0"/>
         <Setter Property="FontSize" Value="12.5"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
@@ -54,7 +54,7 @@
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Focusable="False"
                                       HorizontalScrollBarVisibility="Hidden"
-                                      VerticalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
                                       VerticalAlignment="Center"/>
                     </Border>
                 </ControlTemplate>
@@ -76,7 +76,7 @@
         <Setter Property="SelectionTextBrush" Value="#0F172A"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderHoverBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Padding" Value="10,0"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
@@ -90,7 +90,7 @@
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Focusable="False"
                                       HorizontalScrollBarVisibility="Hidden"
-                                      VerticalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
                                       VerticalAlignment="Center"/>
                     </Border>
                 </ControlTemplate>

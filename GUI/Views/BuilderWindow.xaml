@@ -60,7 +60,7 @@
             <Setter Property="CaretBrush" Value="#0F172A"/>
             <Setter Property="BorderBrush" Value="#CBD5E1"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
@@ -74,7 +74,7 @@
                             <ScrollViewer x:Name="PART_ContentHost"
                                           Focusable="False"
                                           HorizontalScrollBarVisibility="Hidden"
-                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Disabled"
                                           VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>

@@ -92,7 +92,7 @@
                          Background="#FFFFFF" Foreground="#0F172A"
                          CaretBrush="#0F172A"
                          BorderBrush="#CBD5E1" BorderThickness="1"
-                         Padding="8,4" VerticalAlignment="Center"
+                         Padding="8,0" VerticalAlignment="Center"
                          Width="180" Height="30" Margin="0,0,8,0"
                          VerticalContentAlignment="Center"
                          TextChanged="SearchBox_TextChanged">
@@ -102,7 +102,7 @@
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" VerticalScrollBarVisibility="Disabled"/>
                             </Border>
                         </ControlTemplate>
                     </TextBox.Template>
