@@ -3,23 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Height="560" Width="800"
         WindowStartupLocation="CenterScreen"
-        Background="#0D1117" Foreground="#E6EDF3"
+        Background="#F8FAFC" Foreground="#0F172A"
         Title="Keylogger">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="46"/>
+            <RowDefinition Height="48"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="46"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
-                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="OnlineBtn"  Content="▶ Online"   Click="Online_Click"
-                            Background="#1F6FEB" Foreground="White" BorderThickness="0"
-                            Padding="10,6" Cursor="Hand" Margin="0,0,6,0">
+                            Background="#2563EB" Foreground="White" BorderThickness="0"
+                            Padding="12,6" Cursor="Hand" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -29,8 +29,8 @@
                         </Button.Template>
                     </Button>
                     <Button x:Name="OfflineBtn" Content="📁 Offline Dump" Click="Offline_Click"
-                            Background="#21262D" Foreground="#E6EDF3" BorderThickness="1" BorderBrush="#30363D"
-                            Padding="10,6" Cursor="Hand" Margin="0,0,6,0">
+                            Background="#FFFFFF" Foreground="#0F172A" BorderThickness="1" BorderBrush="#CBD5E1"
+                            Padding="12,6" Cursor="Hand" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -40,8 +40,8 @@
                         </Button.Template>
                     </Button>
                     <Button Content="⏹ Stop"      Click="Stop_Click"
-                            Background="#DA3633" Foreground="White" BorderThickness="0"
-                            Padding="10,6" Cursor="Hand" Margin="0,0,6,0">
+                            Background="#EF4444" Foreground="White" BorderThickness="0"
+                            Padding="12,6" Cursor="Hand" Margin="0,0,6,0" FontSize="12" FontWeight="SemiBold">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -51,8 +51,8 @@
                         </Button.Template>
                     </Button>
                     <Button Content="💾 Save"      Click="Save_Click"
-                            Background="#238636" Foreground="White" BorderThickness="0"
-                            Padding="10,6" Cursor="Hand">
+                            Background="#10B981" Foreground="White" BorderThickness="0"
+                            Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -68,23 +68,26 @@
         <!-- Log output -->
         <TextBox x:Name="LogBox"
                  Grid.Row="1"
-                 Background="#0D1117"
-                 Foreground="#C9D1D9"
+                 Background="#FFFFFF"
+                 Foreground="#0F172A"
+                 SelectionBrush="#93C5FD"
+                 SelectionTextBrush="#0F172A"
+                 CaretBrush="#0F172A"
                  FontFamily="Cascadia Code, Consolas, Courier New"
-                 FontSize="12"
+                 FontSize="12.5"
                  IsReadOnly="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Disabled"
                  BorderThickness="0"
-                 Padding="14,10"
+                 Padding="16,12"
                  AcceptsReturn="True"/>
 
         <!-- Status -->
-        <Border Grid.Row="2" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
             <DockPanel Margin="16,0">
-                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#3FB950" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                <TextBlock x:Name="StatusLabel" Foreground="#8B949E" FontSize="11" VerticalAlignment="Center" Text="Idle"/>
+                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Text="Idle"/>
             </DockPanel>
         </Border>
     </Grid>

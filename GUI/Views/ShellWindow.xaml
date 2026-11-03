@@ -4,17 +4,19 @@
         Height="580" Width="920"
         MinHeight="400" MinWidth="620"
         WindowStartupLocation="CenterScreen"
-        Background="#0D1117"
+        Background="#FFFFFF"
         ResizeMode="CanResizeWithGrip">
 
     <Window.Resources>
         <Style x:Key="TerminalInput" TargetType="TextBox">
             <Setter Property="Background"       Value="Transparent"/>
-            <Setter Property="Foreground"       Value="#E6EDF3"/>
+            <Setter Property="Foreground"       Value="#0F172A"/>
             <Setter Property="FontFamily"       Value="Cascadia Code, Consolas, Courier New"/>
             <Setter Property="FontSize"         Value="13"/>
             <Setter Property="BorderThickness"  Value="0"/>
-            <Setter Property="CaretBrush"       Value="#58A6FF"/>
+            <Setter Property="CaretBrush"       Value="#2563EB"/>
+            <Setter Property="SelectionBrush"   Value="#93C5FD"/>
+            <Setter Property="SelectionTextBrush" Value="#0F172A"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
@@ -27,25 +29,28 @@
         </Grid.RowDefinitions>
 
         <!-- ── Title bar ────────────────────────────────────────────────────── -->
-        <Border Grid.Row="0" Background="#161B22"
-                BorderBrush="#30363D" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#FFFFFF"
+                BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0" LastChildFill="False">
 
                 <!-- Status dot + info -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                             DockPanel.Dock="Left">
-                    <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#3FB950"
+                    <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="#10B981"
                              Margin="0,0,10,0"/>
                     <TextBlock x:Name="TitleLabel"
                                FontFamily="Cascadia Code, Consolas, Courier New"
-                               FontSize="12" Foreground="#E6EDF3" VerticalAlignment="Center"/>
+                               FontWeight="SemiBold"
+                               FontSize="12.5" Foreground="#0F172A" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Shell label -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                             DockPanel.Dock="Right">
-                    <TextBlock Text="powershell" FontFamily="Cascadia Code, Consolas, Courier New"
-                               FontSize="11" Foreground="#8B949E"/>
+                    <Border Background="#F1F5F9" CornerRadius="4" Padding="8,3">
+                        <TextBlock Text="powershell" FontFamily="Cascadia Code, Consolas, Courier New"
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#475569"/>
+                    </Border>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -53,23 +58,24 @@
         <!-- ── Terminal output ───────────────────────────────────────────────── -->
         <TextBox x:Name="OutputBox"
                  Grid.Row="1"
-                 Background="#0D1117"
-                 Foreground="#C9D1D9"
-                 SelectionBrush="#264F78"
+                 Background="#FFFFFF"
+                 Foreground="#0F172A"
+                 SelectionBrush="#93C5FD"
+                 SelectionTextBrush="#0F172A"
                  FontFamily="Cascadia Code, Consolas, Courier New"
-                 FontSize="12"
+                 FontSize="12.5"
                  IsReadOnly="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Disabled"
                  BorderThickness="0"
-                 Padding="14,10"
+                 Padding="16,12"
                  AcceptsReturn="True"/>
 
         <!-- ── Input bar ─────────────────────────────────────────────────────── -->
-        <Border Grid.Row="2" Background="#161B22"
-                BorderBrush="#30363D" BorderThickness="0,1,0,0">
-            <Grid Margin="14,0">
+        <Border Grid.Row="2" Background="#F8FAFC"
+                BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+            <Grid Margin="16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -79,8 +85,8 @@
                 <TextBlock Grid.Column="0"
                            Text="PS❯ "
                            FontFamily="Cascadia Code, Consolas, Courier New"
-                           FontSize="13" FontWeight="SemiBold"
-                           Foreground="#3FB950"
+                           FontSize="13" FontWeight="Bold"
+                           Foreground="#10B981"
                            VerticalAlignment="Center"/>
 
                 <!-- Command input -->
