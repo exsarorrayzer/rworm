@@ -709,6 +709,154 @@
 
                                 </MenuItem>
 
+                                <!-- Webcam Stream -->
+
+                                <MenuItem Command="{Binding OpenWebcamCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/webcam.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Webcam" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Audio Monitor -->
+
+                                <MenuItem Command="{Binding OpenAudioCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/audio.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Audio Monitor" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Open URL -->
+
+                                <MenuItem Command="{Binding OpenUrlCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/url.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Open URL..." VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Installed Programs -->
+
+                                <MenuItem Command="{Binding OpenInstalledProgramsCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/programs.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Installed Programs" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <Separator/>
+
+                                <!-- PC Category Submenu -->
+
+                                <MenuItem Header="PC">
+
+                                    <MenuItem.Icon>
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/pc.png" Width="15" Height="15"/>
+
+                                    </MenuItem.Icon>
+
+                                    <MenuItem Header="System Information"
+
+                                              Command="{Binding OpenSystemInfoCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                        <MenuItem.Icon>
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/sysinfo.png" Width="15" Height="15"/>
+
+                                        </MenuItem.Icon>
+
+                                    </MenuItem>
+
+                                    <Separator/>
+
+                                    <MenuItem Header="Lock Workstation"
+
+                                              Command="{Binding PowerLockCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <MenuItem Header="Sleep"
+
+                                              Command="{Binding PowerSleepCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <MenuItem Header="Hibernate"
+
+                                              Command="{Binding PowerHibernateCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <MenuItem Header="Restart"
+
+                                              Command="{Binding PowerRestartCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <MenuItem Header="Shutdown"
+
+                                              Command="{Binding PowerShutdownCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <Separator/>
+
+                                    <MenuItem Header="Log Off"
+
+                                              Command="{Binding PowerLogoffCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                </MenuItem>
+
                                 <Separator/>
 
                                 <!-- Loader -->

