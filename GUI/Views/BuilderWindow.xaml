@@ -132,18 +132,16 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
                         <TextBlock Text="Surveillance &amp; Evasion Settings" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
-                        <TextBlock Text="Configure persistence, process protection, sandboxing defense, and activity monitoring."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                                   Foreground="#0F172A" Margin="0,0,0,16"/>
 
                         <!-- Evasion & Security -->
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <TextBlock Text="Defense &amp; Alerts" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill (Block Process Termination via Mutual Watchdog)"
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill"
                                           IsChecked="{Binding BuildAntiKill}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Sandbox / Anti-VM (Halt in Virtual Environments)"
-                                          IsChecked="{Binding BuildAntiSandbox}"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Sandbox / Anti-VM (Maintenance / Disabled)"
+                                          IsChecked="False" IsEnabled="False" Opacity="0.6"/>
                                 <CheckBox Style="{StaticResource LightCheckBox}" Content="Discord Webhook Alert (Notify on client connection)"
                                           IsChecked="{Binding BuildDiscordAlert}" Margin="0,6,0,6"/>
                                 <Grid Margin="24,0,0,4" IsEnabled="{Binding BuildDiscordAlert}">
@@ -249,11 +247,25 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="150"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Encryption Key:" FontSize="13" Foreground="#475569" VerticalAlignment="Center"/>
                                     <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="36"
                                              Text="{Binding BuildEncryptionKey, UpdateSourceTrigger=PropertyChanged}"
-                                             IsEnabled="False" Background="#F1F5F9"/>
+                                             FontFamily="Cascadia Code, Consolas, Segoe UI"
+                                             FontWeight="SemiBold"
+                                             FontSize="13"/>
+                                    <Button Grid.Column="2" Content="Generate Key" Command="{Binding GenerateKeyCommand}"
+                                            Background="#2563EB" Foreground="White" BorderThickness="0"
+                                            Padding="14,0" Height="36" Margin="10,0,0,0" FontWeight="SemiBold" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
                                 </Grid>
                                 <TextBlock Text="Standard AES-256 encrypted tunnel active by default"
                                            FontSize="11" Foreground="#64748B" Margin="150,4,0,0"/>
@@ -263,12 +275,30 @@
                         <!-- Dynamic Pastebin Host Resolution -->
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
-                                <TextBlock Text="Dynamic Resolution (Pastebin Raw)" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Dynamic Resolution (Pastebin Raw)"
+                                          IsChecked="{Binding BuildPastebinEnabled}" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,8"/>
                                 <TextBlock Text="Get IP / Port from Pastebin raw URL (Dynamic C2 fallback):" FontSize="12" Foreground="#475569" Margin="0,0,0,8"/>
-                                <TextBox Style="{StaticResource LightTextBox}" Height="36"
-                                         Text="{Binding BuildPastebinRaw, UpdateSourceTrigger=PropertyChanged}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         ToolTip="Example: https://pastebin.com/raw/xxxxxx"/>
+                                <Grid IsEnabled="{Binding BuildPastebinEnabled}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Style="{StaticResource LightTextBox}" Height="36"
+                                             Text="{Binding BuildPastebinRaw, UpdateSourceTrigger=PropertyChanged}"
+                                             FontFamily="Cascadia Code, Consolas, Segoe UI"
+                                             ToolTip="Example: https://pastebin.com/raw/xxxxxx"/>
+                                    <Button Grid.Column="1" Content="Test Raw URL" Command="{Binding TestPastebinCommand}"
+                                            Background="#059669" Foreground="White" BorderThickness="0"
+                                            Padding="14,0" Height="36" Margin="10,0,0,0" FontWeight="SemiBold" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -279,40 +309,87 @@
             <TabItem>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
-                        <TextBlock Text="Assembly &amp; Metadata (Notepad Spoofed)" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
-                        <TextBlock Text="Clone binary metadata and custom icons to blend seamlessly into host operating systems."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                        <TextBlock Text="Client Assembly &amp; Icon" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="#0F172A" Margin="0,0,0,16"/>
 
+                        <!-- Icon Selection Card -->
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
-                                <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,16">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/shield.png" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="ACTIVE — Watchdog spoofed as notepad.exe with authentic Microsoft Notepad assembly metadata &amp; icon."
-                                                   Foreground="#1D4ED8" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Custom Client Icon (.ico)"
+                                          IsChecked="{Binding BuildIconEnabled}" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,10"/>
+                                <Grid IsEnabled="{Binding BuildIconEnabled}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Style="{StaticResource LightTextBox}" Height="36"
+                                             Text="{Binding BuildIconPath, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="Optional icon path (.ico)"/>
+                                    <Button Grid.Column="1" Content="Select .ico File" Command="{Binding SelectIconCommand}"
+                                            Background="#2563EB" Foreground="White" BorderThickness="0"
+                                            Padding="14,0" Height="36" Margin="10,0,0,0" FontWeight="SemiBold" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+                                <TextBlock Text="Leave unchecked or unselected to compile without custom application icon."
+                                           FontSize="11" Foreground="#64748B" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
 
-                                <Grid Margin="0,0,0,10">
+                        <!-- Assembly Clone & Metadata Card -->
+                        <Border Style="{StaticResource LightCard}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12">
+                                    <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Custom Assembly Spoofing"
+                                              IsChecked="{Binding BuildAssemblyEnabled}" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Center"/>
+                                    <Button DockPanel.Dock="Right" Content="Clone Assembly from File" Command="{Binding CloneAssemblyCommand}"
+                                            Background="#059669" Foreground="White" BorderThickness="0"
+                                            Padding="14,0" Height="32" FontWeight="SemiBold" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DockPanel>
+
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="File Title:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Notepad" IsReadOnly="True" Background="#F8FAFC"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyTitle, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Description:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Notepad" IsReadOnly="True" Background="#F8FAFC"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyDescription, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Company:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="Microsoft Corporation" IsReadOnly="True" Background="#F8FAFC"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyCompany, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
-                                <Grid Margin="0,0,0,10">
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Icon File:" Foreground="#475569" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="notepad.ico (Cloned from System32\notepad.exe RT_GROUP_ICON)" IsReadOnly="True" Background="#F8FAFC"/>
+                                    <TextBlock Text="Product:" Foreground="#475569" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyProduct, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Copyright:" Foreground="#475569" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyCopyright, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10" IsEnabled="{Binding BuildAssemblyEnabled}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Version:" Foreground="#475569" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Text="{Binding BuildAssemblyVersion, UpdateSourceTrigger=PropertyChanged}"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -324,16 +401,12 @@
             <TabItem>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="780" HorizontalAlignment="Left">
-                        <TextBlock Text="Build Summary &amp; Compilation" FontSize="18" FontWeight="SemiBold"
-                                   Foreground="#0F172A" Margin="0,0,0,4"/>
-                        <TextBlock Text="Review active payload parameters and generate the self-contained executable (~11 MB)."
-                                   FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+                        <TextBlock Text="Last Build Config" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="#0F172A" Margin="0,0,0,16"/>
 
                         <!-- Active Settings Card -->
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
-                                <TextBlock Text="ACTIVE SETTINGS" FontSize="14" FontWeight="SemiBold" Foreground="#10B981" Margin="0,0,0,12"/>
-
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Target Endpoint:" Foreground="#64748B"/>
@@ -368,13 +441,33 @@
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Watchdog Process:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="notepad.exe (Stealth Watchdog)" Foreground="#10B981" FontWeight="Bold"/>
+                                    <TextBlock Grid.Column="1">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="None (Disabled)"/>
+                                                <Setter Property="Foreground" Value="#64748B"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding BuildAntiKill}" Value="True">
+                                                        <Setter Property="Text" Value="notepad.exe (Stealth Watchdog)"/>
+                                                        <Setter Property="Foreground" Value="#10B981"/>
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Assembly Spoofing:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1" Text="Notepad (Microsoft Corporation)" Foreground="#2563EB"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildAssemblyEnabled, StringFormat='Enabled: {0}'}" Foreground="#2563EB"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Custom Icon:" Foreground="#64748B"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildIconEnabled, StringFormat='Enabled: {0}'}" Foreground="#2563EB"/>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,8">

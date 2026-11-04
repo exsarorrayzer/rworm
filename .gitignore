@@ -8,3 +8,5 @@ Client/bin/
 build/client/
 __pycache__/
 *.py[cod]
+
+rworm.db
