@@ -2,11 +2,18 @@ rworm.png
 server/listener.log
 server/repro.err.log
 server/repro.log
+[Bb]in/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
 GUI/bin/
-docs/
 Client/bin/
 build/client/
 __pycache__/
 *.py[cod]
+*.user
+.vs/
 
 rworm.db
+
+release/GUI_SingleFile/

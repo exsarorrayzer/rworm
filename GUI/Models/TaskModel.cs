@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace RWORM.GUI.Models
 {
-    public enum TaskMode { LocalFile, Url }
+    public enum TaskMode { LocalFile, Url, DiscordWebhook }
 
     public class TaskModel : INotifyPropertyChanged
     {
@@ -16,10 +16,24 @@ namespace RWORM.GUI.Models
         public string   Name   { get; set;  } = "";
         public TaskMode Mode   { get; set;  } = TaskMode.LocalFile;
 
-        /// LocalFile: full path on operator disk. Url: http(s) URL.
+        /// LocalFile: full path on disk. Url: payload download URL. DiscordWebhook: webhook endpoint.
         public string   Source { get; set;  } = "";
 
-        public string ModeLabel => Mode == TaskMode.LocalFile ? "📁 Local File" : "🔗 URL";
+        public string ModeLabel => Mode switch
+        {
+            TaskMode.LocalFile => "Local File",
+            TaskMode.Url => "URL Download",
+            TaskMode.DiscordWebhook => "Discord Webhook",
+            _ => "Task"
+        };
+
+        public string IconPath => Mode switch
+        {
+            TaskMode.LocalFile => "pack://application:,,,/Resources/Assets/filemanager.png",
+            TaskMode.Url => "pack://application:,,,/Resources/Assets/loader.png",
+            TaskMode.DiscordWebhook => "pack://application:,,,/Resources/Assets/discord.png",
+            _ => "pack://application:,,,/Resources/Assets/tasks.png"
+        };
 
         public int ExecutedCount
         {

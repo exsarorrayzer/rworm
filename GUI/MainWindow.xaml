@@ -1,877 +1,1448 @@
-﻿<Window x:Class="RWORM.GUI.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:conv="clr-namespace:RWORM.GUI.Converters"
-        Title="RWORM"
-        Height="700" Width="1100"
-        MinHeight="600" MinWidth="900"
-        Background="{StaticResource BackgroundSecondaryBrush}"
-        WindowStartupLocation="CenterScreen">
-
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <conv:UrlToImageConverter          x:Key="UrlToImage"/>
-        <conv:InverseBoolConverter         x:Key="InverseBoolConverter"/>
-        <conv:StringToVisibilityConverter  x:Key="StringToVisibilityConverter"/>
-        <conv:StringToBoolConverter        x:Key="StringToBoolConverter"/>
-    </Window.Resources>
-
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
-        </Grid.RowDefinitions>
-
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Grid.RowSpan="2" Background="White"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Logo -->
-                <StackPanel Grid.Row="0" Margin="20,20,20,30">
-                    <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20"/>
-                </StackPanel>
-
-                <!-- Navigation -->
-                <StackPanel Grid.Row="1" Margin="12,0">
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Clients"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Clients}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Clients">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/clients.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Listener"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Listener}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Listener" Margin="0,4,0,0">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/listener.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Builder"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Builder}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Builder" Margin="0,4,0,0">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
-                    <!-- Tasks -->
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Tasks"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Tasks}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Tasks" Margin="0,4,0,0">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Credits"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Credits}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Credits" Margin="0,4,0,0">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/info.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
-                </StackPanel>
-
-                <!-- Connection Status -->
-                <StackPanel Grid.Row="2" Margin="12,0,12,20">
-                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="8" Padding="12">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                                    <Ellipse.Style>
-                                        <Style TargetType="Ellipse">
-                                            <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Text="{Binding ConnectionStatus}" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBox Style="{StaticResource ModernTextBox}"
-                                         Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="140" Height="32" FontSize="12" Padding="8,4"
-                                         ToolTip="C2 Server Host / IP"/>
-                                <TextBox Style="{StaticResource ModernTextBox}"
-                                         Text="{Binding ServerPort, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="64" Height="32" FontSize="12" Padding="8,4" Margin="6,0,0,0"
-                                         ToolTip="C2 Server Port"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Connect"
-                                        Command="{Binding ConnectCommand}" Height="28" Padding="12,0"
-                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/>
-                                <Button Style="{StaticResource DangerButton}" Content="Disconnect"
-                                        Command="{Binding DisconnectCommand}" Height="28" Padding="12,0"
-                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Main Content -->
-        <Grid Grid.Column="1" Grid.Row="0" Margin="24">
-            
-
-            <!-- Clients View -->
-            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Clients}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Grid Grid.Row="0" Margin="0,0,0,16">
-                    <TextBlock Text="Clients" FontSize="24" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <Button Style="{StaticResource SecondaryButton}" Content="Refresh"
-                            Command="{Binding RefreshClientsCommand}"
-                            HorizontalAlignment="Right" Height="34"/>
-                </Grid>
-
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
-                    <Grid x:Name="ClientsGridContainer" ClipToBounds="True">
-                        <DataGrid x:Name="ClientsGrid"
-                                  ItemsSource="{Binding Clients}"
-                                  SelectedItem="{Binding SelectedClient}"
-                                  Style="{StaticResource ModernDataGrid}"
-                                  AutoGenerateColumns="False"
-                                  IsReadOnly="True"
-                                  CanUserAddRows="False"
-                                  SelectionMode="Extended"
-                                  SelectionUnit="FullRow"
-                                  SelectionChanged="ClientsGrid_SelectionChanged"
-                                  PreviewMouseLeftButtonDown="ClientsGrid_PreviewMouseLeftButtonDown"
-                                  PreviewMouseMove="ClientsGrid_PreviewMouseMove"
-                                  PreviewMouseLeftButtonUp="ClientsGrid_PreviewMouseLeftButtonUp"
-                                  PreviewMouseRightButtonDown="ClientsGrid_PreviewMouseRightButtonDown"
-                                  ContextMenuOpening="ClientsGrid_ContextMenuOpening"
-                                  LostMouseCapture="ClientsGrid_LostMouseCapture">
-
-                        <!-- ¦¦ Right-click context menu ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ -->
-                        <DataGrid.ContextMenu>
-                            <ContextMenu x:Name="ClientsContextMenu" Opened="ClientsContextMenu_Opened">
-                                <!-- Shell -->
-                                <MenuItem Command="{Binding OpenShellCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/shell.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Shell" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- File Manager -->
-                                <MenuItem Command="{Binding OpenFileManagerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="File Manager" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Keylogger -->
-                                <MenuItem Command="{Binding OpenKeyloggerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/keylogger.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Keylogger" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Process Manager -->
-                                <MenuItem Command="{Binding OpenProcManagerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/processmanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Process Manager" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Registry Editor -->
-                                <MenuItem Command="{Binding OpenRegistryEditorCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/registryeditor.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Registry Editor" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Remote Desktop -->
-                                <MenuItem Command="{Binding OpenRemoteDesktopCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/remotedesktop.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Remote Desktop" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Service Manager -->
-                                <MenuItem Command="{Binding OpenServiceManagerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/services.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Service Manager" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Network Connections -->
-                                <MenuItem Command="{Binding OpenNetMonitorCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/network.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Network Connections" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Startup / Autorun -->
-                                <MenuItem Command="{Binding OpenAutorunManagerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/startup.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Startup / Autorun" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Clipboard Manager -->
-                                <MenuItem Command="{Binding OpenClipboardManagerCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/clipboard.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Clipboard Manager" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Watchdog -->
-                                <MenuItem Header="Watchdog">
-                                    <MenuItem.Icon>
-                                        <Image Source="pack://application:,,,/Resources/Assets/shield.png" Width="15" Height="15"/>
-                                    </MenuItem.Icon>
-                                    <MenuItem Header="Stop / Disarm Watchdog"
-                                              Command="{Binding WatchdogStopCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <MenuItem Header="Start / Arm Watchdog"
-                                              Command="{Binding WatchdogStartCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                </MenuItem>
-                                <Separator/>
-                                <!-- Loader -->
-                                <MenuItem Header="Loader">
-                                    <MenuItem.Icon>
-                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15"/>
-                                    </MenuItem.Icon>
-                                    <MenuItem Header="Execute from URL..."
-                                              Command="{Binding LoaderExecCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                    <MenuItem Header="Execute from Local File..."
-                                              Command="{Binding LoaderExecFileCommand}"
-                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                </MenuItem>
-                                <Separator/>
-                                <!-- Close -->
-                                <MenuItem Command="{Binding ClientCloseCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Close Client" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Uninstall -->
-                                <MenuItem Command="{Binding ClientUninstallCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/uninstall.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Uninstall" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <!-- Update -->
-                                <MenuItem Command="{Binding ClientUpdateCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/update.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Update Client" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
-
-                        <DataGrid.Columns>
-                            <!-- Status dot -->
-                            <DataGridTemplateColumn Header="" Width="44">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Ellipse Width="10" Height="10" HorizontalAlignment="Center">
-                                            <Ellipse.Style>
-                                                <Style TargetType="Ellipse">
-                                                    <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsOnline}" Value="True">
-                                                            <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Ellipse.Style>
-                                        </Ellipse>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Country flag (local PNG rendered from bundled SVGs + code) -->
-                            <DataGridTemplateColumn Header="Country" Width="96">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
-                                                    Margin="4,0">
-                                            <!-- Local flag PNG from Resources/Flags -->
-                                            <Image Source="{Binding FlagImagePath,
-                                                           Converter={StaticResource UrlToImage}}"
-                                                   Width="24" Height="18"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,6,0"
-                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            <!-- Country code fallback text -->
-                                            <TextBlock Text="{Binding CountryCode}"
-                                                       FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                                       VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <DataGridTextColumn Header="Hostname"   Binding="{Binding Hostname}"   Width="*"/>
-                            <DataGridTextColumn Header="Username"   Binding="{Binding Username}"   Width="100"/>
-                            <DataGridTemplateColumn Header="IP Address" Width="145">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding IpAddress}"
-                                                   FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                                   FontWeight="SemiBold"
-                                                   FontSize="12.5"
-                                                   VerticalAlignment="Center"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="140"/>
-                            <DataGridTextColumn Header="Load"       Binding="{Binding MetricsDisplay}" Width="125"/>
-                            <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <!-- Windows-like blue marquee selection box -->
-                    <Canvas x:Name="SelectionCanvas" IsHitTestVisible="False">
-                        <Rectangle x:Name="SelectionBox"
-                                   Fill="#330078D7"
-                                   Stroke="#0078D7"
-                                   StrokeThickness="1"
-                                   Visibility="Collapsed"/>
-                    </Canvas>
-                </Grid>
-            </Border>
-
-            <!-- Dedicated Quick Command Bar for Clients -->
-            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,14,0,0" Padding="16,10">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="Quick Command:" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <TextBox Grid.Column="1"
-                             Text="{Binding QuickCommandText, UpdateSourceTrigger=PropertyChanged}"
-                             Height="38" FontSize="13"
-                             Padding="12,8"
-                             VerticalContentAlignment="Center"
-                             Background="#FFFFFF"
-                             BorderBrush="{StaticResource BorderBrush}"
-                             BorderThickness="1"
-                             KeyDown="QuickCommandTextBox_KeyDown"
-                             ToolTip="Type a command and press Enter (or click Send) to run on selected client(s)"/>
-
-                    <Button Grid.Column="2"
-                            Content="Send to Selected"
-                            Command="{Binding SendQuickCommand}"
-                            Style="{StaticResource PrimaryButton}"
-                            Height="38" Padding="18,0" Margin="10,0,0,0"
-                            FontSize="12" FontWeight="SemiBold"/>
-
-                    <Button Grid.Column="3"
-                            Content="?? Disarm Watchdog"
-                            Command="{Binding WatchdogStopCommand}"
-                            CommandParameter="{Binding SelectedClient}"
-                            Style="{StaticResource SecondaryButton}"
-                            Height="38" Padding="14,0" Margin="8,0,0,0"
-                            FontSize="12" FontWeight="SemiBold"
-                            ToolTip="Stop / Disarm mutual watchdog on selected client(s)"/>
-
-                    <Button Grid.Column="4"
-                            Content="?? Arm Watchdog"
-                            Command="{Binding WatchdogStartCommand}"
-                            CommandParameter="{Binding SelectedClient}"
-                            Style="{StaticResource SecondaryButton}"
-                            Height="38" Padding="14,0" Margin="8,0,0,0"
-                            FontSize="12" FontWeight="SemiBold"
-                            ToolTip="Start / Arm mutual watchdog on selected client(s)"/>
-                </Grid>
-            </Border>
-
-            </Grid>
-
-            <!-- Listener View -->
-            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Listener}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Listener" FontSize="24" FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
-
-                <StackPanel Grid.Row="1">
-                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,16">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Host / IP:" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ModernTextBox}"
-                                     Text="{Binding ListenerHost, UpdateSourceTrigger=PropertyChanged}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     CaretBrush="{StaticResource TextPrimaryBrush}"
-                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                     FontWeight="SemiBold"
-                                     FontSize="13" Height="38"
-                                     Margin="0,0,0,12"/>
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ModernTextBox}"
-                                     Text="{Binding ListenerPort, UpdateSourceTrigger=PropertyChanged}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     CaretBrush="{StaticResource TextPrimaryBrush}"
-                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                     FontWeight="SemiBold"
-                                     FontSize="13" Height="38"
-                                     Margin="0,0,0,12"/>
-
-                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Start"
-                                        Command="{Binding StartListenerCommand}" Height="36" Padding="24,0"/>
-                                <Button Style="{StaticResource DangerButton}" Content="Stop"
-                                        Command="{Binding StopListenerCommand}" Height="36" Padding="24,0" Margin="12,0,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="Listener Status" FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Ellipse Width="12" Height="12" Margin="0,0,8,0">
-                                    <Ellipse.Style>
-                                        <Style TargetType="Ellipse">
-                                            <Setter Property="Fill" Value="{StaticResource ErrorBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ListenerRunning}" Value="True">
-                                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Text="{Binding ListenerStatus, FallbackValue='Stopped'}"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                           FontWeight="SemiBold"
-                                           FontSize="13"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
-
-            <!-- Builder View -->
-            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Builder}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Client Builder" FontSize="24" FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
-
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="28">
-                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
-                        <Border Background="{StaticResource BackgroundSecondaryBrush}" BorderBrush="{StaticResource BorderBrush}"
-                                BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,24">
-                            <StackPanel>
-                                <TextBlock Text="Active Configuration Preview:" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
-                                    <Run Text="• C2 Target: " FontWeight="SemiBold"/>
-                                    <Run Text="{Binding BuildHost}"/>
-                                    <Run Text=":"/>
-                                    <Run Text="{Binding BuildPort}"/>
-                                </TextBlock>
-                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
-                                    <Run Text="• Keylogger: " FontWeight="SemiBold"/>
-                                    <Run Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}"/>
-                                </TextBlock>
-                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
-                                    <Run Text="• Binary Size: " FontWeight="SemiBold"/>
-                                    <Run Text="Self-Contained &amp; Trimmed (~11 MB)"/>
-                                </TextBlock>
-                            </StackPanel>
-                        </Border>
-
-                        <Button Style="{StaticResource PrimaryButton}"
-                                Content="?? Open Builder Window"
-                                Command="{Binding OpenBuilderCommand}"
-                                Height="44" Padding="28,0" HorizontalAlignment="Left"
-                                FontSize="14" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Tasks View -->
-            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Tasks}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Header -->
-                <Grid Grid.Row="0" Margin="0,0,0,12">
-                    <TextBlock Text="Tasks" FontSize="24" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="??  Add Local File" Command="{Binding AddLocalFileTaskCommand}"
-                                Style="{StaticResource PrimaryButton}" Height="36" Padding="16,0" Margin="0,0,8,0"/>
-                        <Button Content="??  Add URL Task"   Command="{Binding AddUrlTaskCommand}"
-                                Style="{StaticResource PrimaryButton}" Height="36" Padding="16,0" Margin="0,0,8,0"/>
-                        <Button Content="?  Run on Selected" Command="{Binding RunTaskOnSelectedCommand}"
-                                Style="{StaticResource PrimaryButton}" Height="36" Padding="16,0" Margin="0,0,8,0"/>
-                        <Button Content="??  Remove"          Command="{Binding RemoveTaskCommand}"
-                                Style="{StaticResource DangerButton}" Height="36" Padding="16,0"/>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Tasks Discord Webhook Alert Bar -->
-                <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                        CornerRadius="8" Padding="14,10" Margin="0,0,0,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
-                            <TextBlock Text="??" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <CheckBox Content="Discord Webhook Alerts" IsChecked="{Binding TaskDiscordAlert}"
-                                      Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Cursor="Hand"/>
-                        </StackPanel>
-
-                        <Grid Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding TaskDiscordAlert}">
-                            <TextBox Style="{StaticResource ModernTextBox}" Height="32" Padding="8,4"
-                                     Text="{Binding TaskDiscordWebhook, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Enter Discord Webhook URL for real-time task dispatch alerts"/>
-                            <TextBlock Text="Paste Discord Webhook URL here (https://discord.com/api/webhooks/...)"
-                                       Foreground="#6E7681" FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center"
-                                       IsHitTestVisible="False">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding TaskDiscordWebhook}" Value="">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Grid>
-
-                        <Button Grid.Column="2" Content="? Test Webhook" Command="{Binding TestTaskDiscordWebhookCommand}"
-                                Style="{StaticResource PrimaryButton}" Height="32" Padding="12,0" Margin="10,0,0,0"
-                                IsEnabled="{Binding TaskDiscordAlert}"/>
-                    </Grid>
-                </Border>
-
-                <!-- Task list -->
-                <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
-                    <DataGrid ItemsSource="{Binding Tasks}"
-                              SelectedItem="{Binding SelectedTask}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              SelectionMode="Single">
-
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="??  Add Local File Task"
-                                          Command="{Binding PlacementTarget.DataContext.AddLocalFileTaskCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <MenuItem Header="??  Add URL Task"
-                                          Command="{Binding PlacementTarget.DataContext.AddUrlTaskCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <Separator/>
-                                <MenuItem Header="?  Run on Selected Clients"
-                                          Command="{Binding PlacementTarget.DataContext.RunTaskOnSelectedCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <Separator/>
-                                <MenuItem Header="??  Remove Task"
-                                          Command="{Binding PlacementTarget.DataContext.RemoveTaskCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem,
-                                                             RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name"     Binding="{Binding Name}"          Width="180"/>
-                            <DataGridTextColumn Header="Type"     Binding="{Binding ModeLabel}"     Width="110"/>
-                            <DataGridTextColumn Header="Executed" Binding="{Binding ExecutedCount}" Width="80"/>
-                            <DataGridTextColumn Header="Source"   Binding="{Binding Source}"        Width="*"/>
-                            <DataGridTemplateColumn Header="Status" Width="150">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Status}" Padding="8,0"
-                                                   VerticalAlignment="Center" FontSize="12">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Status}" Value="Ready">
-                                                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Status}" Value="Running…">
-                                                            <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-
-                        <!-- Empty state -->
-                        <DataGrid.Style>
-                            <Style TargetType="DataGrid" BasedOn="{StaticResource ModernDataGrid}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tasks.Count}" Value="0">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate>
-                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                        <TextBlock Text="??" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                                                        <TextBlock Text="No tasks yet" FontSize="16" FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-                                                        <TextBlock Text="Right-click or use the buttons above to add a task"
-                                                                   FontSize="12" Foreground="{StaticResource TextMutedBrush}"
-                                                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
-                                                    </StackPanel>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.Style>
-                    </DataGrid>
-                </Border>
-            </Grid>
-
-            <!-- Credits View -->
-            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Credits}">
-                <Border Style="{StaticResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <StackPanel HorizontalAlignment="Center">
-                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-                        <TextBlock Text="RWORM" FontSize="32" FontWeight="Bold"
-                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Remote Access Tool" FontSize="14"
-                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,8,0,24"/>
-
-                        <TextBlock Text="Developer" FontSize="12" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Rayzer" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,16"/>
-
-                        <TextBlock Text="GitHub" FontSize="12" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="github.com/exsarorrayzer" FontSize="14"
-                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Grid>
-
-        <!-- Status Bar -->
-        <Border Grid.Column="1" Grid.Row="1" Background="White"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-            <Grid Margin="16,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                        <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
-                    <TextBlock Text="{Binding StatusMessage}" FontSize="12"
-                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ClientCount, StringFormat='Clients: {0}'}"
-                               FontSize="12" Foreground="{StaticResource TextMutedBrush}"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
+﻿<Window x:Class="RWORM.GUI.MainWindow"
+
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
+        xmlns:conv="clr-namespace:RWORM.GUI.Converters"
+
+        Title="RWORM"
+
+        Height="700" Width="1100"
+
+        MinHeight="600" MinWidth="900"
+
+        Background="{StaticResource BackgroundSecondaryBrush}"
+
+        WindowStartupLocation="CenterScreen">
+
+
+
+    <Window.Resources>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <conv:UrlToImageConverter          x:Key="UrlToImage"/>
+
+        <conv:InverseBoolConverter         x:Key="InverseBoolConverter"/>
+
+        <conv:StringToVisibilityConverter  x:Key="StringToVisibilityConverter"/>
+
+        <conv:StringToBoolConverter        x:Key="StringToBoolConverter"/>
+
+    </Window.Resources>
+
+
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+
+            <ColumnDefinition Width="240"/>
+
+            <ColumnDefinition Width="*"/>
+
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+
+            <RowDefinition Height="*"/>
+
+            <RowDefinition Height="50"/>
+
+        </Grid.RowDefinitions>
+
+
+
+        <!-- Sidebar -->
+
+        <Border Grid.Column="0" Grid.RowSpan="2" Background="White"
+
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+
+            <Grid>
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="*"/>
+
+                    <RowDefinition Height="Auto"/>
+
+                </Grid.RowDefinitions>
+
+
+
+                <!-- Logo -->
+
+                <StackPanel Grid.Row="0" Margin="20,20,20,30">
+
+                    <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20"/>
+
+                </StackPanel>
+
+
+
+                <!-- Navigation -->
+
+                <StackPanel Grid.Row="1" Margin="12,0">
+
+                    <RadioButton Style="{StaticResource SidebarButton}" Content="Clients"
+
+                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Clients}"
+
+                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Clients">
+
+                        <RadioButton.Template>
+
+                            <ControlTemplate TargetType="RadioButton">
+
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
+
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/clients.png" Width="20" Height="20" Margin="0,0,10,0"/>
+
+                                        <ContentPresenter VerticalAlignment="Center"/>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+
+                                    </Trigger>
+
+                                    <Trigger Property="IsChecked" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+
+                                        <Setter Property="Foreground" Value="White"/>
+
+                                    </Trigger>
+
+                                </ControlTemplate.Triggers>
+
+                            </ControlTemplate>
+
+                        </RadioButton.Template>
+
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource SidebarButton}" Content="Listener"
+
+                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Listener}"
+
+                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Listener" Margin="0,4,0,0">
+
+                        <RadioButton.Template>
+
+                            <ControlTemplate TargetType="RadioButton">
+
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
+
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/listener.png" Width="20" Height="20" Margin="0,0,10,0"/>
+
+                                        <ContentPresenter VerticalAlignment="Center"/>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+
+                                    </Trigger>
+
+                                    <Trigger Property="IsChecked" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+
+                                        <Setter Property="Foreground" Value="White"/>
+
+                                    </Trigger>
+
+                                </ControlTemplate.Triggers>
+
+                            </ControlTemplate>
+
+                        </RadioButton.Template>
+
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource SidebarButton}" Content="Builder"
+
+                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Builder}"
+
+                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Builder" Margin="0,4,0,0">
+
+                        <RadioButton.Template>
+
+                            <ControlTemplate TargetType="RadioButton">
+
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
+
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,10,0"/>
+
+                                        <ContentPresenter VerticalAlignment="Center"/>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+
+                                    </Trigger>
+
+                                    <Trigger Property="IsChecked" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+
+                                        <Setter Property="Foreground" Value="White"/>
+
+                                    </Trigger>
+
+                                </ControlTemplate.Triggers>
+
+                            </ControlTemplate>
+
+                        </RadioButton.Template>
+
+                    </RadioButton>
+
+                    <!-- Tasks -->
+
+                    <RadioButton Style="{StaticResource SidebarButton}" Content="Tasks"
+
+                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Tasks}"
+
+                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Tasks" Margin="0,4,0,0">
+
+                        <RadioButton.Template>
+
+                            <ControlTemplate TargetType="RadioButton">
+
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
+
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="20" Height="20" Margin="0,0,10,0"/>
+
+                                        <ContentPresenter VerticalAlignment="Center"/>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+
+                                    </Trigger>
+
+                                    <Trigger Property="IsChecked" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+
+                                        <Setter Property="Foreground" Value="White"/>
+
+                                    </Trigger>
+
+                                </ControlTemplate.Triggers>
+
+                            </ControlTemplate>
+
+                        </RadioButton.Template>
+
+                    </RadioButton>
+
+                    <RadioButton Style="{StaticResource SidebarButton}" Content="Credits"
+
+                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Credits}"
+
+                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Credits" Margin="0,4,0,0">
+
+                        <RadioButton.Template>
+
+                            <ControlTemplate TargetType="RadioButton">
+
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
+
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/info.png" Width="20" Height="20" Margin="0,0,10,0"/>
+
+                                        <ContentPresenter VerticalAlignment="Center"/>
+
+                                    </StackPanel>
+
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
+
+                                    </Trigger>
+
+                                    <Trigger Property="IsChecked" Value="True">
+
+                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+
+                                        <Setter Property="Foreground" Value="White"/>
+
+                                    </Trigger>
+
+                                </ControlTemplate.Triggers>
+
+                            </ControlTemplate>
+
+                        </RadioButton.Template>
+
+                    </RadioButton>
+
+                </StackPanel>
+
+
+
+                <!-- Connection Status -->
+
+                <StackPanel Grid.Row="2" Margin="12,0,12,20">
+
+                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="8" Padding="12">
+
+                        <StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+
+                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+
+                                    <Ellipse.Style>
+
+                                        <Style TargetType="Ellipse">
+
+                                            <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
+
+                                            <Style.Triggers>
+
+                                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+
+                                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
+
+                                                </DataTrigger>
+
+                                            </Style.Triggers>
+
+                                        </Style>
+
+                                    </Ellipse.Style>
+
+                                </Ellipse>
+
+                                <TextBlock Text="{Binding ConnectionStatus}" FontSize="12"
+
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <TextBox Style="{StaticResource ModernTextBox}"
+
+                                         Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}"
+
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+
+                                         CaretBrush="{StaticResource TextPrimaryBrush}"
+
+                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                         FontWeight="SemiBold"
+
+                                         Width="140" Height="32" FontSize="12" Padding="8,4"
+
+                                         ToolTip="C2 Server Host / IP"/>
+
+                                <TextBox Style="{StaticResource ModernTextBox}"
+
+                                         Text="{Binding ServerPort, UpdateSourceTrigger=PropertyChanged}"
+
+                                         Foreground="{StaticResource TextPrimaryBrush}"
+
+                                         CaretBrush="{StaticResource TextPrimaryBrush}"
+
+                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                         FontWeight="SemiBold"
+
+                                         Width="64" Height="32" FontSize="12" Padding="8,4" Margin="6,0,0,0"
+
+                                         ToolTip="C2 Server Port"/>
+
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+
+                                <Button Style="{StaticResource PrimaryButton}" Content="Connect"
+
+                                        Command="{Binding ConnectCommand}" Height="28" Padding="12,0"
+
+                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/>
+
+                                <Button Style="{StaticResource DangerButton}" Content="Disconnect"
+
+                                        Command="{Binding DisconnectCommand}" Height="28" Padding="12,0"
+
+                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}"/>
+
+                            </StackPanel>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </StackPanel>
+
+            </Grid>
+
+        </Border>
+
+
+
+        <!-- Main Content -->
+
+        <Grid Grid.Column="1" Grid.Row="0" Margin="24">
+
+            
+
+
+
+            <!-- Clients View -->
+
+            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Clients}">
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+
+
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+
+                    <TextBlock Text="Clients" FontSize="24" FontWeight="SemiBold"
+
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <Button Style="{StaticResource SecondaryButton}" Content="Refresh"
+
+                            Command="{Binding RefreshClientsCommand}"
+
+                            HorizontalAlignment="Right" Height="34"/>
+
+                </Grid>
+
+
+
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
+
+                    <Grid x:Name="ClientsGridContainer" ClipToBounds="True">
+
+                        <DataGrid x:Name="ClientsGrid"
+
+                                  ItemsSource="{Binding Clients}"
+
+                                  SelectedItem="{Binding SelectedClient}"
+
+                                  Style="{StaticResource ModernDataGrid}"
+
+                                  AutoGenerateColumns="False"
+
+                                  IsReadOnly="True"
+
+                                  CanUserAddRows="False"
+
+                                  SelectionMode="Extended"
+
+                                  SelectionUnit="FullRow"
+
+                                  SelectionChanged="ClientsGrid_SelectionChanged"
+
+                                  PreviewMouseLeftButtonDown="ClientsGrid_PreviewMouseLeftButtonDown"
+
+                                  PreviewMouseMove="ClientsGrid_PreviewMouseMove"
+
+                                  PreviewMouseLeftButtonUp="ClientsGrid_PreviewMouseLeftButtonUp"
+
+                                  PreviewMouseRightButtonDown="ClientsGrid_PreviewMouseRightButtonDown"
+
+                                  ContextMenuOpening="ClientsGrid_ContextMenuOpening"
+
+                                  LostMouseCapture="ClientsGrid_LostMouseCapture">
+
+
+
+                        <!-- ¦¦ Right-click context menu ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ -->
+
+                        <DataGrid.ContextMenu>
+
+                            <ContextMenu x:Name="ClientsContextMenu" Opened="ClientsContextMenu_Opened">
+
+                                <!-- Shell -->
+
+                                <MenuItem Command="{Binding OpenShellCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/shell.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Shell" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- File Manager -->
+
+                                <MenuItem Command="{Binding OpenFileManagerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="File Manager" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Keylogger -->
+
+                                <MenuItem Command="{Binding OpenKeyloggerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/keylogger.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Keylogger" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Process Manager -->
+
+                                <MenuItem Command="{Binding OpenProcManagerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/processmanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Process Manager" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Registry Editor -->
+
+                                <MenuItem Command="{Binding OpenRegistryEditorCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/registryeditor.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Registry Editor" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Remote Desktop -->
+
+                                <MenuItem Command="{Binding OpenRemoteDesktopCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/remotedesktop.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Remote Desktop" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Service Manager -->
+
+                                <MenuItem Command="{Binding OpenServiceManagerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/services.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Service Manager" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Network Connections -->
+
+                                <MenuItem Command="{Binding OpenNetMonitorCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/network.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Network Connections" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Startup / Autorun -->
+
+                                <MenuItem Command="{Binding OpenAutorunManagerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/startup.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Startup / Autorun" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Clipboard Manager -->
+
+                                <MenuItem Command="{Binding OpenClipboardManagerCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/clipboard.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Clipboard Manager" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <Separator/>
+
+                                <!-- Loader -->
+
+                                <MenuItem Header="Loader">
+
+                                    <MenuItem.Icon>
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15"/>
+
+                                    </MenuItem.Icon>
+
+                                    <MenuItem Header="Execute from URL..."
+
+                                              Command="{Binding LoaderExecCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                    <MenuItem Header="Execute from Local File..."
+
+                                              Command="{Binding LoaderExecFileCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                </MenuItem>
+
+                                <Separator/>
+
+                                <!-- Close -->
+
+                                <MenuItem Command="{Binding ClientCloseCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Close Client" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Uninstall -->
+
+                                <MenuItem Command="{Binding ClientUninstallCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/uninstall.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Uninstall" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Update -->
+
+                                <MenuItem Command="{Binding ClientUpdateCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/update.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Update Client" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                            </ContextMenu>
+
+                        </DataGrid.ContextMenu>
+
+
+
+                        <DataGrid.Columns>
+
+                            <!-- Status dot -->
+
+                            <DataGridTemplateColumn Header="" Width="44">
+
+                                <DataGridTemplateColumn.CellTemplate>
+
+                                    <DataTemplate>
+
+                                        <Ellipse Width="10" Height="10" HorizontalAlignment="Center">
+
+                                            <Ellipse.Style>
+
+                                                <Style TargetType="Ellipse">
+
+                                                    <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
+
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger Binding="{Binding IsOnline}" Value="True">
+
+                                                            <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
+
+                                                        </DataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </Ellipse.Style>
+
+                                        </Ellipse>
+
+                                    </DataTemplate>
+
+                                </DataGridTemplateColumn.CellTemplate>
+
+                            </DataGridTemplateColumn>
+
+
+
+                            <!-- Country flag (local PNG rendered from bundled SVGs + code) -->
+
+                            <DataGridTemplateColumn Header="Country" Width="96">
+
+                                <DataGridTemplateColumn.CellTemplate>
+
+                                    <DataTemplate>
+
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+
+                                                    Margin="4,0">
+
+                                            <!-- Local flag PNG from Resources/Flags -->
+
+                                            <Image Source="{Binding FlagImagePath,
+
+                                                           Converter={StaticResource UrlToImage}}"
+
+                                                   Width="24" Height="18"
+
+                                                   VerticalAlignment="Center"
+
+                                                   Margin="0,0,6,0"
+
+                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                                            <!-- Country code fallback text -->
+
+                                            <TextBlock Text="{Binding CountryCode}"
+
+                                                       FontSize="11"
+
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+
+                                                       VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </DataTemplate>
+
+                                </DataGridTemplateColumn.CellTemplate>
+
+                            </DataGridTemplateColumn>
+
+
+
+                            <DataGridTextColumn Header="Hostname"   Binding="{Binding Hostname}"   Width="*"/>
+
+                            <DataGridTextColumn Header="Username"   Binding="{Binding Username}"   Width="100"/>
+
+                            <DataGridTemplateColumn Header="IP Address" Width="145">
+
+                                <DataGridTemplateColumn.CellTemplate>
+
+                                    <DataTemplate>
+
+                                        <TextBlock Text="{Binding IpAddress}"
+
+                                                   FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                                   FontWeight="SemiBold"
+
+                                                   FontSize="12.5"
+
+                                                   VerticalAlignment="Center"/>
+
+                                    </DataTemplate>
+
+                                </DataGridTemplateColumn.CellTemplate>
+
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="140"/>
+
+                            <DataGridTextColumn Header="Load"       Binding="{Binding MetricsDisplay}" Width="125"/>
+
+                            <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
+
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+
+
+
+                    <!-- Windows-like blue marquee selection box -->
+
+                    <Canvas x:Name="SelectionCanvas" IsHitTestVisible="False">
+
+                        <Rectangle x:Name="SelectionBox"
+
+                                   Fill="#330078D7"
+
+                                   Stroke="#0078D7"
+
+                                   StrokeThickness="1"
+
+                                   Visibility="Collapsed"/>
+
+                    </Canvas>
+
+                </Grid>
+
+            </Border>
+
+
+
+            </Grid>
+
+
+
+            <!-- Listener View -->
+
+            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Listener}">
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="*"/>
+
+                </Grid.RowDefinitions>
+
+
+
+                <TextBlock Grid.Row="0" Text="Listener" FontSize="24" FontWeight="SemiBold"
+
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+
+
+                <StackPanel Grid.Row="1">
+
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,16">
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+
+                                <ColumnDefinition Width="120"/>
+
+                                <ColumnDefinition Width="*"/>
+
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+
+                                <RowDefinition Height="Auto"/>
+
+                                <RowDefinition Height="Auto"/>
+
+                                <RowDefinition Height="Auto"/>
+
+                            </Grid.RowDefinitions>
+
+
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Host / IP:" VerticalAlignment="Center"
+
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
+
+                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ModernTextBox}"
+
+                                     Text="{Binding ListenerHost, UpdateSourceTrigger=PropertyChanged}"
+
+                                     Foreground="{StaticResource TextPrimaryBrush}"
+
+                                     CaretBrush="{StaticResource TextPrimaryBrush}"
+
+                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                     FontWeight="SemiBold"
+
+                                     FontSize="13" Height="38"
+
+                                     Margin="0,0,0,12"/>
+
+
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" VerticalAlignment="Center"
+
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="13"/>
+
+                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ModernTextBox}"
+
+                                     Text="{Binding ListenerPort, UpdateSourceTrigger=PropertyChanged}"
+
+                                     Foreground="{StaticResource TextPrimaryBrush}"
+
+                                     CaretBrush="{StaticResource TextPrimaryBrush}"
+
+                                     FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                     FontWeight="SemiBold"
+
+                                     FontSize="13" Height="38"
+
+                                     Margin="0,0,0,12"/>
+
+
+
+                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+
+                                <Button Style="{StaticResource PrimaryButton}" Content="Start"
+
+                                        Command="{Binding StartListenerCommand}" Height="36" Padding="24,0"/>
+
+                                <Button Style="{StaticResource DangerButton}" Content="Stop"
+
+                                        Command="{Binding StopListenerCommand}" Height="36" Padding="24,0" Margin="12,0,0,0"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </Border>
+
+
+
+                    <Border Style="{StaticResource CardBorder}">
+
+                        <StackPanel>
+
+                            <TextBlock Text="Listener Status" FontSize="14" FontWeight="SemiBold"
+
+                                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                            <StackPanel Orientation="Horizontal">
+
+                                <Ellipse Width="12" Height="12" Margin="0,0,8,0">
+
+                                    <Ellipse.Style>
+
+                                        <Style TargetType="Ellipse">
+
+                                            <Setter Property="Fill" Value="{StaticResource ErrorBrush}"/>
+
+                                            <Style.Triggers>
+
+                                                <DataTrigger Binding="{Binding ListenerRunning}" Value="True">
+
+                                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
+
+                                                </DataTrigger>
+
+                                            </Style.Triggers>
+
+                                        </Style>
+
+                                    </Ellipse.Style>
+
+                                </Ellipse>
+
+                                <TextBlock Text="{Binding ListenerStatus, FallbackValue='Stopped'}"
+
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+
+                                           FontFamily="Cascadia Code, Consolas, Segoe UI"
+
+                                           FontWeight="SemiBold"
+
+                                           FontSize="13"/>
+
+                            </StackPanel>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </StackPanel>
+
+            </Grid>
+
+
+
+            <!-- Builder View -->
+
+            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Builder}">
+
+                <Grid.RowDefinitions>
+
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="*"/>
+
+                </Grid.RowDefinitions>
+
+
+
+                <TextBlock Grid.Row="0" Text="Client Builder" FontSize="24" FontWeight="SemiBold"
+
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+
+
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="28">
+
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+
+                        <Border Background="{StaticResource BackgroundSecondaryBrush}" BorderBrush="{StaticResource BorderBrush}"
+
+                                BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,24">
+
+                            <StackPanel>
+
+                                <TextBlock Text="Active Configuration Preview:" FontSize="13" FontWeight="SemiBold"
+
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+
+                                    <Run Text="• C2 Target: " FontWeight="SemiBold"/>
+
+                                    <Run Text="{Binding BuildHost}"/>
+
+                                    <Run Text=":"/>
+
+                                    <Run Text="{Binding BuildPort}"/>
+
+                                </TextBlock>
+
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+
+                                    <Run Text="• Keylogger: " FontWeight="SemiBold"/>
+
+                                    <Run Text="{Binding BuildKeyloggerEnabled, StringFormat='Enabled: {0}'}"/>
+
+                                </TextBlock>
+
+                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,2">
+
+                                    <Run Text="• Binary Size: " FontWeight="SemiBold"/>
+
+                                    <Run Text="Self-Contained &amp; Trimmed (~11 MB)"/>
+
+                                </TextBlock>
+
+                            </StackPanel>
+
+                        </Border>
+
+
+
+                        <Button Style="{StaticResource PrimaryButton}"
+
+                                Content="?? Open Builder Window"
+
+                                Command="{Binding OpenBuilderCommand}"
+
+                                Height="44" Padding="28,0" HorizontalAlignment="Left"
+
+                                FontSize="14" FontWeight="SemiBold"/>
+
+                    </StackPanel>
+
+                </Border>
+
+            </Grid>
+
+
+
+            <!-- Tasks View -->
+            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Tasks}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <TextBlock Text="Tasks" FontSize="24" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Task list -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
+                    <DataGrid ItemsSource="{Binding Tasks}"
+                              SelectedItem="{Binding SelectedTask}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single">
+
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddDiscordWebhookTaskCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/discord.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Discord Webhook" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddLocalFileTaskCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Run File Local" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddUrlTaskCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Run File from URL" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Command="{Binding PlacementTarget.DataContext.RemoveTaskCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem,
+                                                             RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Remove Task" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                        <DataGrid.Columns>
+                            <!-- Task Type Icon -->
+                            <DataGridTemplateColumn Header="" Width="40">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding IconPath}" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Name"       Binding="{Binding Name}"          Width="180"/>
+                            <DataGridTextColumn Header="Type"       Binding="{Binding ModeLabel}"     Width="130"/>
+                            <DataGridTextColumn Header="Executions" Binding="{Binding ExecutedCount}" Width="90"/>
+                            <DataGridTextColumn Header="Source"     Binding="{Binding Source}"        Width="*"/>
+                            <DataGridTemplateColumn Header="Status" Width="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Status}" Padding="8,0"
+                                                   VerticalAlignment="Center" FontSize="12">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Ready">
+                                                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Active">
+                                                            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Running…">
+                                                            <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+
+                        <!-- Empty state -->
+                        <DataGrid.Style>
+                            <Style TargetType="DataGrid" BasedOn="{StaticResource ModernDataGrid}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tasks.Count}" Value="0">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate>
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,12" Opacity="0.4"/>
+                                                        <TextBlock Text="No tasks yet" FontSize="16" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Right-click to add a task (Discord Webhook, Run File Local, Run File from URL)"
+                                                                   FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Style>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- Credits View -->
+
+            <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Credits}">
+
+                <Border Style="{StaticResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                    <StackPanel HorizontalAlignment="Center">
+
+                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                        <TextBlock Text="RWORM" FontSize="32" FontWeight="Bold"
+
+                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="Remote Access Tool" FontSize="14"
+
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,8,0,24"/>
+
+
+
+                        <TextBlock Text="Developer" FontSize="12" FontWeight="SemiBold"
+
+                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="Rayzer" FontSize="16" FontWeight="SemiBold"
+
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,16"/>
+
+
+
+                        <TextBlock Text="GitHub" FontSize="12" FontWeight="SemiBold"
+
+                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+
+                        <TextBlock Text="github.com/exsarorrayzer" FontSize="14"
+
+                                   Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+
+                    </StackPanel>
+
+                </Border>
+
+            </Grid>
+
+        </Grid>
+
+
+
+        <!-- Status Bar -->
+
+        <Border Grid.Column="1" Grid.Row="1" Background="White"
+
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+
+            <Grid Margin="16,0">
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                    <Ellipse Width="8" Height="8" Margin="0,0,8,0">
+
+                        <Ellipse.Style>
+
+                            <Style TargetType="Ellipse">
+
+                                <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
+
+                                <Style.Triggers>
+
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+
+                                        <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
+
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+
+                            </Style>
+
+                        </Ellipse.Style>
+
+                    </Ellipse>
+
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+
+                </StackPanel>
+
+
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                    <TextBlock Text="{Binding ClientCount, StringFormat='Clients: {0}'}"
+
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+
+                               VerticalAlignment="Center"/>
+
+                </StackPanel>
+
+            </Grid>
+
+        </Border>
+
+    </Grid>
+
 </Window>

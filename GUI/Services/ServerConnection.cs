@@ -79,6 +79,7 @@ namespace RWORM.GUI.Services
         public event EventHandler<string>? OutputReceived;
 
         public event EventHandler<bool>?   ConnectionChanged;
+        public event EventHandler<List<ClientModel>>? ClientsReceived;
 
 
 
@@ -654,7 +655,7 @@ namespace RWORM.GUI.Services
 
                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                        if (list != null) _cachedClients = list;
+                        if (list != null) { _cachedClients = list; ClientsReceived?.Invoke(this, list); }
 
                     }
 
