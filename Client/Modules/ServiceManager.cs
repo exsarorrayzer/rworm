@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using System.Text;
+using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
@@ -76,21 +76,16 @@ namespace RWORM.Client.Modules
             public uint dwWaitHint;
         }
 
-        public class ServiceItem
-        {
-            public string Name { get; set; } = string.Empty;
-            public string DisplayName { get; set; } = string.Empty;
-            public string Status { get; set; } = string.Empty;
-            public uint Pid { get; set; }
-        }
-
         public static byte[] ListServices()
         {
-            var list = new List<ServiceItem>();
+            var sb = new StringBuilder("[");
+            bool first = true;
+
             IntPtr hSCM = OpenSCManager(null, null, 0x0004 /* SC_MANAGER_ENUMERATE_SERVICE */);
             if (hSCM == IntPtr.Zero)
             {
-                return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
+                sb.Append(']');
+                return Encoding.UTF8.GetBytes(sb.ToString());
             }
 
             try
@@ -116,13 +111,15 @@ namespace RWORM.Client.Modules
                             for (int i = 0; i < servicesReturned; i++)
                             {
                                 var item = Marshal.PtrToStructure<ENUM_SERVICE_STATUS_PROCESS>(ptr);
-                                list.Add(new ServiceItem
-                                {
-                                    Name = item.lpServiceName,
-                                    DisplayName = item.lpDisplayName,
-                                    Status = ResolveState(item.ServiceStatusProcess.dwCurrentState),
-                                    Pid = item.ServiceStatusProcess.dwProcessId
-                                });
+                                string name = JsonHelper.Escape(item.lpServiceName);
+                                string disp = JsonHelper.Escape(item.lpDisplayName);
+                                string stat = JsonHelper.Escape(ResolveState(item.ServiceStatusProcess.dwCurrentState));
+                                uint pid = item.ServiceStatusProcess.dwProcessId;
+
+                                if (!first) sb.Append(',');
+                                first = false;
+                                sb.Append($"{{\"name\":\"{name}\",\"displayName\":\"{disp}\",\"status\":\"{stat}\",\"pid\":{pid}}}");
+
                                 ptr = IntPtr.Add(ptr, structSize);
                             }
                         }
@@ -139,7 +136,8 @@ namespace RWORM.Client.Modules
                 CloseServiceHandle(hSCM);
             }
 
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
+            sb.Append(']');
+            return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         public static byte[] ControlService(string serviceName, string action)
@@ -147,7 +145,7 @@ namespace RWORM.Client.Modules
             IntPtr hSCM = OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS);
             if (hSCM == IntPtr.Zero)
             {
-                return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { ok = false, error = "Cannot open SCM" }));
+                return Encoding.UTF8.GetBytes("{\"ok\":false,\"error\":\"Cannot open SCM\"}");
             }
 
             try
@@ -155,7 +153,7 @@ namespace RWORM.Client.Modules
                 IntPtr hService = OpenService(hSCM, serviceName, SERVICE_ALL_ACCESS);
                 if (hService == IntPtr.Zero)
                 {
-                    return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { ok = false, error = "Cannot open service" }));
+                    return Encoding.UTF8.GetBytes("{\"ok\":false,\"error\":\"Cannot open service\"}");
                 }
 
                 try
@@ -177,7 +175,7 @@ namespace RWORM.Client.Modules
                             ok = StartService(hService, 0, IntPtr.Zero);
                             break;
                     }
-                    return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { ok }));
+                    return Encoding.UTF8.GetBytes($"{{\"ok\":{(ok ? "true" : "false")}}}");
                 }
                 finally
                 {

@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
+using System.Text;
+using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
@@ -10,23 +10,35 @@ namespace RWORM.Client.Modules
         /// List directory contents as JSON.
         public static byte[] ListDirectory(string path)
         {
-            var entries = new List<object>();
+            var sb = new StringBuilder("[");
+            bool first = true;
             try
             {
                 var di = new DirectoryInfo(path);
                 foreach (var d in di.GetDirectories())
-                    entries.Add(new { name = d.Name, type = "dir", size = 0L,
-                        modified = d.LastWriteTimeUtc.ToString("o") });
+                {
+                    if (!first) sb.Append(',');
+                    first = false;
+                    string name = JsonHelper.Escape(d.Name);
+                    string mod = d.LastWriteTimeUtc.ToString("o");
+                    sb.Append($"{{\"name\":\"{name}\",\"type\":\"dir\",\"size\":0,\"modified\":\"{mod}\"}}");
+                }
                 foreach (var f in di.GetFiles())
-                    entries.Add(new { name = f.Name, type = "file", size = f.Length,
-                        modified = f.LastWriteTimeUtc.ToString("o") });
+                {
+                    if (!first) sb.Append(',');
+                    first = false;
+                    string name = JsonHelper.Escape(f.Name);
+                    string mod = f.LastWriteTimeUtc.ToString("o");
+                    sb.Append($"{{\"name\":\"{name}\",\"type\":\"file\",\"size\":{f.Length},\"modified\":\"{mod}\"}}");
+                }
+                sb.Append(']');
+                return Encoding.UTF8.GetBytes(sb.ToString());
             }
             catch (Exception ex)
             {
-                return System.Text.Encoding.UTF8.GetBytes(
-                    JsonSerializer.Serialize(new[] { new { error = ex.Message } }));
+                string err = JsonHelper.Escape(ex.Message);
+                return Encoding.UTF8.GetBytes($"[{{\"error\":\"{err}\"}}]");
             }
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(entries));
         }
 
         /// Read file bytes (up to 50 MB).
@@ -49,7 +61,7 @@ namespace RWORM.Client.Modules
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllBytes(path, data);
-                return System.Text.Encoding.UTF8.GetBytes("{\"ok\":true}");
+                return Encoding.UTF8.GetBytes("{\"ok\":true}");
             }
             catch (Exception ex) { return MakeError(ex.Message); }
         }
@@ -58,21 +70,27 @@ namespace RWORM.Client.Modules
         {
             try
             {
-                if (Directory.Exists(path)) Directory.Delete(path, true);
-                else if (File.Exists(path)) File.Delete(path);
-                return System.Text.Encoding.UTF8.GetBytes("{\"ok\":true}");
+                if (File.Exists(path)) File.Delete(path);
+                else if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
+                return Encoding.UTF8.GetBytes("{\"ok\":true}");
             }
             catch (Exception ex) { return MakeError(ex.Message); }
         }
 
         public static byte[] MakeDir(string path)
         {
-            try { Directory.CreateDirectory(path); return System.Text.Encoding.UTF8.GetBytes("{\"ok\":true}"); }
+            try
+            {
+                Directory.CreateDirectory(path);
+                return Encoding.UTF8.GetBytes("{\"ok\":true}");
+            }
             catch (Exception ex) { return MakeError(ex.Message); }
         }
 
         private static byte[] MakeError(string msg)
-            => System.Text.Encoding.UTF8.GetBytes(
-                JsonSerializer.Serialize(new { error = msg }));
+        {
+            string err = JsonHelper.Escape(msg);
+            return Encoding.UTF8.GetBytes($"{{\"error\":\"{err}\"}}");
+        }
     }
 }

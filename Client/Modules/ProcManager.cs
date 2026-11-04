@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.Json;
+using System.Text;
+using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
@@ -9,22 +9,25 @@ namespace RWORM.Client.Modules
     {
         public static byte[] ListProcesses()
         {
-            var list = new List<object>();
+            var sb = new StringBuilder("[");
+            bool first = true;
             foreach (var p in Process.GetProcesses())
             {
                 try
                 {
-                    list.Add(new
-                    {
-                        pid  = p.Id,
-                        name = p.ProcessName,
-                        mem  = p.WorkingSet64 / 1024,   // KB
-                        title= p.MainWindowTitle
-                    });
+                    int pid = p.Id;
+                    string name = JsonHelper.Escape(p.ProcessName);
+                    long mem = p.WorkingSet64 / 1024;   // KB
+                    string title = JsonHelper.Escape(p.MainWindowTitle);
+
+                    if (!first) sb.Append(',');
+                    first = false;
+                    sb.Append($"{{\"pid\":{pid},\"name\":\"{name}\",\"mem\":{mem},\"title\":\"{title}\"}}");
                 }
                 catch { }
             }
-            return System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
+            sb.Append(']');
+            return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         public static byte[] KillProcess(int pid)
@@ -32,11 +35,13 @@ namespace RWORM.Client.Modules
             try
             {
                 Process.GetProcessById(pid).Kill(entireProcessTree: true);
-                return Utf8Json("{\"ok\":true}");
+                return Encoding.UTF8.GetBytes("{\"ok\":true}");
             }
-            catch (Exception ex) { return Utf8Json($"{{\"error\":\"{ex.Message}\"}}"); }
+            catch (Exception ex)
+            {
+                var err = JsonHelper.Escape(ex.Message);
+                return Encoding.UTF8.GetBytes($"{{\"ok\":false,\"error\":\"{err}\"}}");
+            }
         }
-
-        private static byte[] Utf8Json(string s) => System.Text.Encoding.UTF8.GetBytes(s);
     }
 }
