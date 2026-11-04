@@ -1,2 +1,0 @@
-C:\Users\ISM\GENERAL\workspaces\RWORM\build\client\RWORM.pdb
-C:\Users\ISM\GENERAL\workspaces\RWORM\build\client\RWORM.exe

