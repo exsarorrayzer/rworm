@@ -41,7 +41,7 @@ namespace RWORM.GUI.Models
             set { _executedCount = value; OnPropertyChanged(); }
         }
 
-        public HashSet<string> ExecutedGuids { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> ExecutedKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
 
         public string Status
         {
@@ -50,7 +50,7 @@ namespace RWORM.GUI.Models
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? n = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

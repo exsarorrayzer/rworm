@@ -15,7 +15,7 @@ namespace RWORM.GUI.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if ((bool)value)
-                return parameter?.ToString();
+                return parameter?.ToString() ?? string.Empty;
             return Binding.DoNothing;
         }
     }
