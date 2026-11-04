@@ -1219,57 +1219,54 @@
                 </Grid>
 
                 <!-- Task list -->
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
-                    <DataGrid ItemsSource="{Binding Tasks}"
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0" Background="Transparent">
+                    <Border.ContextMenu>
+                        <ContextMenu x:Name="TasksContextMenu">
+                            <MenuItem Command="{Binding AddDiscordWebhookTaskCommand}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Resources/Assets/discord.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Discord Webhook" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding AddLocalFileTaskCommand}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Run File Local" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding AddUrlTaskCommand}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Run File from URL" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Command="{Binding RemoveTaskCommand}"
+                                      CommandParameter="{Binding SelectedTask}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Remove Task" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Border.ContextMenu>
+                    <DataGrid x:Name="TasksGrid"
+                              ItemsSource="{Binding Tasks}"
                               SelectedItem="{Binding SelectedTask}"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
-                              SelectionMode="Single">
-
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddDiscordWebhookTaskCommand,
-                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/discord.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Discord Webhook" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddLocalFileTaskCommand,
-                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Run File Local" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.AddUrlTaskCommand,
-                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Run File from URL" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                                <Separator/>
-                                <MenuItem Command="{Binding PlacementTarget.DataContext.RemoveTaskCommand,
-                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem,
-                                                             RelativeSource={RelativeSource AncestorType=ContextMenu}}">
-                                    <MenuItem.Header>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Remove Task" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </MenuItem.Header>
-                                </MenuItem>
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
+                              SelectionMode="Single"
+                              Background="Transparent"
+                              PreviewMouseRightButtonDown="TasksGrid_PreviewMouseRightButtonDown">
 
                         <DataGrid.Columns>
                             <!-- Task Type Icon -->

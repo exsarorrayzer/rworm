@@ -200,6 +200,25 @@ namespace RWORM.GUI
             _vm.SnapshotContextMenu();
         }
 
+        private void TasksGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var dep = e.OriginalSource as DependencyObject;
+            var row = FindVisualParent<DataGridRow>(dep);
+            if (row != null && row.Item is TaskModel task)
+            {
+                TasksGrid.SelectedItem = task;
+                _vm.SelectedTask = task;
+            }
+
+            if (TasksContextMenu != null)
+            {
+                TasksContextMenu.DataContext = _vm;
+                TasksContextMenu.PlacementTarget = (UIElement)sender;
+                TasksContextMenu.IsOpen = true;
+                e.Handled = true;
+            }
+        }
+
         private void QuickCommandTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
