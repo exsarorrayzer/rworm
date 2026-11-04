@@ -1219,7 +1219,8 @@
                 </Grid>
 
                 <!-- Task list -->
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0" Background="Transparent">
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0" Background="Transparent"
+                        PreviewMouseRightButtonDown="TasksBorder_PreviewMouseRightButtonDown">
                     <Border.ContextMenu>
                         <ContextMenu x:Name="TasksContextMenu">
                             <MenuItem Command="{Binding AddDiscordWebhookTaskCommand}">
