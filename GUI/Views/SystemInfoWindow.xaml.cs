@@ -38,6 +38,42 @@ namespace RWORM.GUI.Views
             _server.RequestSystemInfoDetailed(_clientId);
         }
 
+        private static string GetStringProp(JsonElement root, string prop1, string prop2 = "")
+        {
+            if (root.TryGetProperty(prop1, out var p1) && p1.ValueKind == JsonValueKind.String)
+                return p1.GetString() ?? "";
+            if (!string.IsNullOrEmpty(prop2) && root.TryGetProperty(prop2, out var p2) && p2.ValueKind == JsonValueKind.String)
+                return p2.GetString() ?? "";
+            return "";
+        }
+
+        private static int GetIntProp(JsonElement root, string prop1, string prop2 = "", int fallback = 0)
+        {
+            if (root.TryGetProperty(prop1, out var p1) && p1.ValueKind == JsonValueKind.Number && p1.TryGetInt32(out var v1))
+                return v1;
+            if (!string.IsNullOrEmpty(prop2) && root.TryGetProperty(prop2, out var p2) && p2.ValueKind == JsonValueKind.Number && p2.TryGetInt32(out var v2))
+                return v2;
+            return fallback;
+        }
+
+        private static long GetLongProp(JsonElement root, string prop1, string prop2 = "", long fallback = 0)
+        {
+            if (root.TryGetProperty(prop1, out var p1) && p1.ValueKind == JsonValueKind.Number && p1.TryGetInt64(out var v1))
+                return v1;
+            if (!string.IsNullOrEmpty(prop2) && root.TryGetProperty(prop2, out var p2) && p2.ValueKind == JsonValueKind.Number && p2.TryGetInt64(out var v2))
+                return v2;
+            return fallback;
+        }
+
+        private static bool GetBoolProp(JsonElement root, string prop1, string prop2 = "")
+        {
+            if (root.TryGetProperty(prop1, out var p1) && (p1.ValueKind == JsonValueKind.True || p1.ValueKind == JsonValueKind.False))
+                return p1.GetBoolean();
+            if (!string.IsNullOrEmpty(prop2) && root.TryGetProperty(prop2, out var p2) && (p2.ValueKind == JsonValueKind.True || p2.ValueKind == JsonValueKind.False))
+                return p2.GetBoolean();
+            return false;
+        }
+
         private void OnSystemInfoDetailedReceived(byte[] data)
         {
             var json = Encoding.UTF8.GetString(data);
@@ -48,53 +84,93 @@ namespace RWORM.GUI.Views
                     using var doc = JsonDocument.Parse(json);
                     var root = doc.RootElement;
 
-                    TxtDeviceType.Text = root.TryGetProperty("device_type", out var dt) ? dt.GetString() : "Unknown";
-                    
-                    var battPct = root.TryGetProperty("battery_percent", out var bp) ? bp.GetInt32() : -1;
-                    var battStatus = root.TryGetProperty("battery_status", out var bs) ? bs.GetString() : "Unknown";
-                    var powerLine = root.TryGetProperty("power_line", out var pl) ? pl.GetString() : "Unknown";
+                    // Device type
+                    var devType = GetStringProp(root, "device_type", "deviceType");
+                    TxtDeviceType.Text = string.IsNullOrEmpty(devType) ? "Desktop PC" : devType;
 
-                    TxtBatteryLevel.Text = battPct >= 0 ? $"{battPct}% ({battStatus})" : "No Battery Present (Desktop / AC Only)";
-                    TxtPowerStatus.Text = powerLine ?? "Unknown";
+                    // Battery & Power
+                    var battPct = GetIntProp(root, "battery_percent", "batteryPercent", -1);
+                    var battStatus = GetStringProp(root, "battery_status", "chargingStatus");
+                    var powerLine = GetStringProp(root, "power_line", "chargingStatus");
 
-                    TxtHost.Text = root.TryGetProperty("machine_name", out var mn) ? mn.GetString() : "";
-                    var user = root.TryGetProperty("user_name", out var un) ? un.GetString() : "";
-                    var domain = root.TryGetProperty("domain_name", out var dn) ? dn.GetString() : "";
-                    TxtUser.Text = string.IsNullOrEmpty(domain) ? user : $"{domain}\\{user}";
+                    if (battPct >= 0)
+                    {
+                        TxtBatteryLevel.Text = $"{battPct}%" + (!string.IsNullOrEmpty(battStatus) ? $" ({battStatus})" : "");
+                    }
+                    else
+                    {
+                        TxtBatteryLevel.Text = "No Battery (AC Powered / Desktop)";
+                    }
+                    TxtPowerStatus.Text = !string.IsNullOrEmpty(powerLine) ? powerLine : (!string.IsNullOrEmpty(battStatus) ? battStatus : "AC Power");
 
-                    var os = root.TryGetProperty("os_version", out var ov) ? ov.GetString() : "";
-                    var is64 = root.TryGetProperty("is_64bit", out var b64) && b64.GetBoolean() ? "64-bit" : "32-bit";
-                    TxtOS.Text = $"{os} ({is64})";
+                    // Machine & User
+                    var host = GetStringProp(root, "machine_name", "hostname");
+                    TxtHost.Text = host;
 
-                    var uptimeSec = root.TryGetProperty("uptime_seconds", out var us) ? us.GetInt64() : 0;
-                    var ts = TimeSpan.FromSeconds(uptimeSec);
-                    TxtUptime.Text = $"{ts.Days}d {ts.Hours}h {ts.Minutes}m {ts.Seconds}s";
+                    var user = GetStringProp(root, "user_name", "username");
+                    var domain = GetStringProp(root, "domain_name", "domain");
+                    TxtUser.Text = !string.IsNullOrEmpty(domain) && !domain.Equals(host, StringComparison.OrdinalIgnoreCase)
+                        ? $"{domain}\\{user}"
+                        : user;
 
-                    var cpu = root.TryGetProperty("cpu_name", out var cn) ? cn.GetString() : "";
-                    var cores = root.TryGetProperty("processor_count", out var pc) ? pc.GetInt32() : 0;
-                    TxtCPU.Text = $"{cpu} ({cores} logical cores)";
+                    // OS
+                    var os = GetStringProp(root, "os_version", "osVersion");
+                    var is64 = GetBoolProp(root, "is_64bit", "is64BitOS");
+                    TxtOS.Text = $"{os} ({(is64 ? "64-bit" : "32-bit")})";
 
-                    var biosVendor = root.TryGetProperty("bios_vendor", out var bv) ? bv.GetString() : "";
-                    var biosVer = root.TryGetProperty("bios_version", out var bver) ? bver.GetString() : "";
-                    var biosDate = root.TryGetProperty("bios_date", out var bd) ? bd.GetString() : "";
-                    TxtBIOS.Text = $"{biosVendor} {biosVer} ({biosDate})".Trim();
+                    // Uptime
+                    var uptimeSec = GetLongProp(root, "uptime_seconds");
+                    if (uptimeSec > 0)
+                    {
+                        var ts = TimeSpan.FromSeconds(uptimeSec);
+                        TxtUptime.Text = $"{ts.Days}d {ts.Hours}h {ts.Minutes}m {ts.Seconds}s";
+                    }
+                    else
+                    {
+                        var upStr = GetStringProp(root, "uptime");
+                        TxtUptime.Text = !string.IsNullOrEmpty(upStr) ? upStr : "N/A";
+                    }
 
-                    var ramMb = root.TryGetProperty("total_ram_mb", out var tr) ? tr.GetInt64() : 0;
-                    TxtRAM.Text = ramMb > 0 ? $"{ramMb:N0} MB (~{(ramMb / 1024.0):F1} GB)" : "Unknown";
+                    // CPU
+                    var cpu = GetStringProp(root, "cpu_name", "cpuName");
+                    var cores = GetIntProp(root, "processor_count", "processorCount", Environment.ProcessorCount);
+                    TxtCPU.Text = !string.IsNullOrEmpty(cpu) ? $"{cpu} ({cores} logical cores)" : $"{cores} logical cores";
 
-                    var sw = root.TryGetProperty("screen_width", out var w) ? w.GetInt32() : 0;
-                    var sh = root.TryGetProperty("screen_height", out var h) ? h.GetInt32() : 0;
-                    TxtScreen.Text = sw > 0 ? $"{sw} x {sh}" : "Unknown";
+                    // BIOS
+                    var biosVendor = GetStringProp(root, "bios_vendor", "biosVendor");
+                    var biosVer = GetStringProp(root, "bios_version", "biosVersion");
+                    var biosDate = GetStringProp(root, "bios_date", "biosDate");
+                    var biosFull = $"{biosVendor} {biosVer}".Trim();
+                    if (!string.IsNullOrEmpty(biosDate)) biosFull += $" ({biosDate})";
+                    TxtBIOS.Text = !string.IsNullOrEmpty(biosFull) ? biosFull : "Standard BIOS / UEFI";
 
+                    // RAM
+                    var ramMb = GetLongProp(root, "total_ram_mb", "totalRamMb");
+                    TxtRAM.Text = ramMb > 0 ? $"{ramMb:N0} MB (~{(ramMb / 1024.0):F1} GB)" : "N/A";
+
+                    // Screen
+                    var sw = GetIntProp(root, "screen_width");
+                    var sh = GetIntProp(root, "screen_height");
+                    if (sw > 0 && sh > 0)
+                    {
+                        TxtScreen.Text = $"{sw} x {sh}";
+                    }
+                    else
+                    {
+                        var resStr = GetStringProp(root, "resolution");
+                        TxtScreen.Text = !string.IsNullOrEmpty(resStr) ? resStr : "N/A";
+                    }
+
+                    // Drives
                     var drives = new List<DriveItem>();
                     if (root.TryGetProperty("drives", out var drivesEl) && drivesEl.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var d in drivesEl.EnumerateArray())
                         {
-                            var dName = d.TryGetProperty("name", out var dnEl) ? dnEl.GetString() ?? "" : "";
-                            var dFmt = d.TryGetProperty("format", out var dfEl) ? dfEl.GetString() ?? "" : "";
-                            var dTot = d.TryGetProperty("total_gb", out var dtEl) ? dtEl.GetDouble() : 0.0;
-                            var dFree = d.TryGetProperty("free_gb", out var dfrEl) ? dfrEl.GetDouble() : 0.0;
+                            var dName = GetStringProp(d, "name");
+                            var dFmt = GetStringProp(d, "format");
+                            var dTot = d.TryGetProperty("total_gb", out var dt1) ? dt1.GetDouble() : (d.TryGetProperty("totalGb", out var dt2) ? dt2.GetDouble() : 0.0);
+                            var dFree = d.TryGetProperty("free_gb", out var df1) ? df1.GetDouble() : (d.TryGetProperty("freeGb", out var df2) ? df2.GetDouble() : 0.0);
 
                             drives.Add(new DriveItem
                             {

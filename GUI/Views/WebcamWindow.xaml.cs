@@ -98,6 +98,7 @@ namespace RWORM.GUI.Views
                     bmp.Freeze();
 
                     CamView.Source = bmp;
+                    PlaceholderText.Visibility = Visibility.Collapsed;
                     _frames++;
                     FrameCountLabel.Text = _frames.ToString();
                     StatusLabel.Text = $"Streaming — {bmp.PixelWidth}x{bmp.PixelHeight} ({jpegBytes.Length / 1024} KB)";
