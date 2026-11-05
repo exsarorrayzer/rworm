@@ -791,6 +791,72 @@
 
                                 <Separator/>
 
+                                <!-- Reverse Proxy -->
+
+                                <MenuItem Command="{Binding OpenReverseProxyCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/proxy.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Reverse Proxy" VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Message Box -->
+
+                                <MenuItem Command="{Binding OpenMessageBoxCommand}"
+
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                    <MenuItem.Header>
+
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/msgbox.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Message Box..." VerticalAlignment="Center"/>
+
+                                        </StackPanel>
+
+                                    </MenuItem.Header>
+
+                                </MenuItem>
+
+                                <!-- Client Chat Category Submenu (v1) -->
+
+                                <MenuItem Header="Client Chat">
+
+                                    <MenuItem.Icon>
+
+                                        <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="15" Height="15"/>
+
+                                    </MenuItem.Icon>
+
+                                    <MenuItem Header="Open Chat (v1)"
+
+                                              Command="{Binding OpenClientChatCommand}"
+
+                                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                                        <MenuItem.Icon>
+
+                                            <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="15" Height="15"/>
+
+                                        </MenuItem.Icon>
+
+                                    </MenuItem>
+
+                                </MenuItem>
+
                                 <!-- PC Category Submenu -->
 
                                 <MenuItem Header="PC">

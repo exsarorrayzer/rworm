@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
@@ -25,13 +24,14 @@ namespace RWORM.Client.Modules
                 sb.Append($"{{\"scope\":\"{s}\",\"name\":\"{n}\",\"command\":\"{c}\",\"location\":\"{l}\"}}");
             }
 
-            // 1. Registry HKCU Run
+            // 1. Registry HKCU Run & RunOnce
             ReadRegRun(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU Run", AppendEntry);
             ReadRegRun(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU RunOnce", AppendEntry);
 
-            // 2. Registry HKLM Run
+            // 2. Registry HKLM Run & RunOnce (both 64-bit and 32-bit Wow6432Node)
             ReadRegRun(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKLM Run", AppendEntry);
             ReadRegRun(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKLM RunOnce", AppendEntry);
+            ReadRegRun(Registry.LocalMachine, @"Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run", "HKLM Wow64 Run", AppendEntry);
 
             // 3. User Startup Folder
             try
@@ -41,7 +41,7 @@ namespace RWORM.Client.Modules
                 {
                     foreach (var file in Directory.GetFiles(userStartup))
                     {
-                        AppendEntry(Path.GetFileName(file), file, userStartup, "User Startup Folder");
+                        AppendEntry(Path.GetFileName(file), file, file, "User Startup Folder");
                     }
                 }
             }
@@ -55,7 +55,7 @@ namespace RWORM.Client.Modules
                 {
                     foreach (var file in Directory.GetFiles(commonStartup))
                     {
-                        AppendEntry(Path.GetFileName(file), file, commonStartup, "All Users Startup Folder");
+                        AppendEntry(Path.GetFileName(file), file, file, "All Users Startup Folder");
                     }
                 }
             }
@@ -86,20 +86,34 @@ namespace RWORM.Client.Modules
         {
             try
             {
-                if (scope.StartsWith("HKCU"))
+                if (scope.Contains("HKCU"))
                 {
-                    using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                    string sub = scope.Contains("RunOnce") 
+                        ? @"Software\Microsoft\Windows\CurrentVersion\RunOnce" 
+                        : @"Software\Microsoft\Windows\CurrentVersion\Run";
+                    using var key = Registry.CurrentUser.OpenSubKey(sub, true);
                     key?.DeleteValue(name, false);
                 }
-                else if (scope.StartsWith("HKLM"))
+                else if (scope.Contains("HKLM") || scope.Contains("Wow64"))
                 {
-                    using var key = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                    string sub = @"Software\Microsoft\Windows\CurrentVersion\Run";
+                    if (scope.Contains("RunOnce")) sub = @"Software\Microsoft\Windows\CurrentVersion\RunOnce";
+                    else if (scope.Contains("Wow64")) sub = @"Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
+
+                    using var key = Registry.LocalMachine.OpenSubKey(sub, true);
                     key?.DeleteValue(name, false);
                 }
                 else if (File.Exists(location))
                 {
                     File.Delete(location);
                 }
+                else if (Directory.Exists(location))
+                {
+                    var targetFile = Path.Combine(location, name);
+                    if (File.Exists(targetFile))
+                        File.Delete(targetFile);
+                }
+
                 return Encoding.UTF8.GetBytes("{\"ok\":true}");
             }
             catch (Exception ex)

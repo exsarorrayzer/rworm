@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -200,7 +201,10 @@ namespace RWORM.Client.Modules
                     double totalGb = Math.Round((double)drive.TotalSize / (1024 * 1024 * 1024), 1);
                     double freeGb = Math.Round((double)drive.AvailableFreeSpace / (1024 * 1024 * 1024), 1);
 
-                    drivesSb.Append($"{{\"name\":\"{name}\",\"label\":\"{label}\",\"format\":\"{format}\",\"total_gb\":{totalGb},\"totalGb\":{totalGb},\"free_gb\":{freeGb},\"freeGb\":{freeGb}}}");
+                    string totalGbStr = totalGb.ToString("0.0", CultureInfo.InvariantCulture);
+                    string freeGbStr = freeGb.ToString("0.0", CultureInfo.InvariantCulture);
+
+                    drivesSb.Append($"{{\"name\":\"{name}\",\"label\":\"{label}\",\"format\":\"{format}\",\"total_gb\":{totalGbStr},\"totalGb\":{totalGbStr},\"free_gb\":{freeGbStr},\"freeGb\":{freeGbStr}}}");
                 }
             }
             catch { }
@@ -258,7 +262,6 @@ namespace RWORM.Client.Modules
                 {
                     string systemFamily = sysKey.GetValue("SystemFamily")?.ToString()?.ToLowerInvariant() ?? "";
                     string systemSku = sysKey.GetValue("SystemSKU")?.ToString()?.ToLowerInvariant() ?? "";
-                    string baseBoardProd = sysKey.GetValue("BaseBoardProduct")?.ToString()?.ToLowerInvariant() ?? "";
 
                     if (systemFamily.Contains("laptop") || systemFamily.Contains("notebook") ||
                         systemSku.Contains("laptop") || systemSku.Contains("notebook"))
