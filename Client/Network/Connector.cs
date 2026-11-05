@@ -953,8 +953,10 @@ namespace RWORM.Client.Network
                 // ── MessageBox 0xD8 ─────────────────────────────────────────
                 case 0xD8: // MSGBOX_REQ — payload = json
                 {
-                    byte[] resp = MessageBoxHandler.ShowMessageBox(txt());
-                    await SendAsync(CreatePacket(0xD9, 0, resp));
+                    MessageBoxHandler.ShowMessageBoxAsync(txt(), async resp =>
+                    {
+                        await SendAsync(CreatePacket(0xD9, 0, resp));
+                    });
                     break;
                 }
 
