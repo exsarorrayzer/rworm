@@ -108,6 +108,13 @@ PACKET_TYPES = {
     'AUDIO_START':        0xE5,
     'AUDIO_STREAM':       0xE6,
     'AUDIO_STOP':         0xE7,
+    # MessageBox 0xD8-0xD9
+    'MSGBOX_REQ':         0xD8,
+    'MSGBOX_RESP':        0xD9,
+    # Chat 0xEA-0xED
+    'CHAT_MSG_SEND':      0xEA,
+    'CHAT_MSG_RECV':      0xEB,
+    'CHAT_CLOSE':         0xEC,
     # Error
     'ERROR': 0xFF,
 }

