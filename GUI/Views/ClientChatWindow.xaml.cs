@@ -65,7 +65,7 @@ namespace RWORM.GUI.Views
             if (string.IsNullOrEmpty(text)) return;
 
             TxtInput.Clear();
-            AddMessageBubble("Operator", text, isMe: true);
+            AddMessageBubble("Admin", text, isMe: true);
             _ = _server.SendChatMessage(_guid, text);
             StatusLabel.Text = $"Message sent at {DateTime.Now:HH:mm:ss}";
         }

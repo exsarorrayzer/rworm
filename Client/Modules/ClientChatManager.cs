@@ -15,7 +15,7 @@ namespace RWORM.Client.Modules
             int x, int y, int nWidth, int nHeight, IntPtr hWndParent, IntPtr hMenu, IntPtr hInstance, IntPtr lpParam);
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyWindow(IntPtr hWnd);
+        private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -26,7 +26,9 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
+        // Must be the W variant: the window is created with CreateWindowExW
+        // (CharSet.Auto) and DefWindowProcA corrupts the window title/text.
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -56,7 +58,15 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-        [DllImport("user32.dll")]
+        // MUST be the A variant — proved empirically (harness Probe4): the
+        // input EDIT is subclassed and every message is forwarded here. With
+        // CallWindowProcW the edit reports ceil(n/2) characters ("reply one" ->
+        // "reply", "Türkçe şğüıöç reply" -> "Türkçe şğü"), so DoSend transmits
+        // truncated text. CallWindowProcA and the original no-CharSet binding
+        // both read back full text for ASCII and non-ASCII alike, in either
+        // order, on freshly created controls. This is independent of
+        // DefWindowProc above, which must stay W for the top-level window.
+        [DllImport("user32.dll", EntryPoint = "CallWindowProcA", CharSet = CharSet.Ansi, ExactSpelling = true)]
         private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("gdi32.dll")]
@@ -97,6 +107,7 @@ namespace RWORM.Client.Modules
         private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         private const uint WM_DESTROY = 0x0002;
+        private const uint WM_CLOSE = 0x0010;
         private const uint WM_COMMAND = 0x0111;
         private const uint WM_KEYDOWN = 0x0100;
         private const uint WM_SETTEXT = 0x000C;
@@ -117,6 +128,7 @@ namespace RWORM.Client.Modules
         private const int WS_EX_TOPMOST = 0x00000008;
 
         private readonly Func<string, Task> _sendMsgCallback;
+        private readonly object _openLock = new object();
         private Thread? _uiThread;
         private IntPtr _hWnd = IntPtr.Zero;
         private IntPtr _hEditHistory = IntPtr.Zero;
@@ -136,35 +148,79 @@ namespace RWORM.Client.Modules
         {
             EnsureWindowOpen();
 
-            if (_hWnd != IntPtr.Zero && _hEditHistory != IntPtr.Zero)
+            IntPtr history;
+            lock (_openLock) { history = _hEditHistory; }
+            if (history != IntPtr.Zero)
             {
-                AppendTextToHistory($"[Operator]: {text}\r\n\r\n");
+                AppendTextToHistory(history, $"[Admin]: {text}\r\n\r\n");
             }
         }
 
         public void Close()
         {
-            _isOpen = false;
-            if (_hWnd != IntPtr.Zero)
+            IntPtr hwnd;
+            lock (_openLock)
             {
-                DestroyWindow(_hWnd);
+                hwnd = _hWnd;
+            }
+            if (hwnd == IntPtr.Zero)
+            {
+                _isOpen = false;
+                return;
+            }
+
+            // Post WM_CLOSE instead of DestroyWindow: this is called from the
+            // network thread, and destroying a window owned by another thread's
+            // message queue is unreliable. WM_CLOSE lets the owning thread tear
+            // it down itself (DefWindowProc -> DestroyWindow -> WM_DESTROY).
+            // _isOpen is cleared by WM_DESTROY so the loop stays alive long
+            // enough to actually process this message.
+            PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+
+            // Wait for the UI thread to finish the teardown so the next
+            // EnsureWindowOpen() does not race a half-destroyed window.
+            for (int i = 0; i < 50; i++)
+            {
+                lock (_openLock)
+                {
+                    if (_hWnd == IntPtr.Zero) break;
+                }
+                Thread.Sleep(20);
+            }
+
+            lock (_openLock)
+            {
+                _isOpen = false;
                 _hWnd = IntPtr.Zero;
+                _hEditHistory = IntPtr.Zero;
+                _hEditInput = IntPtr.Zero;
+                _hBtnSend = IntPtr.Zero;
+                _prevInputWndProc = IntPtr.Zero;
             }
         }
 
         private void EnsureWindowOpen()
         {
-            if (_isOpen && _hWnd != IntPtr.Zero) return;
+            lock (_openLock)
+            {
+                if (_isOpen && _hWnd != IntPtr.Zero) return;
+                _isOpen = true;
+            }
 
-            _isOpen = true;
             _uiThread = new Thread(RunMessageLoop);
             _uiThread.SetApartmentState(ApartmentState.STA);
             _uiThread.IsBackground = true;
             _uiThread.Start();
 
-            for (int i = 0; i < 25 && _hWnd == IntPtr.Zero; i++)
+            // Wait for the history edit, not just the top-level window: callers
+            // append text immediately and a missing edit drops the first message.
+            for (int i = 0; i < 50; i++)
             {
-                Thread.Sleep(40);
+                lock (_openLock)
+                {
+                    if (_hWnd != IntPtr.Zero && _hEditHistory != IntPtr.Zero) return;
+                }
+                Thread.Sleep(20);
             }
         }
 
@@ -188,44 +244,53 @@ namespace RWORM.Client.Modules
 
             int width = 440;
             int height = 520;
-            _hWnd = CreateWindowEx(
+            IntPtr hWnd = CreateWindowEx(
                 WS_EX_TOPMOST,
                 className,
-                "Support Chat — Live Session",
+                "",
                 WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                 150, 150, width, height,
                 IntPtr.Zero, IntPtr.Zero, hInstance, IntPtr.Zero);
 
-            if (_hWnd == IntPtr.Zero) return;
+            if (hWnd == IntPtr.Zero) return;
 
             // Chat history edit control
-            _hEditHistory = CreateWindowEx(
+            IntPtr hEditHistory = CreateWindowEx(
                 0, "EDIT", "",
                 WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_BORDER,
                 15, 15, width - 45, height - 120,
-                _hWnd, (IntPtr)101, hInstance, IntPtr.Zero);
+                hWnd, (IntPtr)101, hInstance, IntPtr.Zero);
 
             // Input edit control
-            _hEditInput = CreateWindowEx(
+            IntPtr hEditInput = CreateWindowEx(
                 0, "EDIT", "",
                 WS_CHILD | WS_VISIBLE | WS_BORDER,
                 15, height - 95, width - 135, 30,
-                _hWnd, (IntPtr)102, hInstance, IntPtr.Zero);
+                hWnd, (IntPtr)102, hInstance, IntPtr.Zero);
 
             // Send button
-            _hBtnSend = CreateWindowEx(
+            IntPtr hBtnSend = CreateWindowEx(
                 0, "BUTTON", "Send",
                 WS_CHILD | WS_VISIBLE,
                 width - 110, height - 95, 80, 30,
-                _hWnd, (IntPtr)103, hInstance, IntPtr.Zero);
+                hWnd, (IntPtr)103, hInstance, IntPtr.Zero);
 
             // Subclass input box to catch Enter key
             _inputSubclassDelegate = InputSubclassProc;
-            _prevInputWndProc = SetWindowLongPtr(_hEditInput, GWL_WNDPROC, Marshal.GetFunctionPointerForDelegate(_inputSubclassDelegate));
+            IntPtr prevInputWndProc = SetWindowLongPtr(hEditInput, GWL_WNDPROC, Marshal.GetFunctionPointerForDelegate(_inputSubclassDelegate));
 
-            ShowWindow(_hWnd, 5); // SW_SHOW
-            UpdateWindow(_hWnd);
-            SetForegroundWindow(_hWnd);
+            lock (_openLock)
+            {
+                _hWnd = hWnd;
+                _hEditHistory = hEditHistory;
+                _hEditInput = hEditInput;
+                _hBtnSend = hBtnSend;
+                _prevInputWndProc = prevInputWndProc;
+            }
+
+            ShowWindow(hWnd, 5); // SW_SHOW
+            UpdateWindow(hWnd);
+            SetForegroundWindow(hWnd);
 
             while (_isOpen && GetMessage(out MSG msg, IntPtr.Zero, 0, 0))
             {
@@ -233,7 +298,8 @@ namespace RWORM.Client.Modules
                 DispatchMessage(ref msg);
             }
 
-            _isOpen = false;
+            // _isOpen is cleared by WM_DESTROY (or by Close()); do not touch it
+            // here — a reopen may already have started a new window.
         }
 
         private IntPtr MainWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -248,7 +314,15 @@ namespace RWORM.Client.Modules
                     }
                     break;
                 case WM_DESTROY:
-                    _isOpen = false;
+                    lock (_openLock)
+                    {
+                        _isOpen = false;
+                        _hWnd = IntPtr.Zero;
+                        _hEditHistory = IntPtr.Zero;
+                        _hEditInput = IntPtr.Zero;
+                        _hBtnSend = IntPtr.Zero;
+                        _prevInputWndProc = IntPtr.Zero;
+                    }
                     PostQuitMessage(0);
                     return IntPtr.Zero;
             }
@@ -267,26 +341,34 @@ namespace RWORM.Client.Modules
 
         private void DoSend()
         {
-            if (_hEditInput == IntPtr.Zero) return;
+            IntPtr input;
+            IntPtr history;
+            lock (_openLock)
+            {
+                input = _hEditInput;
+                history = _hEditHistory;
+            }
+            if (input == IntPtr.Zero) return;
             var sb = new StringBuilder(1024);
-            GetWindowText(_hEditInput, sb, 1024);
+            GetWindowText(input, sb, 1024);
             string text = sb.ToString().Trim();
             if (string.IsNullOrEmpty(text)) return;
 
-            SendMessage(_hEditInput, WM_SETTEXT, IntPtr.Zero, "");
-            AppendTextToHistory($"[You]: {text}\r\n\r\n");
+            SendMessage(input, WM_SETTEXT, IntPtr.Zero, "");
+            if (history != IntPtr.Zero)
+                AppendTextToHistory(history, $"[You]: {text}\r\n\r\n");
             _ = _sendMsgCallback(text);
         }
 
-        private void AppendTextToHistory(string text)
+        private static void AppendTextToHistory(IntPtr hEdit, string text)
         {
-            if (_hEditHistory == IntPtr.Zero) return;
+            if (hEdit == IntPtr.Zero) return;
             // Set selection to end
-            SendMessage(_hEditHistory, EM_SETSEL, (IntPtr)(-1), (IntPtr)(-1));
+            SendMessage(hEdit, EM_SETSEL, (IntPtr)(-1), (IntPtr)(-1));
             // Replace selection with text
-            SendMessage(_hEditHistory, EM_REPLACESEL, (IntPtr)0, text);
+            SendMessage(hEdit, EM_REPLACESEL, (IntPtr)0, text);
             // Scroll to end
-            SendMessage(_hEditHistory, EM_LINESCROLL, IntPtr.Zero, (IntPtr)100);
+            SendMessage(hEdit, EM_LINESCROLL, IntPtr.Zero, (IntPtr)100);
         }
 
         public void Dispose()

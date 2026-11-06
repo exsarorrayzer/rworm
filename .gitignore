@@ -13,6 +13,7 @@ __pycache__/
 *.py[cod]
 *.user
 .vs/
+server/rworm.db
 
 rworm.db
 

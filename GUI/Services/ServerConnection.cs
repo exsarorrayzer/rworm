@@ -438,9 +438,19 @@ namespace RWORM.GUI.Services
         public Task ShowRemoteMessageBox(string guid, string title, string message, uint buttons = 0, uint icon = 0, Action<byte[]>? cb = null)
         {
             if (cb != null) RegisterHandler(guid, 0xD9, cb);
-            string escTitle = title.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            string escMsg = message.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            string json = "{\"title\":\"" + escTitle + "\",\"message\":\"" + escMsg + "\",\"buttons\":" + buttons + ",\"icon\":" + icon + "}";
+
+            // Serialize properly: the message text is multiline (AcceptsReturn),
+            // and hand-rolled "\ and \" escaping emits raw newlines / control
+            // chars, which is invalid JSON — the client then fails to parse and
+            // falls back to showing the raw payload.
+            string json = JsonSerializer.Serialize(new
+            {
+                title = title ?? "",
+                message = message ?? "",
+                buttons,
+                icon
+            });
+
             return GuiSend(0xD8, guid, Encoding.UTF8.GetBytes(json));
         }
 

