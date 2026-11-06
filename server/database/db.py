@@ -45,12 +45,6 @@ class Database:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # GUID is the stable machine identity (persisted in %TEMP%\rworm.id).
-        # The client's reconnect loop opens a NEW socket each retry, so the
-        # same machine must UPDATE its existing row — never insert a second
-        # one. INSERT OR REPLACE keeps exactly one row per GUID, so the
-        # Clients page shows each machine once and reflects the latest
-        # online session.
         cursor.execute('''
             INSERT INTO clients (guid, hostname, username, os_version, ip_address, is_online, last_seen)
             VALUES (?, ?, ?, ?, ?, 1, ?)

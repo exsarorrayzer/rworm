@@ -2,7 +2,6 @@ import sys
 import os
 import argparse
 
-# Ensure standard output/error use UTF-8 without raising UnicodeEncodeError on cp1254/OEM consoles
 if hasattr(sys.stdout, 'reconfigure'):
     try: sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     except Exception: pass

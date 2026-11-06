@@ -5,7 +5,6 @@ import uuid
 import urllib.request
 from datetime import datetime
 
-# ISO 3166-1 alpha-2 → Unicode regional indicator flag emoji
 def _country_to_flag(code: str) -> str:
     if not code or len(code) != 2:
         return '🌐'
@@ -13,7 +12,6 @@ def _country_to_flag(code: str) -> str:
     return chr(0x1F1E6 + ord(code[0]) - ord('A')) + chr(0x1F1E6 + ord(code[1]) - ord('A'))
 
 def _lookup_country(ip: str) -> tuple[str, str, str]:
-    """Returns (resolved_ip, country_code, flag_emoji). Falls back to (ip, '??', '🌐') on error."""
     try:
         is_private = not ip or ip.startswith(('127.', '10.', '192.168.', '::1'))
         if not is_private:
@@ -50,15 +48,12 @@ class ClientSession:
         self.last_seen  = datetime.now()
         self.lock       = threading.Lock()
 
-        # Geo
         self.country_code = '??'
         self.flag         = '🌐'
 
-        # Metrics
         self.cpu = 0
         self.ram_percent = 0
 
-        # Resolve country in background (don't block accept loop)
         threading.Thread(target=self._resolve_geo, daemon=True).start()
 
     def _resolve_geo(self):
