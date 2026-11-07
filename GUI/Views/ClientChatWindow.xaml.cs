@@ -31,7 +31,7 @@ namespace RWORM.GUI.Views
                 _ = _server.CloseClientChat(_guid);
             };
 
-            // Initial greeting notification
+            
             AddSystemNotice($"Chat session initialized with {hostname}. Messages sent appear in client dialogue.");
         }
 

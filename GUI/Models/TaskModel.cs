@@ -16,7 +16,7 @@ namespace RWORM.GUI.Models
         public string   Name   { get; set;  } = "";
         public TaskMode Mode   { get; set;  } = TaskMode.LocalFile;
 
-        /// LocalFile: full path on disk. Url: payload download URL. DiscordWebhook: webhook endpoint.
+        
         public string   Source { get; set;  } = "";
 
         public string ModeLabel => Mode switch

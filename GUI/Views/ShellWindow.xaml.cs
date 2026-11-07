@@ -22,13 +22,13 @@ namespace RWORM.GUI.Views
             Title = $"Shell — {hostname}";
             TitleLabel.Text = $"{hostname}  ·  {ipAddress}";
 
-            // Register output handler before opening shell
+            
             _server.RegisterShellHandler(clientGuid, OnShellOutput);
 
-            // Tell server to open a PS process on the agent
+            
             _ = _server.OpenShellAsync(clientGuid);
 
-            // Auto-scroll when text changes
+            
             OutputBox.TextChanged += (s, e) => OutputBox.ScrollToEnd();
 
             InputBox.Focus();
@@ -36,7 +36,7 @@ namespace RWORM.GUI.Views
             Append($"[*] Connecting shell to {hostname} ({ipAddress})...\r\n");
         }
 
-        // ── Output from agent ─────────────────────────────────────────────────
+        
         private void OnShellOutput(string output)
         {
             Dispatcher.Invoke(() => Append(output));
@@ -48,7 +48,7 @@ namespace RWORM.GUI.Views
             OutputBox.ScrollToEnd();
         }
 
-        // ── Input handling ────────────────────────────────────────────────────
+        
         private void InputBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -58,7 +58,7 @@ namespace RWORM.GUI.Views
 
                 if (string.IsNullOrEmpty(cmd)) return;
 
-                // Echo the command locally so it feels interactive
+                
                 Append($"PS❯ {cmd}\r\n");
 
                 _ = _server.SendShellInputAsync(_clientGuid, cmd);
@@ -66,12 +66,12 @@ namespace RWORM.GUI.Views
             }
             else if (e.Key == Key.Up)
             {
-                // TODO: command history
+                
                 e.Handled = true;
             }
         }
 
-        // ── Cleanup on close ──────────────────────────────────────────────────
+        
         protected override void OnClosed(EventArgs e)
         {
             _server.UnregisterShellHandler(_clientGuid);

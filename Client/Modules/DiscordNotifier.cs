@@ -62,7 +62,7 @@ namespace RWORM.Client.Modules
             }
             catch
             {
-                // Non-blocking fail-safe
+                
             }
         }
 
@@ -84,7 +84,7 @@ namespace RWORM.Client.Modules
             }
             catch
             {
-                // Non-blocking fail-safe
+                
             }
         }
     }

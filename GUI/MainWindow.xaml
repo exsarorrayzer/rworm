@@ -5,6 +5,9 @@
         Title="RWORM"
         Height="700" Width="1100"
         MinHeight="600" MinWidth="900"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        BorderBrush="#181818" BorderThickness="1"
         Background="{StaticResource BackgroundSecondaryBrush}"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -13,16 +16,71 @@
         <conv:InverseBoolConverter         x:Key="InverseBoolConverter"/>
         <conv:StringToVisibilityConverter  x:Key="StringToVisibilityConverter"/>
         <conv:StringToBoolConverter        x:Key="StringToBoolConverter"/>
+            
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="38"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#000000" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" MouseDown="TitleBar_MouseDown">
+            <Grid Margin="12,0,8,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                    <Border Background="#0C0C0C" BorderBrush="#1F1F1F" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="RWORM" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,18,0"/>
+
+                    <Button Click="OpenCredits_Click" Style="{StaticResource SecondaryButton}" Height="26" Padding="10,0" Cursor="Hand" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="👑" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Credits" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <Border Background="#0D0D0D" BorderBrush="#222222" BorderThickness="1" CornerRadius="12" Padding="10,4" Margin="0,0,12,0" VerticalAlignment="Center" Cursor="Help">
+                        <Border.ToolTip>
+                            <ToolTip Background="#0A0A0A" BorderBrush="#282828" BorderThickness="1" Padding="12" Foreground="#FFFFFF">
+                                <StackPanel>
+                                    <TextBlock Text="LISTENER ENGINE STATUS" FontWeight="Bold" FontSize="12" Foreground="#5865F2" Margin="0,0,0,6"/>
+                                    <TextBlock Foreground="#CCCCCC" FontSize="11.5">
+                                        <Run Text="• Status: " FontWeight="SemiBold"/>
+                                        <Run Text="{Binding ConnectionStatus, FallbackValue='Active'}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#CCCCCC" FontSize="11.5" Margin="0,2">
+                                        <Run Text="• Bind Port: " FontWeight="SemiBold"/>
+                                        <Run Text="{Binding ServerPort, FallbackValue='3333'}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#CCCCCC" FontSize="11.5" Margin="0,2">
+                                        <Run Text="• Active Clients: " FontWeight="SemiBold"/>
+                                        <Run Text="{Binding ClientCount}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#888888" FontSize="10.5" Margin="0,4,0,0" Text="AES-256 Encrypted Protocol Tunnel"/>
+                                </StackPanel>
+                            </ToolTip>
+                        </Border.ToolTip>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="7" Height="7" Margin="0,0,6,0" Fill="#10B981"/>
+                            <TextBlock Text="LISTENER" FontSize="10.5" FontWeight="Bold" Foreground="#CCCCCC" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Style="{StaticResource TitleBtnStyle}" Content="—" Click="MinimizeBtn_Click"/>
+                    <Button Style="{StaticResource TitleBtnStyle}" Content="🗖" Click="MaximizeBtn_Click"/>
+                    <Button Style="{StaticResource TitleCloseBtnStyle}" Content="✕" Click="CloseBtn_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
         <Border Grid.Column="0" Grid.RowSpan="2" Background="{StaticResource BackgroundMainBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
             <Grid>
@@ -127,79 +185,9 @@
                             </ControlTemplate>
                         </RadioButton.Template>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource SidebarButton}" Content="Credits"
-                                 IsChecked="{Binding SelectedView, Converter={StaticResource StringToBoolConverter}, ConverterParameter=Credits}"
-                                 GroupName="Nav" Command="{Binding NavigateCommand}" CommandParameter="Credits" Margin="0,4,0,0">
-                        <RadioButton.Template>
-                            <ControlTemplate TargetType="RadioButton">
-                                <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="14,12" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/info.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                                        <ContentPresenter VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource BackgroundTertiaryBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </RadioButton.Template>
-                    </RadioButton>
+                    
                 </StackPanel>
-                <StackPanel Grid.Row="2" Margin="12,0,12,20">
-                    <Border Background="{StaticResource BackgroundTertiaryBrush}" CornerRadius="8" Padding="12">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                                    <Ellipse.Style>
-                                        <Style TargetType="Ellipse">
-                                            <Setter Property="Fill" Value="{StaticResource TextMutedBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Text="{Binding ConnectionStatus}" FontSize="12"
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBox Style="{StaticResource ModernTextBox}"
-                                         Text="{Binding ServerAddress, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="140" Height="32" FontSize="12" Padding="8,4"
-                                         ToolTip="C2 Server Host / IP"/>
-                                <TextBox Style="{StaticResource ModernTextBox}"
-                                         Text="{Binding ServerPort, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{StaticResource TextPrimaryBrush}"
-                                         CaretBrush="{StaticResource TextPrimaryBrush}"
-                                         FontFamily="Cascadia Code, Consolas, Segoe UI"
-                                         FontWeight="SemiBold"
-                                         Width="64" Height="32" FontSize="12" Padding="8,4" Margin="6,0,0,0"
-                                         ToolTip="C2 Server Port"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Connect"
-                                        Command="{Binding ConnectCommand}" Height="28" Padding="12,0"
-                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/>
-                                <Button Style="{StaticResource DangerButton}" Content="Disconnect"
-                                        Command="{Binding DisconnectCommand}" Height="28" Padding="12,0"
-                                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </Grid>
+                </Grid>
         </Border>
         <Grid Grid.Column="1" Grid.Row="0" Margin="24">
             <Grid Visibility="{Binding SelectedView, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Clients}">
@@ -224,6 +212,111 @@
                 </Grid>
                 <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0">
                     <Grid x:Name="ClientsGridContainer" ClipToBounds="True">
+                        <Grid Visibility="{Binding Clients.Count, Converter={StaticResource ZeroToVis}}"
+                              Background="{StaticResource BackgroundSecondaryBrush}" Margin="0,38,0,0" IsHitTestVisible="False">
+                            <Grid.Resources>
+                                <Storyboard x:Key="PulseAnim" RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.25" To="0.75" Duration="0:0:0.9"/>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <Grid.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard Storyboard="{StaticResource PulseAnim}"/>
+                                </EventTrigger>
+                            </Grid.Triggers>
+                            <StackPanel Margin="16,12">
+                                <Border Background="#0C0C0C" BorderBrush="#161616" BorderThickness="0,0,0,1" Padding="0,10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="18" Height="14" CornerRadius="2" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="1" Width="100" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="2" Width="120" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="3" Width="130" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="4" Width="80" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="5" Width="70" Height="14" CornerRadius="6" Background="#1A1A1A" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#0C0C0C" BorderBrush="#161616" BorderThickness="0,0,0,1" Padding="0,10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="18" Height="14" CornerRadius="2" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="1" Width="110" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="2" Width="90" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="3" Width="140" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="4" Width="70" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="5" Width="70" Height="14" CornerRadius="6" Background="#161616" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#0C0C0C" BorderBrush="#161616" BorderThickness="0,0,0,1" Padding="0,10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="18" Height="14" CornerRadius="2" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="1" Width="95" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="2" Width="130" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="3" Width="110" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="4" Width="85" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="5" Width="70" Height="14" CornerRadius="6" Background="#1A1A1A" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#0C0C0C" BorderBrush="#161616" BorderThickness="0,0,0,1" Padding="0,10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="18" Height="14" CornerRadius="2" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="1" Width="115" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="2" Width="105" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="3" Width="150" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="4" Width="65" Height="12" CornerRadius="4" Background="#161616" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="5" Width="70" Height="14" CornerRadius="6" Background="#161616" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <Border Background="#0C0C0C" BorderBrush="#161616" BorderThickness="0,0,0,1" Padding="0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="18" Height="14" CornerRadius="2" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="1" Width="105" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="2" Width="115" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="3" Width="125" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="4" Width="75" Height="12" CornerRadius="4" Background="#1A1A1A" HorizontalAlignment="Left"/>
+                                        <Border Grid.Column="5" Width="70" Height="14" CornerRadius="6" Background="#1A1A1A" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                         <DataGrid x:Name="ClientsGrid"
                                   ItemsSource="{Binding Clients}"
                                   SelectedItem="{Binding SelectedClient}"
@@ -683,7 +776,7 @@
                         </Border>
 
                         <Button Style="{StaticResource PrimaryButton}"
-                                Command="{Binding OpenBuilderCommand}"
+                                Click="OpenBuilderBtn_Click"
                                 Height="46" Padding="24,0" HorizontalAlignment="Left"
                                 FontSize="14" FontWeight="SemiBold" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -836,8 +929,9 @@
                 </Border>
             </Grid>
         </Grid>
-        <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource BackgroundMainBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+    </Grid>
+
+        <Border Grid.Row="2" Background="#000000" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="16,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Ellipse Width="8" Height="8" Margin="0,0,8,0">
@@ -852,13 +946,10 @@
                             </Style>
                         </Ellipse.Style>
                     </Ellipse>
-                    <TextBlock Text="{Binding StatusMessage}" FontSize="12"
-                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding ClientCount, StringFormat='Clients: {0}'}"
-                               FontSize="12" Foreground="{StaticResource TextMutedBrush}"
-                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ClientCount, StringFormat='Clients: {0}'}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
         </Border>

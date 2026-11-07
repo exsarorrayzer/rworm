@@ -7,7 +7,7 @@ namespace RWORM.Client.Modules
 {
     public static class FileOps
     {
-        /// List directory contents as JSON.
+        
         public static byte[] ListDirectory(string path)
         {
             var sb = new StringBuilder("[");
@@ -41,7 +41,7 @@ namespace RWORM.Client.Modules
             }
         }
 
-        /// Read file bytes (up to 50 MB).
+        
         public static byte[] ReadFile(string path)
         {
             try
@@ -54,7 +54,7 @@ namespace RWORM.Client.Modules
             catch (Exception ex) { return MakeError(ex.Message); }
         }
 
-        /// Write file bytes. Returns OK or error JSON.
+        
         public static byte[] WriteFile(string path, byte[] data)
         {
             try

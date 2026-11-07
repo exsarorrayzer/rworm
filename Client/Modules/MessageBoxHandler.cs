@@ -18,7 +18,7 @@ namespace RWORM.Client.Modules
             {
                 string title = "Message";
                 string message = "";
-                uint buttons = 0; // MB_OK
+                uint buttons = 0; 
                 uint icon = 0;
 
                 try
@@ -35,7 +35,7 @@ namespace RWORM.Client.Modules
                     message = jsonPayload;
                 }
 
-                uint flags = buttons | icon | 0x00040000; // MB_TOPMOST
+                uint flags = buttons | icon | 0x00040000; 
 
                 int result = 0;
                 var th = new Thread(() =>

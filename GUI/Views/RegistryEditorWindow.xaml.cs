@@ -28,13 +28,13 @@ namespace RWORM.GUI.Views
             PopulateRoots();
         }
 
-        // ── Tree population ───────────────────────────────────────────────────
+        
         private void PopulateRoots()
         {
             foreach (var hive in RootHives)
             {
                 var item = new TreeViewItem { Header = hive, Tag = hive };
-                item.Items.Add(new TreeViewItem { Header = "⏳" }); // lazy placeholder
+                item.Items.Add(new TreeViewItem { Header = "⏳" }); 
                 item.Expanded += LazyExpand;
                 KeyTree.Items.Add(item);
             }
@@ -74,7 +74,7 @@ namespace RWORM.GUI.Views
             catch { }
         }
 
-        // ── Selection ─────────────────────────────────────────────────────────
+        
         private void KeyTree_SelectedItemChanged(object s, RoutedPropertyChangedEventArgs<object> e)
         {
             if (KeyTree.SelectedItem is not TreeViewItem node) return;
@@ -104,7 +104,7 @@ namespace RWORM.GUI.Views
             catch (Exception ex) { StatusLabel.Text = ex.Message; }
         }
 
-        // ── Toolbar ────────────────────────────────────────────────────────────
+        
         private void Refresh_Click(object s, RoutedEventArgs e)
         {
             StatusLabel.Text = "Refreshing...";

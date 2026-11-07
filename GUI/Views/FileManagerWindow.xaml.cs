@@ -36,7 +36,7 @@ namespace RWORM.GUI.Views
             Navigate(@"C:\");
         }
 
-        // ── Navigation ─────────────────────────────────────────────────────────
+        
         private void Navigate(string path)
         {
             _history.Push(_currentPath);
@@ -82,7 +82,7 @@ namespace RWORM.GUI.Views
             }
         }
 
-        // ── Double-click: enter directory ──────────────────────────────────────
+        
         private void FileGrid_DoubleClick(object s, MouseButtonEventArgs e)
         {
             if (FileGrid.SelectedItem is not FileEntry f) return;
@@ -101,7 +101,7 @@ namespace RWORM.GUI.Views
             if (e.Key == Key.Enter) Navigate(PathBox.Text.Trim());
         }
 
-        // ── File operations ────────────────────────────────────────────────────
+        
         private void Download_Click(object s, RoutedEventArgs e)
         {
             if (FileGrid.SelectedItem is not FileEntry f || f.Type == "dir") return;

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 namespace RWORM.GUI.Views
 {
-    /// <summary>Lightweight input dialog for commands, URLs, and file paths.</summary>
+    
     public static class InputDialog
     {
         public static string? Show(string prompt, string title = "Input", string defaultValue = "")

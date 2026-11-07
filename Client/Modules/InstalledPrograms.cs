@@ -29,11 +29,11 @@ namespace RWORM.Client.Modules
                             using var appKey = key.OpenSubKey(subName);
                             if (appKey == null) continue;
 
-                            // System component check
+                            
                             var isSystem = appKey.GetValue("SystemComponent");
                             if (isSystem is int sysInt && sysInt == 1) continue;
 
-                            // ParentKeyName check (updates)
+                            
                             var parentKey = appKey.GetValue("ParentKeyName")?.ToString();
                             if (!string.IsNullOrEmpty(parentKey)) continue;
 
@@ -66,7 +66,7 @@ namespace RWORM.Client.Modules
                 catch { }
             }
 
-            // 64-bit and 32-bit uninstall keys in HKLM and HKCU
+            
             try
             {
                 using var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);

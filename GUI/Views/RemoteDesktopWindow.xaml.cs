@@ -212,7 +212,7 @@ namespace RWORM.GUI.Views
             if (!_mouseControl || _paused) return;
 
             var now = DateTime.UtcNow;
-            if ((now - _lastMouseMoveSent).TotalMilliseconds < 40) return; // throttle move events
+            if ((now - _lastMouseMoveSent).TotalMilliseconds < 40) return; 
             _lastMouseMoveSent = now;
 
             var pt = TranslateToScreenCoordinates(e.GetPosition(ScreenView));

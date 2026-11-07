@@ -139,10 +139,10 @@ namespace RWORM.GUI.Views
 
                     Log($"[Channel #{chan}] Local inbound connection accepted from {incoming.Client.RemoteEndPoint}");
 
-                    // Initiate tunnel on remote agent
+                    
                     await _server.ProxyStart(_guid, chan, target);
 
-                    // Pump local stream to remote agent
+                    
                     _ = PumpLocalToRemoteAsync(client, ct);
                 }
                 catch (OperationCanceledException)
@@ -182,7 +182,7 @@ namespace RWORM.GUI.Views
             }
             catch
             {
-                // Connection teardown
+                
             }
             finally
             {

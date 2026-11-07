@@ -9,12 +9,12 @@
                 <ResourceDictionary Source="Resources/Styles/Theme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Global Value Converters -->
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
             <conv:UrlToImageConverter          x:Key="UrlToImage"/>
             <conv:InverseBoolConverter         x:Key="InverseBoolConverter"/>
             <conv:StringToVisibilityConverter  x:Key="StringToVisibilityConverter"/>
             <conv:StringToBoolConverter        x:Key="StringToBoolConverter"/>
+            <conv:ZeroToVisibilityConverter    x:Key="ZeroToVis"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

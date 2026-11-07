@@ -81,7 +81,7 @@ namespace RWORM.Client.Modules
             var sb = new StringBuilder("[");
             bool first = true;
 
-            IntPtr hSCM = OpenSCManager(null, null, 0x0004 /* SC_MANAGER_ENUMERATE_SERVICE */);
+            IntPtr hSCM = OpenSCManager(null, null, 0x0004 );
             if (hSCM == IntPtr.Zero)
             {
                 sb.Append(']');

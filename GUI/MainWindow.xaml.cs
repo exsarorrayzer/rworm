@@ -33,7 +33,52 @@ namespace RWORM.GUI
             _vm.KillServer();
         }
 
-        /// Sync DataGrid multi-selection → ViewModel.SelectedClients
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                if (e.ClickCount == 2)
+                    WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+                else
+                    DragMove();
+            }
+        }
+
+        private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void CloseBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void OpenCredits_Click(object sender, RoutedEventArgs e)
+        {
+            var credits = new Views.CreditsWindow { Owner = this };
+            credits.ShowDialog();
+        }
+
+        private void OpenBuilderBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Point screenPos = new Point(Left + Width / 2, Top + Height / 2);
+            if (sender is FrameworkElement fe)
+            {
+                try
+                {
+                    screenPos = fe.PointToScreen(new Point(fe.ActualWidth / 2, fe.ActualHeight / 2));
+                }
+                catch { }
+            }
+            _vm.OpenBuilderWindow(screenPos);
+        }
+
         private void ClientsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _vm.SelectedClients.Clear();
@@ -41,7 +86,6 @@ namespace RWORM.GUI
                 _vm.SelectedClients.Add(item);
         }
 
-        // ── Mouse-drag marquee selection (Windows-like blue box) ───────────────
         private void ClientsGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var originalSource = e.OriginalSource as DependencyObject;

@@ -84,11 +84,11 @@ namespace RWORM.GUI.Views
                     using var doc = JsonDocument.Parse(json);
                     var root = doc.RootElement;
 
-                    // Device type
+                    
                     var devType = GetStringProp(root, "device_type", "deviceType");
                     TxtDeviceType.Text = string.IsNullOrEmpty(devType) ? "Desktop PC" : devType;
 
-                    // Battery & Power
+                    
                     var battPct = GetIntProp(root, "battery_percent", "batteryPercent", -1);
                     var battStatus = GetStringProp(root, "battery_status", "chargingStatus");
                     var powerLine = GetStringProp(root, "power_line", "chargingStatus");
@@ -103,7 +103,7 @@ namespace RWORM.GUI.Views
                     }
                     TxtPowerStatus.Text = !string.IsNullOrEmpty(powerLine) ? powerLine : (!string.IsNullOrEmpty(battStatus) ? battStatus : "AC Power");
 
-                    // Machine & User
+                    
                     var host = GetStringProp(root, "machine_name", "hostname");
                     TxtHost.Text = host;
 
@@ -113,12 +113,12 @@ namespace RWORM.GUI.Views
                         ? $"{domain}\\{user}"
                         : user;
 
-                    // OS
+                    
                     var os = GetStringProp(root, "os_version", "osVersion");
                     var is64 = GetBoolProp(root, "is_64bit", "is64BitOS");
                     TxtOS.Text = $"{os} ({(is64 ? "64-bit" : "32-bit")})";
 
-                    // Uptime
+                    
                     var uptimeSec = GetLongProp(root, "uptime_seconds");
                     if (uptimeSec > 0)
                     {
@@ -131,12 +131,12 @@ namespace RWORM.GUI.Views
                         TxtUptime.Text = !string.IsNullOrEmpty(upStr) ? upStr : "N/A";
                     }
 
-                    // CPU
+                    
                     var cpu = GetStringProp(root, "cpu_name", "cpuName");
                     var cores = GetIntProp(root, "processor_count", "processorCount", Environment.ProcessorCount);
                     TxtCPU.Text = !string.IsNullOrEmpty(cpu) ? $"{cpu} ({cores} logical cores)" : $"{cores} logical cores";
 
-                    // BIOS
+                    
                     var biosVendor = GetStringProp(root, "bios_vendor", "biosVendor");
                     var biosVer = GetStringProp(root, "bios_version", "biosVersion");
                     var biosDate = GetStringProp(root, "bios_date", "biosDate");
@@ -144,11 +144,11 @@ namespace RWORM.GUI.Views
                     if (!string.IsNullOrEmpty(biosDate)) biosFull += $" ({biosDate})";
                     TxtBIOS.Text = !string.IsNullOrEmpty(biosFull) ? biosFull : "Standard BIOS / UEFI";
 
-                    // RAM
+                    
                     var ramMb = GetLongProp(root, "total_ram_mb", "totalRamMb");
                     TxtRAM.Text = ramMb > 0 ? $"{ramMb:N0} MB (~{(ramMb / 1024.0):F1} GB)" : "N/A";
 
-                    // Screen
+                    
                     var sw = GetIntProp(root, "screen_width");
                     var sh = GetIntProp(root, "screen_height");
                     if (sw > 0 && sh > 0)
@@ -161,7 +161,7 @@ namespace RWORM.GUI.Views
                         TxtScreen.Text = !string.IsNullOrEmpty(resStr) ? resStr : "N/A";
                     }
 
-                    // Drives
+                    
                     var drives = new List<DriveItem>();
                     if (root.TryGetProperty("drives", out var drivesEl) && drivesEl.ValueKind == JsonValueKind.Array)
                     {

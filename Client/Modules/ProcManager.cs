@@ -17,7 +17,7 @@ namespace RWORM.Client.Modules
                 {
                     int pid = p.Id;
                     string name = JsonHelper.Escape(p.ProcessName);
-                    long mem = p.WorkingSet64 / 1024;   // KB
+                    long mem = p.WorkingSet64 / 1024;   
                     string title = JsonHelper.Escape(p.MainWindowTitle);
 
                     if (!first) sb.Append(',');

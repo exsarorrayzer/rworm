@@ -40,7 +40,7 @@ namespace RWORM.GUI.Views
 
                     using var ms = new MemoryStream(wavBytes);
                     using var player = new SoundPlayer(ms);
-                    player.Play(); // Asynchronously plays the wave chunk
+                    player.Play(); 
                     StatusLabel.Text = $"Audio chunk {_chunks} ({wavBytes.Length / 1024} KB) playing — {DateTime.Now:HH:mm:ss}";
                 }
                 catch (Exception ex)

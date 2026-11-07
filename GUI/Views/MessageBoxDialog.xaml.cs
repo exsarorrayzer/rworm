@@ -7,7 +7,7 @@ namespace RWORM.GUI.Views
         public string MsgTitle { get; private set; } = "System Alert";
         public string MsgBody { get; private set; } = "";
         public uint ButtonsVal { get; private set; } = 0;
-        public uint IconVal { get; private set; } = 0x40; // MB_ICONINFORMATION
+        public uint IconVal { get; private set; } = 0x40; 
 
         public MessageBoxDialog()
         {
@@ -21,22 +21,22 @@ namespace RWORM.GUI.Views
 
             ButtonsVal = (uint)CmbButtons.SelectedIndex switch
             {
-                0 => 0, // OK
-                1 => 1, // OK / Cancel
-                2 => 2, // Abort / Retry / Ignore
-                3 => 3, // Yes / No / Cancel
-                4 => 4, // Yes / No
-                5 => 5, // Retry / Cancel
+                0 => 0, 
+                1 => 1, 
+                2 => 2, 
+                3 => 3, 
+                4 => 4, 
+                5 => 5, 
                 _ => 0
             };
 
             IconVal = (uint)CmbIcon.SelectedIndex switch
             {
-                0 => 0x40, // Asterisk / Information
-                1 => 0x30, // Exclamation / Warning
-                2 => 0x10, // Hand / Stop / Error
-                3 => 0x20, // Question
-                4 => 0x00, // None
+                0 => 0x40, 
+                1 => 0x30, 
+                2 => 0x10, 
+                3 => 0x20, 
+                4 => 0x00, 
                 _ => 0x40
             };
 

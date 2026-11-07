@@ -24,16 +24,16 @@ namespace RWORM.Client.Modules
                 sb.Append($"{{\"scope\":\"{s}\",\"name\":\"{n}\",\"command\":\"{c}\",\"location\":\"{l}\"}}");
             }
 
-            // 1. Registry HKCU Run & RunOnce
+            
             ReadRegRun(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU Run", AppendEntry);
             ReadRegRun(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU RunOnce", AppendEntry);
 
-            // 2. Registry HKLM Run & RunOnce (both 64-bit and 32-bit Wow6432Node)
+            
             ReadRegRun(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKLM Run", AppendEntry);
             ReadRegRun(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKLM RunOnce", AppendEntry);
             ReadRegRun(Registry.LocalMachine, @"Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run", "HKLM Wow64 Run", AppendEntry);
 
-            // 3. User Startup Folder
+            
             try
             {
                 var userStartup = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
@@ -47,7 +47,7 @@ namespace RWORM.Client.Modules
             }
             catch { }
 
-            // 4. Common Startup Folder
+            
             try
             {
                 var commonStartup = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup);

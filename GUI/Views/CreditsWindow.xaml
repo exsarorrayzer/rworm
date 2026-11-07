@@ -1,0 +1,73 @@
+<Window x:Class="RWORM.GUI.Views.CreditsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Credits"
+        Height="270" Width="440"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#000000" Foreground="#FFFFFF"
+        BorderBrush="#222222" BorderThickness="1">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#0A0A0A" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1" MouseDown="TitleBar_MouseDown">
+            <Grid Margin="12,0,8,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#141414" BorderBrush="#252525" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0">
+                        <TextBlock Text="👑" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="CREDITS" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <Button Style="{StaticResource TitleCloseBtnStyle}" Content="✕" Click="CloseBtn_Click" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Padding="20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                    <Border Background="#0A0A0A" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="8" Padding="14,10">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="👑" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Crown:" FontSize="13" FontWeight="SemiBold" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="RayzerLabel" Text="Rayzer" FontSize="14" FontWeight="Bold" Foreground="#F59E0B" Cursor="Help" VerticalAlignment="Center">
+                                <TextBlock.ToolTip>
+                                    <ToolTip Background="#0E0E0E" BorderBrush="#2A2A2A" BorderThickness="1" Padding="10">
+                                        <TextBlock x:Name="LeaderTitleTooltip" FontSize="12" FontWeight="SemiBold" Foreground="#F59E0B"/>
+                                    </ToolTip>
+                                </TextBlock.ToolTip>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <Border Grid.Row="1" Background="#060606" BorderBrush="#181818" BorderThickness="1" CornerRadius="8" Padding="14">
+                    <Grid>
+                        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left">
+                            <TextBlock Text="RWORM C2 Architecture" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Advanced Stealth Orchestration Engine" FontSize="11" Foreground="#666666" Margin="0,3,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,4,4">
+                            <TextBlock Text="dc: rayzerw" FontSize="11.5" FontWeight="SemiBold" Foreground="#5865F2" HorizontalAlignment="Right"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,3,0,0">
+                                <TextBlock Text="3b7T" FontSize="12" FontWeight="Bold" Foreground="#10B981" Margin="0,0,6,0"/>
+                                <TextBlock Text="— is big co owner" FontSize="11" Foreground="#999999" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

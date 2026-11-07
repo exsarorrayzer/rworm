@@ -36,7 +36,7 @@ namespace RWORM.GUI.ViewModels
                 var content = await client.GetStringAsync(url.Trim());
                 content = content.Trim();
 
-                // Check for ip:port format (IPv4 or hostname followed by port)
+                
                 var match = Regex.Match(content, @"^(?:[a-zA-Z0-9\.\-]+):(\d{1,5})$");
                 if (match.Success && int.TryParse(match.Groups[1].Value, out int port) && port > 0 && port <= 65535)
                 {
