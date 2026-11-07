@@ -359,6 +359,9 @@ namespace RWORM.GUI.Services
 
         public Task StopRemoteDesktop(string guid) => GuiSend(0x83, guid, Array.Empty<byte>());
 
+        public Task SendRemoteDesktopInput(string guid, string inputPayload)
+            => GuiSend(0x82, guid, Encoding.UTF8.GetBytes(inputPayload));
+
         // ── Service Manager ──────────────────────────────────────────────────
         public void RegisterServicesHandler(string guid, Action<byte[]> cb) => RegisterHandler(guid, 0xC1, cb);
         public void UnregisterServicesHandler(string guid) => UnregisterHandler(guid, 0xC1);
@@ -898,15 +901,14 @@ namespace RWORM.GUI.Services
 
 
         private async Task RawSendAsync(byte[] data)
-
         {
-
             if (_stream == null || !_connected) return;
-
-            try { lock (_writeLock) { _stream.Write(data, 0, data.Length); _stream.Flush(); } }
-
+            try
+            {
+                await _stream.WriteAsync(data, 0, data.Length);
+                await _stream.FlushAsync();
+            }
             catch { _connected = false; }
-
         }
 
     }

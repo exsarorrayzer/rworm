@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using RWORM.GUI.Services;
 
@@ -17,11 +18,15 @@ namespace RWORM.GUI.Views
         private readonly string           _guid;
         private bool _paused;
         private bool _closed;
+        private bool _mouseControl;
         private int  _frameCount;
         private int  _frameBusy;
         private DateTime _lastFpsCalc = DateTime.Now;
         private int _currentMonitor = 0;
         private bool _monitorsLoaded = false;
+        private int _streamWidth = 1920;
+        private int _streamHeight = 1080;
+        private DateTime _lastMouseMoveSent = DateTime.MinValue;
 
         public class DisplayItem
         {
@@ -37,7 +42,7 @@ namespace RWORM.GUI.Views
             _guid   = guid;
             Title   = $"Remote Desktop — {hostname}";
             if (TitleLabel != null) TitleLabel.Text = hostname;
-            if (FpsLabel != null) FpsLabel.Text = "5";
+            if (FpsLabel != null) FpsLabel.Text = "8";
 
             _server.RegisterRDHandler(guid, OnFrame);
             _server.RegisterRDMonitorsHandler(guid, OnMonitorsReceived);
@@ -132,12 +137,16 @@ namespace RWORM.GUI.Views
                         bmp.CreateOptions  = BitmapCreateOptions.None;
                         bmp.EndInit();
                         bmp.Freeze();
+
+                        _streamWidth = bmp.PixelWidth;
+                        _streamHeight = bmp.PixelHeight;
+
                         if (ScreenView != null) ScreenView.Source = bmp;
-                        if (StatusLabel != null) StatusLabel.Text = $"Live — {bmp.PixelWidth}×{bmp.PixelHeight}";
+                        if (StatusLabel != null) StatusLabel.Text = $"Live — {_streamWidth}×{_streamHeight}";
                         if (StatusDot != null)
                         {
                             StatusDot.Fill = new System.Windows.Media.SolidColorBrush(
-                                System.Windows.Media.Color.FromRgb(0x3F, 0xB9, 0x50));
+                                System.Windows.Media.Color.FromRgb(0x10, 0xB9, 0x81));
                         }
                     }
                     catch { }
@@ -161,6 +170,109 @@ namespace RWORM.GUI.Views
         {
             if (FpsLabel != null && FpsSlider != null)
                 FpsLabel.Text = ((int)FpsSlider.Value).ToString();
+        }
+
+        private void BtnMouseControl_Checked(object sender, RoutedEventArgs e)
+        {
+            _mouseControl = true;
+            if (ControlNotice != null)
+            {
+                ControlNotice.Text = "🎮 Control Enabled (Click/Keys relayed)";
+                ControlNotice.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x10, 0xB9, 0x81));
+            }
+            ScreenView?.Focus();
+        }
+
+        private void BtnMouseControl_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _mouseControl = false;
+            if (ControlNotice != null)
+            {
+                ControlNotice.Text = "Viewing stream";
+                ControlNotice.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x25, 0x63, 0xEB));
+            }
+        }
+
+        private Point? TranslateToScreenCoordinates(Point pos)
+        {
+            if (ScreenView == null || ScreenView.ActualWidth <= 0 || ScreenView.ActualHeight <= 0 || _streamWidth <= 0 || _streamHeight <= 0)
+                return null;
+
+            double scaleX = _streamWidth / ScreenView.ActualWidth;
+            double scaleY = _streamHeight / ScreenView.ActualHeight;
+
+            int targetX = (int)Math.Clamp(pos.X * scaleX, 0, _streamWidth - 1);
+            int targetY = (int)Math.Clamp(pos.Y * scaleY, 0, _streamHeight - 1);
+
+            return new Point(targetX, targetY);
+        }
+
+        private void ScreenView_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_mouseControl || _paused) return;
+
+            var now = DateTime.UtcNow;
+            if ((now - _lastMouseMoveSent).TotalMilliseconds < 40) return; // throttle move events
+            _lastMouseMoveSent = now;
+
+            var pt = TranslateToScreenCoordinates(e.GetPosition(ScreenView));
+            if (pt.HasValue)
+            {
+                _ = _server.SendRemoteDesktopInput(_guid, $"mouse\x00move\x00{(int)pt.Value.X}\x00{(int)pt.Value.Y}\x000");
+            }
+        }
+
+        private void ScreenView_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!_mouseControl || _paused) return;
+            ScreenView.Focus();
+
+            var pt = TranslateToScreenCoordinates(e.GetPosition(ScreenView));
+            if (!pt.HasValue) return;
+
+            int btn = e.ChangedButton switch
+            {
+                MouseButton.Left => 1,
+                MouseButton.Right => 2,
+                MouseButton.Middle => 3,
+                _ => 1
+            };
+
+            _ = _server.SendRemoteDesktopInput(_guid, $"mouse\x00down\x00{(int)pt.Value.X}\x00{(int)pt.Value.Y}\x00{btn}");
+        }
+
+        private void ScreenView_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!_mouseControl || _paused) return;
+
+            var pt = TranslateToScreenCoordinates(e.GetPosition(ScreenView));
+            if (!pt.HasValue) return;
+
+            int btn = e.ChangedButton switch
+            {
+                MouseButton.Left => 1,
+                MouseButton.Right => 2,
+                MouseButton.Middle => 3,
+                _ => 1
+            };
+
+            _ = _server.SendRemoteDesktopInput(_guid, $"mouse\x00up\x00{(int)pt.Value.X}\x00{(int)pt.Value.Y}\x00{btn}");
+        }
+
+        private void ScreenView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (!_mouseControl || _paused) return;
+            e.Handled = true;
+            int vk = KeyInterop.VirtualKeyFromKey(e.Key);
+            _ = _server.SendRemoteDesktopInput(_guid, $"key\x00down\x00{vk}");
+        }
+
+        private void ScreenView_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (!_mouseControl || _paused) return;
+            e.Handled = true;
+            int vk = KeyInterop.VirtualKeyFromKey(e.Key);
+            _ = _server.SendRemoteDesktopInput(_guid, $"key\x00up\x00{vk}");
         }
 
         protected override void OnClosed(EventArgs e)
