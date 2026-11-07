@@ -4,7 +4,7 @@
         Height="680" Width="1100"
         MinHeight="450" MinWidth="800"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}"
         Title="Registry Editor">
 
     <Window.Resources>
@@ -82,10 +82,10 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
-                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="✎ Edit Value"  Click="EditValue_Click"  Style="{StaticResource Btn}" Margin="0,0,6,0"/>
                     <Button Content="＋ New Value"  Click="NewValue_Click"   Style="{StaticResource Btn}" Margin="0,0,6,0"/>
@@ -95,7 +95,7 @@
             </DockPanel>
         </Border>
 
-        <!-- Main split: Tree | Values -->
+        
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" MinWidth="180"/>
@@ -103,30 +103,30 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Registry key tree -->
-            <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0">
+            
+            <Border Grid.Column="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
                 <TreeView x:Name="KeyTree"
-                          Background="#FFFFFF"
-                          Foreground="#0F172A"
+                          Background="{StaticResource BackgroundMainBrush}"
+                          Foreground="{StaticResource TextPrimaryBrush}"
                           BorderThickness="0"
                           Padding="4"
                           SelectedItemChanged="KeyTree_SelectedItemChanged">
-                    <!-- Populated dynamically -->
+                    
                 </TreeView>
             </Border>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
                           Background="#F1F5F9"/>
 
-            <!-- Values grid -->
+            
             <DataGrid x:Name="ValuesGrid"
                       Grid.Column="2"
-                      Background="#FFFFFF"
-                      Foreground="#0F172A"
+                      Background="{StaticResource BackgroundMainBrush}"
+                      Foreground="{StaticResource TextPrimaryBrush}"
                       GridLinesVisibility="Horizontal"
                       HorizontalGridLinesBrush="#E2E8F0"
-                      RowBackground="#FFFFFF"
-                      AlternatingRowBackground="#F8FAFC"
+                      RowBackground="{StaticResource BackgroundMainBrush}"
+                      AlternatingRowBackground="{StaticResource BackgroundSecondaryBrush}"
                       BorderThickness="0"
                       FontSize="12.5"
                       FontFamily="Segoe UI"
@@ -156,13 +156,13 @@
             </DataGrid>
         </Grid>
 
-        <!-- Path bar / status -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <DockPanel Margin="16,0">
-                <TextBlock Text="Path:" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock x:Name="PathLabel" Foreground="#0F172A" FontFamily="Cascadia Code, Consolas"
+                <TextBlock Text="Path:" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock x:Name="PathLabel" Foreground="{StaticResource TextPrimaryBrush}" FontFamily="Cascadia Code, Consolas"
                            FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <TextBlock x:Name="StatusLabel" DockPanel.Dock="Right" Foreground="#64748B"
+                <TextBlock x:Name="StatusLabel" DockPanel.Dock="Right" Foreground="{StaticResource TextSecondaryBrush}"
                            FontSize="11.5" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>

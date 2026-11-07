@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Height="550" Width="880"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}"
         Title="Network Connections">
     <Grid>
         <Grid.RowDefinitions>
@@ -12,11 +12,11 @@
             <RowDefinition Height="32"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <Button Content="Refresh" Click="Refresh_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4"/>
                 </StackPanel>
                 <TextBox x:Name="SearchBox" DockPanel.Dock="Right" Width="200" Height="30" Margin="0,0,8,0"
@@ -25,7 +25,7 @@
             </DockPanel>
         </Border>
 
-        <!-- Connections DataGrid -->
+        
         <DataGrid x:Name="NetGrid" Grid.Row="1"
                   Style="{StaticResource ModernDataGrid}"
                   AutoGenerateColumns="False" IsReadOnly="True"
@@ -42,9 +42,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

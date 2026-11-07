@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Height="440" Width="640"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}"
         Title="Audio &amp; Microphone Monitor">
     <Grid>
         <Grid.RowDefinitions>
@@ -12,44 +12,44 @@
             <RowDefinition Height="34"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Bar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/Resources/Assets/audio.png" Width="20" Height="20" Margin="0,0,10,0"/>
                     <TextBlock x:Name="TitleLabel" Text="Audio Monitor" FontSize="15" FontWeight="Bold"
-                               Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,18,0"/>
 
                     <Button x:Name="ListenBtn" Content="⏹ Stop Listening" Click="Listen_Click"
                             Style="{StaticResource DangerButton}" Height="30" Padding="14,4"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Chunks Received: " Foreground="#64748B" FontSize="12"/>
+                    <TextBlock Text="Chunks Received: " Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
                     <TextBlock x:Name="ChunkCountLabel" Text="0" Foreground="#10B981" FontWeight="Bold" FontSize="12.5"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Visualizer Area -->
-        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1"
+        
+        <Border Grid.Row="1" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
                 Margin="16" CornerRadius="8" Padding="24">
             <Grid>
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Ellipse x:Name="AudioPulse" Width="74" Height="74" Fill="#10B981" Opacity="0.3"
                              HorizontalAlignment="Center" Margin="0,0,0,20"/>
                     <TextBlock Text="Live Microphone &amp; Audio Stream" FontSize="16" FontWeight="Bold"
-                               Foreground="#0F172A" HorizontalAlignment="Center"/>
+                               Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                     <TextBlock Text="Audio captured remotely is automatically played through your system speakers in real-time."
-                               FontSize="12.5" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,8,0,0"
+                               FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,8,0,0"
                                TextWrapping="Wrap" TextAlignment="Center" MaxWidth="460"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

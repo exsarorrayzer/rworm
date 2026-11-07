@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="System Information" Height="680" Width="820"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A">
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}">
     <Window.Resources>
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="#0F172A"/>
@@ -37,12 +37,12 @@
             <RowDefinition Height="34"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/Resources/Assets/sysinfo.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                    <TextBlock Text="System Details &amp; Hardware Profile" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                    <TextBlock Text="System Details &amp; Hardware Profile" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button Content="Refresh" Width="84" Height="30" HorizontalAlignment="Right"
                         Style="{StaticResource ModernButton}"
@@ -52,7 +52,7 @@
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,16">
             <StackPanel>
-                <!-- Power & Device Type Card -->
+                
                 <Border Style="{StaticResource CardBorder}">
                     <StackPanel>
                         <DockPanel Margin="0,0,0,10">
@@ -76,7 +76,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Identity & Operating System Card -->
+                
                 <Border Style="{StaticResource CardBorder}">
                     <StackPanel>
                         <TextBlock Text="Identity &amp; OS" FontWeight="Bold" FontSize="14" Foreground="#0284C7" Margin="0,0,0,10"/>
@@ -103,7 +103,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Hardware Specifications Card -->
+                
                 <Border Style="{StaticResource CardBorder}">
                     <StackPanel>
                         <TextBlock Text="Hardware Specifications" FontWeight="Bold" FontSize="14" Foreground="#16A34A" Margin="0,0,0,10"/>
@@ -130,7 +130,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Storage Disks Card -->
+                
                 <Border Style="{StaticResource CardBorder}">
                     <StackPanel>
                         <TextBlock Text="Storage Disks" FontWeight="Bold" FontSize="14" Foreground="#D97706" Margin="0,0,0,10"/>
@@ -149,9 +149,9 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusText" Text="Loading system information..." Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusText" Text="Loading system information..." Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

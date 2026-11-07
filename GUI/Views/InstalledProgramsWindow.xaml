@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Installed Programs" Height="580" Width="850"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A">
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="54"/>
@@ -11,12 +11,12 @@
             <RowDefinition Height="34"/>
         </Grid.RowDefinitions>
 
-        <!-- Header / Toolbar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Image Source="pack://application:,,,/Resources/Assets/programs.png" Width="20" Height="20" Margin="0,0,10,0"/>
-                    <TextBlock Text="Installed Programs" FontSize="15" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                    <TextBlock Text="Installed Programs" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -31,7 +31,7 @@
             </DockPanel>
         </Border>
 
-        <!-- Programs Grid -->
+        
         <DataGrid x:Name="ProgramsGrid" Grid.Row="1"
                   Style="{StaticResource ModernDataGrid}"
                   AutoGenerateColumns="False" IsReadOnly="True"
@@ -44,9 +44,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusText" Text="Loading installed programs..." Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusText" Text="Loading installed programs..." Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

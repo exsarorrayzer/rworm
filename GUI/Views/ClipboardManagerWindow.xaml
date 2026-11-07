@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Height="480" Width="680"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="{StaticResource BackgroundSecondaryBrush}" Foreground="{StaticResource TextPrimaryBrush}"
         Title="Clipboard Manager">
     <Grid>
         <Grid.RowDefinitions>
@@ -12,11 +12,11 @@
             <RowDefinition Height="32"/>
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        
+        <Border Grid.Row="0" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <Button Content="Get Clipboard" Click="GetClipboard_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4" Margin="0,0,8,0"/>
                     <Button Content="Set Remote Clipboard" Click="SetClipboard_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4" Margin="0,0,8,0"/>
                     <Button Content="Clear Editor" Click="Clear_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4"/>
@@ -24,11 +24,11 @@
             </DockPanel>
         </Border>
 
-        <!-- Editor -->
-        <Border Grid.Row="1" Margin="12" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4">
+        
+        <Border Grid.Row="1" Margin="12" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
             <TextBox x:Name="ClipboardEditor"
                      Background="Transparent"
-                     Foreground="#0F172A"
+                     Foreground="{StaticResource TextPrimaryBrush}"
                      CaretBrush="#0F172A"
                      BorderThickness="0"
                      Padding="12"
@@ -41,9 +41,9 @@
                      HorizontalScrollBarVisibility="Auto"/>
         </Border>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        
+        <Border Grid.Row="2" Background="{StaticResource BackgroundMainBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>
