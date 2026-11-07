@@ -56,7 +56,7 @@
 
         <!-- Sidebar -->
 
-        <Border Grid.Column="0" Grid.RowSpan="2" Background="White"
+        <Border Grid.Column="0" Grid.RowSpan="2" Background="#1A1A1A"
 
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
 
@@ -78,7 +78,7 @@
 
                 <StackPanel Grid.Row="0" Margin="20,20,20,30">
 
-                    <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20"/>
+                    <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="120" HorizontalAlignment="Left" Margin="20,20,20,20" VerticalAlignment="Center"/>
 
                 </StackPanel>
 
@@ -102,7 +102,7 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/clients.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/clients.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                         <ContentPresenter VerticalAlignment="Center"/>
 
@@ -148,7 +148,7 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/listener.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/listener.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                         <ContentPresenter VerticalAlignment="Center"/>
 
@@ -194,7 +194,7 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/builder.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                         <ContentPresenter VerticalAlignment="Center"/>
 
@@ -242,7 +242,7 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                         <ContentPresenter VerticalAlignment="Center"/>
 
@@ -288,7 +288,7 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/info.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/info.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                         <ContentPresenter VerticalAlignment="Center"/>
 
@@ -519,7 +519,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/shell.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/shell.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Shell" VerticalAlignment="Center"/>
 
@@ -539,7 +539,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="File Manager" VerticalAlignment="Center"/>
 
@@ -559,7 +559,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/keylogger.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/keylogger.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Keylogger" VerticalAlignment="Center"/>
 
@@ -579,7 +579,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/processmanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/processmanager.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Process Manager" VerticalAlignment="Center"/>
 
@@ -599,7 +599,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/registryeditor.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/registryeditor.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Registry Editor" VerticalAlignment="Center"/>
 
@@ -619,7 +619,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/remotedesktop.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/remotedesktop.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Remote Desktop" VerticalAlignment="Center"/>
 
@@ -639,7 +639,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/services.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/services.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Service Manager" VerticalAlignment="Center"/>
 
@@ -659,7 +659,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/network.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/network.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Network Connections" VerticalAlignment="Center"/>
 
@@ -679,7 +679,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/startup.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/startup.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Startup / Autorun" VerticalAlignment="Center"/>
 
@@ -699,7 +699,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/clipboard.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/clipboard.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Clipboard Manager" VerticalAlignment="Center"/>
 
@@ -719,7 +719,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/webcam.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/webcam.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Webcam" VerticalAlignment="Center"/>
 
@@ -739,7 +739,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/audio.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/audio.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Audio Monitor" VerticalAlignment="Center"/>
 
@@ -759,7 +759,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/url.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/url.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Open URL..." VerticalAlignment="Center"/>
 
@@ -779,7 +779,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/programs.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/programs.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Installed Programs" VerticalAlignment="Center"/>
 
@@ -801,7 +801,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/proxy.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/proxy.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Reverse Proxy" VerticalAlignment="Center"/>
 
@@ -821,7 +821,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/msgbox.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/msgbox.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Message Box..." VerticalAlignment="Center"/>
 
@@ -837,7 +837,7 @@
 
                                     <MenuItem.Icon>
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="15" Height="15"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="18" Height="18"/>
 
                                     </MenuItem.Icon>
 
@@ -849,7 +849,7 @@
 
                                         <MenuItem.Icon>
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="15" Height="15"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/chat.png" Width="18" Height="18"/>
 
                                         </MenuItem.Icon>
 
@@ -863,7 +863,7 @@
 
                                     <MenuItem.Icon>
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/pc.png" Width="15" Height="15"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/pc.png" Width="18" Height="18"/>
 
                                     </MenuItem.Icon>
 
@@ -875,7 +875,7 @@
 
                                         <MenuItem.Icon>
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/sysinfo.png" Width="15" Height="15"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/sysinfo.png" Width="18" Height="18"/>
 
                                         </MenuItem.Icon>
 
@@ -931,7 +931,7 @@
 
                                     <MenuItem.Icon>
 
-                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="18" Height="18"/>
 
                                     </MenuItem.Icon>
 
@@ -961,7 +961,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Close Client" VerticalAlignment="Center"/>
 
@@ -981,7 +981,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/uninstall.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/uninstall.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Uninstall" VerticalAlignment="Center"/>
 
@@ -1001,7 +1001,7 @@
 
                                         <StackPanel Orientation="Horizontal">
 
-                                            <Image Source="pack://application:,,,/Resources/Assets/update.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <Image Source="pack://application:,,,/Resources/Assets/update.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                             <TextBlock Text="Update Client" VerticalAlignment="Center"/>
 
@@ -1151,7 +1151,7 @@
 
                                    Fill="#330078D7"
 
-                                   Stroke="#0078D7"
+                                   Stroke="#DC2626"
 
                                    StrokeThickness="1"
 
@@ -1440,7 +1440,7 @@
                             <MenuItem Command="{Binding AddDiscordWebhookTaskCommand}">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/discord.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/discord.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Discord Webhook" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -1448,7 +1448,7 @@
                             <MenuItem Command="{Binding AddLocalFileTaskCommand}">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/filemanager.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Run File Local" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -1456,7 +1456,7 @@
                             <MenuItem Command="{Binding AddUrlTaskCommand}">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/loader.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Run File from URL" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -1466,7 +1466,7 @@
                                       CommandParameter="{Binding SelectedTask}">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <Image Source="pack://application:,,,/Resources/Assets/close.png" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Remove Task" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </MenuItem.Header>
@@ -1533,7 +1533,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate>
                                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,12" Opacity="0.4"/>
+                                                        <Image Source="pack://application:,,,/Resources/Assets/tasks.png" Width="48" Height="48" HorizontalAlignment="Center" Margin="0,0,0,12" Opacity="0.4" VerticalAlignment="Center"/>
                                                         <TextBlock Text="No tasks yet" FontSize="16" FontWeight="SemiBold"
                                                                    Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
                                                         <TextBlock Text="Right-click to add a task (Discord Webhook, Run File Local, Run File from URL)"
@@ -1559,7 +1559,7 @@
 
                     <StackPanel HorizontalAlignment="Center">
 
-                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <Image Source="pack://application:,,,/Resources/Assets/rworm2.png" Width="100" HorizontalAlignment="Center" Margin="0,0,0,20" VerticalAlignment="Center"/>
 
                         <TextBlock Text="RWORM" FontSize="32" FontWeight="Bold"
 
@@ -1601,7 +1601,7 @@
 
         <!-- Status Bar -->
 
-        <Border Grid.Column="1" Grid.Row="1" Background="White"
+        <Border Grid.Column="1" Grid.Row="1" Background="#1A1A1A"
 
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
 

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Height="550" Width="850"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="#141414" Foreground="#F5F5F5"
         Title="Service Manager">
     <Grid>
         <Grid.RowDefinitions>
@@ -13,10 +13,10 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="TitleLabel" FontSize="14" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <Button Content="▶ Start" Click="Start_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4" Margin="0,0,8,0"/>
                     <Button Content="⏹ Stop" Click="Stop_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4" Margin="0,0,8,0"/>
                     <Button Content="🔄 Restart" Click="Restart_Click" Style="{StaticResource ModernButton}" Height="30" Padding="12,4" Margin="0,0,8,0"/>
@@ -42,8 +42,8 @@
         </DataGrid>
 
         <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        <Border Grid.Row="2" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="#8A8A8A" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

@@ -4,14 +4,14 @@
         Height="640" Width="1000"
         MinHeight="400" MinWidth="700"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="#141414" Foreground="#F5F5F5"
         Title="File Manager">
 
     <Window.Resources>
         <Style TargetType="Button" x:Key="Btn">
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="#F5F5F5"/>
+            <Setter Property="BorderBrush" Value="#3A3A3A"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -27,8 +27,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#F1F5F9"/>
-                                <Setter Property="BorderBrush" Value="#94A3B8"/>
+                                <Setter Property="Background" Value="#262626"/>
+                                <Setter Property="BorderBrush" Value="#4A4A4A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -37,16 +37,16 @@
         </Style>
 
         <Style TargetType="DataGridColumnHeader" x:Key="HeaderStyle">
-            <Setter Property="Background" Value="#F1F5F9"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Background" Value="#262626"/>
+            <Setter Property="Foreground" Value="#F5F5F5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#2E2E2E"/>
         </Style>
 
         <Style TargetType="DataGridCell" x:Key="CellStyle">
-            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F5F5F5"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
@@ -60,7 +60,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#2563EB"/>
+                    <Setter Property="Background" Value="#DC2626"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Trigger>
             </Style.Triggers>
@@ -76,9 +76,9 @@
         </Grid.RowDefinitions>
 
         <!-- Title bar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,0,0,1">
             <DockPanel Margin="16,0">
-                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TitleLabel" FontSize="13" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="⬆ Upload" Click="Upload_Click"
                             Style="{StaticResource Btn}" Margin="0,0,6,0"/>
@@ -93,14 +93,14 @@
         </Border>
 
         <!-- Path bar -->
-        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="14,0">
+        <Border Grid.Row="1" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,0,0,1" Padding="14,0">
             <DockPanel VerticalAlignment="Center">
                 <Button DockPanel.Dock="Left" Content="←" Style="{StaticResource Btn}"
                         Click="Back_Click" Width="36" Height="30" Padding="0" Margin="0,0,8,0"/>
                 <TextBox x:Name="PathBox"
-                         Background="#FFFFFF" Foreground="#0F172A"
-                         CaretBrush="#0F172A"
-                         BorderBrush="#CBD5E1" BorderThickness="1"
+                         Background="#1A1A1A" Foreground="#F5F5F5"
+                         CaretBrush="#F5F5F5"
+                         BorderBrush="#3A3A3A" BorderThickness="1"
                          Padding="10,0" FontFamily="Cascadia Code, Consolas, Courier New"
                          FontSize="12" KeyDown="PathBox_KeyDown" Height="30" VerticalContentAlignment="Center">
                     <TextBox.Template>
@@ -120,12 +120,12 @@
         <!-- File list -->
         <DataGrid x:Name="FileGrid"
                   Grid.Row="2"
-                  Background="#FFFFFF"
-                  Foreground="#0F172A"
+                  Background="#1A1A1A"
+                  Foreground="#F5F5F5"
                   GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="#E2E8F0"
-                  RowBackground="#FFFFFF"
-                  AlternatingRowBackground="#F8FAFC"
+                  HorizontalGridLinesBrush="#2E2E2E"
+                  RowBackground="#1A1A1A"
+                  AlternatingRowBackground="#141414"
                   BorderThickness="0"
                   FontSize="12.5"
                   FontFamily="Segoe UI"
@@ -139,10 +139,10 @@
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="Height" Value="34"/>
-                    <Setter Property="Foreground" Value="#0F172A"/>
+                    <Setter Property="Foreground" Value="#F5F5F5"/>
                     <Style.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#2563EB"/>
+                            <Setter Property="Background" Value="#DC2626"/>
                             <Setter Property="Foreground" Value="White"/>
                             <Setter Property="TextElement.Foreground" Value="White"/>
                         </Trigger>
@@ -165,9 +165,9 @@
         </DataGrid>
 
         <!-- Status -->
-        <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+        <Border Grid.Row="3" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,1,0,0">
             <TextBlock x:Name="StatusLabel" Margin="16,0"
-                       Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center"/>
+                       Foreground="#8A8A8A" FontSize="11.5" VerticalAlignment="Center"/>
         </Border>
     </Grid>
 </Window>

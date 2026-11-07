@@ -15,6 +15,12 @@
             <conv:InverseBoolConverter         x:Key="InverseBoolConverter"/>
             <conv:StringToVisibilityConverter  x:Key="StringToVisibilityConverter"/>
             <conv:StringToBoolConverter        x:Key="StringToBoolConverter"/>
+
+            <!-- Fires on every window (including code-created dialogs) so the
+                 Win32 caption is rendered dark instead of the default white. -->
+            <Style TargetType="Window">
+                <EventSetter Event="Loaded" Handler="OnWindowLoaded"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

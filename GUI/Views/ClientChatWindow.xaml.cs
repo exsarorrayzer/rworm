@@ -79,8 +79,8 @@ namespace RWORM.GUI.Views
                 Margin = new Thickness(0, 4, 0, 4),
                 MaxWidth = 480,
                 HorizontalAlignment = isMe ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                Background = isMe ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2563EB")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9")),
-                BorderBrush = isMe ? null : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0")),
+                Background = isMe ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DC2626")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#262626")),
+                BorderBrush = isMe ? null : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E2E2E")),
                 BorderThickness = isMe ? new Thickness(0) : new Thickness(1)
             };
 
@@ -91,7 +91,7 @@ namespace RWORM.GUI.Views
                 Text = $"{sender}  •  {DateTime.Now:HH:mm}",
                 FontSize = 11,
                 FontWeight = FontWeights.SemiBold,
-                Foreground = isMe ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BFDBFE")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")),
+                Foreground = isMe ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FECACA")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8A8A8A")),
                 Margin = new Thickness(0, 0, 0, 3)
             };
 
@@ -100,7 +100,7 @@ namespace RWORM.GUI.Views
                 Text = text,
                 FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = isMe ? Brushes.White : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"))
+                Foreground = isMe ? Brushes.White : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F5F5F5"))
             };
 
             stack.Children.Add(senderLabel);
@@ -117,7 +117,7 @@ namespace RWORM.GUI.Views
             {
                 Text = notice,
                 FontSize = 11.5,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8A8A8A")),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 6, 0, 6),
                 FontStyle = FontStyles.Italic

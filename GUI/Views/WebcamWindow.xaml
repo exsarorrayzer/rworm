@@ -4,7 +4,7 @@
         Height="620" Width="820"
         MinHeight="450" MinWidth="550"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC" Foreground="#0F172A"
+        Background="#141414" Foreground="#F5F5F5"
         Title="Webcam Stream">
     <Grid>
         <Grid.RowDefinitions>
@@ -14,14 +14,14 @@
         </Grid.RowDefinitions>
 
         <!-- Top Bar -->
-        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,0,0,1">
             <DockPanel Margin="20,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/Resources/Assets/webcam.png" Width="20" Height="20" Margin="0,0,10,0"/>
+                    <Image Source="pack://application:,,,/Resources/Assets/webcam.png" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
                     <TextBlock x:Name="TitleLabel" Text="Webcam" FontSize="15" FontWeight="Bold"
-                               Foreground="#0F172A" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                               Foreground="#F5F5F5" VerticalAlignment="Center" Margin="0,0,18,0"/>
 
-                    <TextBlock Text="Device:" Foreground="#64748B" FontSize="12.5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Text="Device:" Foreground="#8A8A8A" FontSize="12.5" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="DeviceCombo" Width="200" Height="30" Margin="0,0,12,0"
                               SelectionChanged="DeviceCombo_SelectionChanged"/>
 
@@ -32,7 +32,7 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="Frames: " Foreground="#64748B" FontSize="12"/>
+                    <TextBlock Text="Frames: " Foreground="#8A8A8A" FontSize="12"/>
                     <TextBlock x:Name="FrameCountLabel" Text="0" Foreground="#10B981" FontWeight="Bold" FontSize="12.5"/>
                 </StackPanel>
             </DockPanel>
@@ -41,15 +41,15 @@
         <!-- Video View -->
         <Border Grid.Row="1" Background="#0F172A" Margin="16" CornerRadius="8" ClipToBounds="True">
             <Grid>
-                <TextBlock x:Name="PlaceholderText" Text="Waiting for video frame from device..." Foreground="#64748B"
+                <TextBlock x:Name="PlaceholderText" Text="Waiting for video frame from device..." Foreground="#8A8A8A"
                            HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
                 <Image x:Name="CamView" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
         <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusLabel" Foreground="#64748B" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
+        <Border Grid.Row="2" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusLabel" Foreground="#8A8A8A" FontSize="11.5" VerticalAlignment="Center" Margin="16,0"/>
         </Border>
     </Grid>
 </Window>

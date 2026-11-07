@@ -6,6 +6,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>RWORM</AssemblyName>
+    <!-- Win32 exe icon (taskbar, explorer, alt-tab) -->
+    <ApplicationIcon>Resources\Assets\rwormicon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
