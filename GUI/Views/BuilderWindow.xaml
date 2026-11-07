@@ -138,8 +138,10 @@
                         <Border Style="{StaticResource LightCard}">
                             <StackPanel>
                                 <TextBlock Text="Defense &amp; Alerts" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill"
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Kill (Embedded explorer.exe supervisor &amp; anti-termination)"
                                           IsChecked="{Binding BuildAntiKill}"/>
+                                <CheckBox Style="{StaticResource LightCheckBox}" Content="Obfuscator (AsyncRAT dnlib identifier, class &amp; symbol renaming)"
+                                          IsChecked="{Binding BuildObfuscator}"/>
                                 <CheckBox Style="{StaticResource LightCheckBox}" Content="Anti-Sandbox / Anti-VM (Maintenance / Disabled)"
                                           IsChecked="False" IsEnabled="False" Opacity="0.6"/>
                                 <CheckBox Style="{StaticResource LightCheckBox}" Content="Discord Webhook Alert (Notify on client connection)"
@@ -436,6 +438,18 @@
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="Anti-Kill Protection:" Foreground="#64748B"/>
                                     <TextBlock Grid.Column="1" Text="{Binding BuildAntiKill, StringFormat='Active: {0}'}" Foreground="#0F172A" FontWeight="SemiBold"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="AsyncRAT Obfuscator:" Foreground="#64748B"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildObfuscator, StringFormat='Active: {0}'}" Foreground="#2563EB" FontWeight="SemiBold"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="AsyncRAT Obfuscator:" Foreground="#64748B"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding BuildObfuscator, StringFormat='Active: {0}'}" Foreground="#2563EB" FontWeight="SemiBold"/>
                                 </Grid>
 
                                 

