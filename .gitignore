@@ -18,5 +18,6 @@ Client/Core/Config.cs
 Client\Core\Config.cs
 
 rworm.db
+webhooks.json
 
 release/GUI_SingleFile/
