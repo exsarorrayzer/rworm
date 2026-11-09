@@ -245,6 +245,20 @@
                                              FontSize="13"/>
                                 </Grid>
 
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Group Tag:" FontSize="13" FontWeight="SemiBold" Foreground="#F5F5F5" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Style="{StaticResource LightTextBox}" Height="36"
+                                             Text="{Binding BuildGroupTag, UpdateSourceTrigger=PropertyChanged}"
+                                             FontFamily="Cascadia Code, Consolas, Segoe UI"
+                                             FontWeight="SemiBold"
+                                             FontSize="13"
+                                             ToolTip="Label baked into the binary — identifies which campaign/batch this build belongs to."/>
+                                </Grid>
+
                                 <Grid Margin="0,0,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="150"/>

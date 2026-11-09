@@ -54,6 +54,9 @@ class ClientSession:
         self.cpu = 0
         self.ram_percent = 0
 
+        self.build_id  = ''
+        self.group_tag = ''
+
         threading.Thread(target=self._resolve_geo, daemon=True).start()
 
     def _resolve_geo(self):
@@ -72,6 +75,8 @@ class ClientSession:
         self.hostname   = info.get('hostname')
         self.username   = info.get('username')
         self.os_version = info.get('os_version')
+        self.build_id   = info.get('build_id', '')
+        self.group_tag  = info.get('group_tag', '')
         ext_ip = info.get('ip_address') or info.get('external_ip')
         if ext_ip and ext_ip not in ('127.0.0.1', 'localhost', '::1'):
             self.ip_address = ext_ip
@@ -115,6 +120,8 @@ class ClientSession:
             'flag':         self.flag,
             'cpu':          self.cpu,
             'ram_percent':  self.ram_percent,
+            'build_id':     self.build_id,
+            'group_tag':    self.group_tag,
             'created_at':   self.created_at.isoformat() if self.created_at else None,
             'last_seen':    self.last_seen.isoformat() if self.last_seen else None,
         }

@@ -1,4 +1,4 @@
-﻿<Window x:Class="RWORM.GUI.MainWindow"
+<Window x:Class="RWORM.GUI.MainWindow"
 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 
@@ -1134,6 +1134,8 @@
                             <DataGridTextColumn Header="OS"         Binding="{Binding OSVersion}"  Width="140"/>
 
                             <DataGridTextColumn Header="Load"       Binding="{Binding MetricsDisplay}" Width="125"/>
+
+                            <DataGridTextColumn Header="Group"      Binding="{Binding GroupTag}"       Width="90"/>
 
                             <DataGridTextColumn Header="Last Seen"  Binding="{Binding LastSeen, StringFormat='{}{0:HH:mm:ss}'}" Width="100"/>
 

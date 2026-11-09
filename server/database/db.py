@@ -21,9 +21,18 @@ class Database:
                 country TEXT,
                 is_online INTEGER DEFAULT 0,
                 last_seen TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                build_id TEXT DEFAULT '',
+                group_tag TEXT DEFAULT ''
             )
         ''')
+
+        # Migrate existing databases that predate the build_id / group_tag columns.
+        for col, default in [('build_id', "''"), ('group_tag', "''")]:
+            try:
+                cursor.execute(f"ALTER TABLE clients ADD COLUMN {col} TEXT DEFAULT {default}")
+            except sqlite3.OperationalError:
+                pass  # column already exists
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS commands (
@@ -41,21 +50,24 @@ class Database:
         conn.commit()
         conn.close()
         
-    def add_client(self, guid: str, hostname: str, username: str, os_version: str, ip_address: str) -> int:
+    def add_client(self, guid: str, hostname: str, username: str, os_version: str, ip_address: str,
+                   build_id: str = '', group_tag: str = '') -> int:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
         cursor.execute('''
-            INSERT INTO clients (guid, hostname, username, os_version, ip_address, is_online, last_seen)
-            VALUES (?, ?, ?, ?, ?, 1, ?)
+            INSERT INTO clients (guid, hostname, username, os_version, ip_address, is_online, last_seen, build_id, group_tag)
+            VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)
             ON CONFLICT(guid) DO UPDATE SET
                 hostname   = excluded.hostname,
                 username   = excluded.username,
                 os_version = excluded.os_version,
                 ip_address = excluded.ip_address,
                 is_online  = 1,
-                last_seen  = excluded.last_seen
-        ''', (guid, hostname, username, os_version, ip_address, datetime.now().isoformat()))
+                last_seen  = excluded.last_seen,
+                build_id   = excluded.build_id,
+                group_tag  = excluded.group_tag
+        ''', (guid, hostname, username, os_version, ip_address, datetime.now().isoformat(), build_id, group_tag))
         
         cursor.execute('SELECT id FROM clients WHERE guid = ?', (guid,))
         row = cursor.fetchone()
@@ -91,7 +103,9 @@ class Database:
                 'username': row[3],
                 'os_version': row[4],
                 'ip_address': row[5],
-                'is_online': bool(row[7])
+                'is_online': bool(row[7]),
+                'build_id':  row[10] if len(row) > 10 else '',
+                'group_tag': row[11] if len(row) > 11 else '',
             }
         return None
         
@@ -113,7 +127,9 @@ class Database:
                 'os_version': row[4],
                 'ip_address': row[5],
                 'is_online': bool(row[7]),
-                'last_seen': row[8]
+                'last_seen': row[8],
+                'build_id':  row[10] if len(row) > 10 else '',
+                'group_tag': row[11] if len(row) > 11 else '',
             })
         return clients
         
